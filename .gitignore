@@ -15,10 +15,10 @@ appsettings.*.json
 ## Aspire
 **/apphost.json
 
-## Node / Angular
+## Node / React
 node_modules/
 dist/
-.angular/
+.vite/
 npm-debug.log*
 yarn-error.log*
 .env

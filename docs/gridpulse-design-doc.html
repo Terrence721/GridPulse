@@ -82,7 +82,7 @@
 <h3>1.1 Goals</h3>
 <ul>
   <li>Demonstrate original architecture and decision-making, not a cloned reference app.</li>
-  <li>Exercise the real stack you'd use on the job: .NET Core / .NET Aspire, Angular + NgRx, Kafka, GitHub Actions CI/CD, New Relic-style observability.</li>
+  <li>Exercise the real stack you'd use on the job: .NET Core / .NET Aspire, React + TypeScript + Redux Toolkit, Kafka, GitHub Actions CI/CD, New Relic-style observability.</li>
   <li>Produce enough surface area (multiple services, an event bus, a UI, a pipeline, dashboards) to sustain a 30–45 minute deep-dive technical interview conversation.</li>
   <li>Be deployable end-to-end (even if just to a local Kubernetes cluster or a single cloud VM) so you can demo it live rather than just describe it.</li>
 </ul>
@@ -153,13 +153,13 @@
 
 ┌────────────────────────────────────────┐
 │  BFF / API Gateway (.NET Aspire)        │
-│  - Aggregates data for the Angular UI   │
+│  - Aggregates data for the React UI     │
 │  - Auth (OIDC)                          │
 └──────────────────┬───────────────────────┘
                    │
                    ▼
 ┌────────────────────────────────────────┐
-│  Angular + NgRx Dashboard               │
+│  React + Redux Toolkit Dashboard        │
 │  - Live usage charts                    │
 │  - Invoice history                      │
 │  - Account management                   │
@@ -201,13 +201,13 @@
 
 <h3>3.6 BFF / API Gateway</h3>
 <ul>
-  <li>Backend-for-frontend that aggregates data from the above services for the Angular dashboard, and handles authentication (OIDC via an identity provider like Keycloak or Auth0 for demonstration).</li>
+  <li>Backend-for-frontend that aggregates data from the above services for the React dashboard, and handles authentication (OIDC via an identity provider like Keycloak or Auth0 for demonstration).</li>
 </ul>
 
-<h3>3.7 Angular + NgRx Dashboard</h3>
+<h3>3.7 React + Redux Toolkit Dashboard</h3>
 <ul>
   <li>Real-time usage charts (via WebSocket or SignalR push from the gateway), invoice history, and account management screens.</li>
-  <li>NgRx used for state management to demonstrate the same pattern you'd use in a production Angular app.</li>
+  <li>Redux Toolkit used for state management, with RTK Query handling data fetching/caching — playing the same role NgRx Effects would in an Angular app — to demonstrate the same pattern you'd use in a production React app.</li>
 </ul>
 
 <h2>4. Event Contracts (Kafka Topics)</h2>
@@ -247,7 +247,7 @@
   <li>
     <strong>Testing strategy:</strong>
     <ul>
-      <li>Unit tests (xUnit for .NET, Vitest for Node service, Jest for Angular) — ties to your existing testing framework experience.</li>
+      <li>Unit tests (xUnit for .NET, Vitest for the Node service and the React dashboard, React Testing Library for component behavior) — ties to your existing testing framework experience.</li>
       <li>Contract tests for Kafka event schemas.</li>
       <li>Integration tests using Testcontainers to spin up real Kafka/Postgres instances in CI.</li>
     </ul>
@@ -275,7 +275,7 @@
   <li><span class="phase">Phase 1 — Core loop, no Kafka:</span> Meter Simulator → Usage Aggregation → Billing, all via direct REST calls, single Postgres DB. Get the domain logic right first.</li>
   <li><span class="phase">Phase 2 — Introduce Kafka:</span> Replace REST calls between services with Kafka topics. Add schema registry.</li>
   <li><span class="phase">Phase 3 —</span> Add the Node.js Notification Service and Account Service.</li>
-  <li><span class="phase">Phase 4 —</span> Build the Angular/NgRx dashboard and BFF gateway.</li>
+  <li><span class="phase">Phase 4 —</span> Build the React/Redux Toolkit dashboard and BFF gateway.</li>
   <li><span class="phase">Phase 5 —</span> CI/CD, containerization, and deployment automation.</li>
   <li><span class="phase">Phase 6 —</span> Observability (OpenTelemetry + dashboards) and resiliency hardening (retries, dead-letter queues, chaos testing one service failure).</li>
 </ol>

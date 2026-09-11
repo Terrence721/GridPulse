@@ -20,7 +20,7 @@ GridPulse is a self-contained, event-driven platform simulating a utility compan
 It's being built to demonstrate:
 
 - Original architecture and decision-making across a full event-driven microservices stack — not a cloned reference app
-- The real stack used on the job: .NET Core / .NET Aspire, Angular + NgRx, Kafka, GitHub Actions CI/CD, OpenTelemetry-based observability
+- The real stack used on the job: .NET Core / .NET Aspire, React + TypeScript + Redux Toolkit, Kafka, GitHub Actions CI/CD, OpenTelemetry-based observability
 - Polyglot service design (a Node.js Notification Service alongside the .NET core) with consistent event contracts across the language boundary
 - Domain modeling with proper OOP/SOLID design (rate plans as a Strategy pattern)
 - A system deployable end-to-end and demoable live, not just describable
@@ -66,7 +66,7 @@ Account/Customer Service (.NET)         — owns customer & meter registration, 
 BFF / API Gateway (.NET Aspire)         — aggregates data for the UI, OIDC auth
         │
         ▼
-Angular + NgRx Dashboard                — live usage charts, invoice history, account mgmt
+React + Redux Toolkit Dashboard          — live usage charts, invoice history, account mgmt
 ```
 
 All services are orchestrated locally and in CI via **.NET Aspire**.
@@ -82,7 +82,7 @@ Tracked in detail in [`todo.md`](todo.md) (the source of truth) and the [project
 - [ ] **Phase 1 — Core loop, no Kafka.** Meter Simulator → Usage Aggregation → Billing via direct REST calls, single Postgres DB.
 - [ ] **Phase 2 — Introduce Kafka.** Replace REST calls between services with Kafka topics; add a schema registry.
 - [ ] **Phase 3 — Polyglot + accounts.** Add the Node.js Notification Service and the Account/Customer Service.
-- [ ] **Phase 4 — Dashboard.** Build the Angular/NgRx dashboard and BFF gateway.
+- [ ] **Phase 4 — Dashboard.** Build the React/Redux Toolkit dashboard and BFF gateway.
 - [ ] **Phase 5 — CI/CD.** GitHub Actions build/test/containerize/deploy pipeline.
 - [ ] **Phase 6 — Observability & resiliency.** OpenTelemetry, dashboards, retries/circuit breakers, dead-letter queues, chaos testing.
 
@@ -104,11 +104,11 @@ Not yet runnable — this section will be filled in once the Phase 1 AppHost exi
 
 - .NET 10 SDK
 - Docker Desktop (for Postgres, and later Kafka)
-- Node.js 20+ with [Corepack](https://nodejs.org/api/corepack.html) enabled (`corepack enable`) — resolves the pinned **Yarn 4.18.0** automatically for the Notification Service and Angular dashboard, Phase 3+
+- Node.js 20+ with [Corepack](https://nodejs.org/api/corepack.html) enabled (`corepack enable`) — resolves the pinned **Yarn 4.18.0** automatically for the Notification Service and React dashboard, Phase 3+
 
 ### Package management
 
-All JS/TS packages in this repo (Notification Service, Angular dashboard, shared tooling) are managed with **Yarn Berry**, pinned to a specific version via `packageManager` in [`package.json`](package.json) so `corepack` resolves the same version everywhere. Shared dependency versions live in [`.yarnrc.yml`](.yarnrc.yml)'s `catalog`/`catalogs`, referenced from each package via the `catalog:` protocol instead of hardcoding a version per package — populated as each JS/TS package is actually added.
+All JS/TS packages in this repo (Notification Service, React dashboard, shared tooling) are managed with **Yarn Berry**, pinned to a specific version via `packageManager` in [`package.json`](package.json) so `corepack` resolves the same version everywhere. Shared dependency versions live in [`.yarnrc.yml`](.yarnrc.yml)'s `catalog`/`catalogs`, referenced from each package via the `catalog:` protocol instead of hardcoding a version per package — populated as each JS/TS package is actually added.
 
 ---
 
