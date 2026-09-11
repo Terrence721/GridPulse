@@ -21,9 +21,10 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | Repo scaffolding | README, MIT LICENSE, `.gitignore`, design doc (PDF → HTML) — [#1](https://github.com/Terrence721/GridPulse/issues/1) |
 | Package management | Yarn Berry 4.18.0 pinned via Corepack, catalog scaffold for future JS/TS packages — [#2](https://github.com/Terrence721/GridPulse/issues/2) |
 | Code analysis | CodeQL (`csharp` + `actions` today; `javascript-typescript` returns once real JS/TS source exists) — [#3](https://github.com/Terrence721/GridPulse/issues/3) |
-| Project tracking | GitHub wiki, GitHub Pages (serving `docs/`), and a [project board](https://github.com/users/Terrence721/projects/9) (Backlog/Planned/In Progress/Verification & QA/Done) all set up |
+| Project tracking | GitHub wiki, GitHub Pages (serving `docs/`), a one-page portfolio, and a [project board](https://github.com/users/Terrence721/projects/9) (Backlog/Planned/In Progress/Verification & QA/Done) all set up |
+| Aspire backbone | `GridPulse.slnx`, `ServiceDefaults`, and `AppHost` — Postgres resource wired in and verified end-to-end (container up, `gridpulsedb` created) — [#4](https://github.com/Terrence721/GridPulse/issues/4)/[#5](https://github.com/Terrence721/GridPulse/issues/5) |
 
-**Actually still open, right now:** all of Phase 1's actual service code (7 items) plus Phases 2-6 at a high level — see **Still to do** below.
+**Actually still open, right now:** the three domain services (Meter Simulator, Usage Aggregation, Billing), their tests, and the Phase 1 smoke check (5 items) plus Phases 2-6 at a high level — see **Still to do** below.
 
 ## ✅ Done
 
@@ -55,19 +56,25 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | 2026-09-11 | `docs/portfolio.html` added — the one-page portfolio, same design system as `coolify-full`/`saga-full`'s. Content kept honest to Phase 1's actual state rather than copying their case-study structure wholesale: the "ledger" section uses the two real CI failures above instead of app-level findings (there isn't a service yet to find bugs in), and a "Judgment calls" section documents the `.slnf` → real-CLI-install reconsideration. README's top-of-file link now points here instead of the design doc directly. |
 | 2026-09-11 | This project added to the [GitHub profile README](https://github.com/Terrence721/Terrence721) and the [portfolio hub](https://terrence721.github.io/) as an early-stage card. |
 
+### Phase 1 — solution & Aspire backbone
+
+| Date | What |
+| - | - |
+| 2026-09-11 | `GridPulse.slnx` created (`.NET 10`'s new default solution format, chosen over classic `.sln` — cleaner diffs, no GUID soup). `src`/`tests` weren't scaffolded as empty placeholder folders since git doesn't track empty directories; they came into existence naturally once real projects landed. [#4](https://github.com/Terrence721/GridPulse/issues/4) |
+| 2026-09-11 | `src/ServiceDefaults` added (shared health checks, OpenTelemetry, service discovery — Microsoft's standard Aspire template, already composition-based with single-responsibility extension methods, checked against this repo's DRY/SOLID/composition-over-inheritance standard and needed no changes). `src/AppHost` scaffolded and given `Aspire.Hosting.PostgreSQL`. [#5](https://github.com/Terrence721/GridPulse/issues/5) |
+| 2026-09-11 | Postgres resource wired into `AppHost.cs` (`AddPostgres("postgres").WithDataVolume()` + `AddDatabase("gridpulsedb")`) and verified end-to-end, not just assumed from a clean build: ran the AppHost locally, confirmed the `postgres-nvnytrht` container reached `Running`, and confirmed `gridpulsedb` actually exists via `psql -l` inside the container. Closes out the Aspire backbone. [#5](https://github.com/Terrence721/GridPulse/issues/5) |
+
 ## 🚧 Still to do
 
 **Phase 1 — Core loop, no Kafka** (Meter Simulator → Usage Aggregation → Billing via direct REST calls, single Postgres DB — see [docs/gridpulse-design-doc.html](docs/gridpulse-design-doc.html)):
 
 | # | Item | Status |
 | - | - | - |
-| 1 | `GridPulse.sln` + `src`/`tests` skeleton | Planned — [#4](https://github.com/Terrence721/GridPulse/issues/4) |
-| 2 | Aspire backbone: `ServiceDefaults` + `AppHost` | Planned — [#5](https://github.com/Terrence721/GridPulse/issues/5) |
-| 3 | Meter Simulator worker service | Planned — [#6](https://github.com/Terrence721/GridPulse/issues/6) |
-| 4 | Usage Aggregation service (REST + EF Core/Postgres) | Planned — [#7](https://github.com/Terrence721/GridPulse/issues/7) |
-| 5 | Billing service (rate-plan Strategy pattern) | Planned — [#8](https://github.com/Terrence721/GridPulse/issues/8) |
-| 6 | Unit tests: UsageAggregation + Billing | Planned — [#9](https://github.com/Terrence721/GridPulse/issues/9) |
-| 7 | End-to-end Phase 1 smoke check | Planned — [#10](https://github.com/Terrence721/GridPulse/issues/10) |
+| 1 | Meter Simulator worker service | Planned — [#6](https://github.com/Terrence721/GridPulse/issues/6) |
+| 2 | Usage Aggregation service (REST + EF Core/Postgres) | Planned — [#7](https://github.com/Terrence721/GridPulse/issues/7) |
+| 3 | Billing service (rate-plan Strategy pattern) | Planned — [#8](https://github.com/Terrence721/GridPulse/issues/8) |
+| 4 | Unit tests: UsageAggregation + Billing | Planned — [#9](https://github.com/Terrence721/GridPulse/issues/9) |
+| 5 | End-to-end Phase 1 smoke check | Planned — [#10](https://github.com/Terrence721/GridPulse/issues/10) |
 
 **Phases 2-6** — not yet broken into concrete tasks, tracked as one Backlog item each until their turn comes:
 
