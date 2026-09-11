@@ -1,0 +1,447 @@
+<title>GridPulse — a real-time event-driven billing platform, by Terrence Daniels</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta
+  name="description"
+  content="GridPulse: an original, from-scratch event-driven utility monitoring and billing platform — .NET Aspire, Kafka, React/Redux Toolkit — built and tracked in the open from day one, phase by phase."
+/>
+<link rel="canonical" href="https://terrence721.github.io/GridPulse/portfolio.html" />
+
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Terrence Daniels — Portfolio" />
+<meta property="og:url" content="https://terrence721.github.io/GridPulse/portfolio.html" />
+<meta property="og:title" content="GridPulse — a real-time event-driven billing platform, by Terrence Daniels" />
+<meta
+  property="og:description"
+  content="An original, from-scratch event-driven utility monitoring and billing platform — .NET Aspire, Kafka, React/Redux Toolkit — built and tracked in the open from day one, phase by phase."
+/>
+
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="GridPulse — a real-time event-driven billing platform, by Terrence Daniels" />
+<meta
+  name="twitter:description"
+  content="An original event-driven utility monitoring and billing platform, built and tracked in the open from day one, phase by phase."
+/>
+<style>
+  :root {
+    --paper: #ede9df;
+    --paper-2: #e2ddd0;
+    --ink: #1c2333;
+    --ink-soft: #4b5567;
+    --rule: #c7c0ac;
+    --accent: #a13d2b;
+    --accent-ink: #fff7ef;
+    --accent-2: #2e5266;
+    --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #14181f;
+      --paper-2: #1b212b;
+      --ink: #e8e4d9;
+      --ink-soft: #a3aabb;
+      --rule: #303748;
+      --accent: #dd7a4a;
+      --accent-ink: #1c1006;
+      --accent-2: #7fb2cc;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #14181f;
+    --paper-2: #1b212b;
+    --ink: #e8e4d9;
+    --ink-soft: #a3aabb;
+    --rule: #303748;
+    --accent: #dd7a4a;
+    --accent-ink: #1c1006;
+    --accent-2: #7fb2cc;
+  }
+  :root[data-theme="light"] {
+    --paper: #ede9df;
+    --paper-2: #e2ddd0;
+    --ink: #1c2333;
+    --ink-soft: #4b5567;
+    --rule: #c7c0ac;
+    --accent: #a13d2b;
+    --accent-ink: #fff7ef;
+    --accent-2: #2e5266;
+  }
+
+  * { box-sizing: border-box; }
+  html { color-scheme: light dark; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent-2); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { color: var(--accent); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative;
+    padding: 72px 0 44px;
+    background-image: repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--ink) 4%, transparent) 0 2px,
+      transparent 2px 26px
+    );
+    border-bottom: 1px solid var(--rule);
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 18px;
+  }
+  .eyebrow::before { content: "◆ "; color: var(--accent); }
+  h1.name {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(2.6rem, 6vw, 4.2rem);
+    letter-spacing: -0.01em;
+    line-height: 1.02;
+    margin: 0 0 10px;
+    text-wrap: balance;
+  }
+  .role {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(1.1rem, 2.4vw, 1.4rem);
+    color: var(--accent-2);
+    margin: 0 0 22px;
+  }
+  .thesis {
+    max-width: 62ch;
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    margin: 0 0 34px;
+  }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.03em;
+    padding: 10px 16px;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    text-decoration: none;
+    background: transparent;
+  }
+  .btn:hover { background: var(--ink); color: var(--paper); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn.primary:hover { background: var(--accent-2); border-color: var(--accent-2); color: var(--accent-ink); }
+
+  /* stamp badge */
+  .stamp {
+    position: absolute;
+    top: 58px;
+    right: 28px;
+    width: 128px;
+    height: 128px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(-9deg);
+    opacity: 0.92;
+  }
+  .stamp::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border: 1px dashed var(--accent);
+    border-radius: 50%;
+  }
+  .stamp-inner {
+    text-align: center;
+    font-family: var(--font-mono);
+    color: var(--accent);
+  }
+  .stamp-inner .n { font-size: 1.5rem; font-weight: 700; line-height: 1; }
+  .stamp-inner .l { display: block; font-size: 0.55rem; letter-spacing: 0.12em; margin-top: 4px; }
+  @media (max-width: 620px) { .stamp { display: none; } }
+
+  /* ---------- manifest stat strip ---------- */
+  .manifest {
+    background: var(--paper-2);
+    border-bottom: 1px solid var(--rule);
+    overflow-x: auto;
+  }
+  .manifest-row {
+    display: flex;
+    min-width: max-content;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .manifest-cell {
+    padding: 16px 24px;
+    border-right: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+  .manifest-cell:last-child { border-right: none; }
+  .manifest-cell .v { font-size: 1.15rem; color: var(--accent); font-weight: 700; }
+  .manifest-cell .k { display: block; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--ink-soft); text-transform: uppercase; margin-top: 2px; }
+
+  /* ---------- sections ---------- */
+  section { padding: 52px 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type { border-bottom: none; }
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.7rem;
+    margin: 0 0 6px;
+    text-wrap: balance;
+  }
+  .h2-sub { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 22px; }
+  p { max-width: 68ch; }
+  .lede { font-size: 1.02rem; color: var(--ink-soft); max-width: 66ch; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; }
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border: 1px solid var(--rule);
+    color: var(--ink-soft);
+  }
+
+  /* ledger line items */
+  .ledger { border-top: 1px solid var(--rule); margin-top: 24px; }
+  .item {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 4px 18px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .item .no { font-family: var(--font-mono); color: var(--accent); font-size: 0.9rem; padding-top: 2px; }
+  .item .file { font-family: var(--font-mono); font-size: 0.88rem; color: var(--ink); }
+  .item .desc { color: var(--ink-soft); font-size: 0.95rem; margin: 4px 0 8px; }
+  .item .meta { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-soft); }
+  .item .meta .tag { color: var(--accent-2); }
+  .item .meta a { margin-left: 8px; }
+
+  .note {
+    border-left: 2px solid var(--accent-2);
+    padding: 4px 0 4px 16px;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    margin: 22px 0 0;
+    max-width: 62ch;
+  }
+  .note strong { color: var(--ink); }
+
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 20px; }
+  @media (max-width: 640px) { .twocol { grid-template-columns: 1fr; } }
+  .card { border: 1px solid var(--rule); padding: 18px 20px; }
+  .card h3 { font-family: var(--font-body); font-size: 0.95rem; font-weight: 700; margin: 0 0 8px; }
+  .card p { font-size: 0.9rem; color: var(--ink-soft); margin: 0; }
+
+  footer {
+    padding: 44px 0 72px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+  footer .links { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-bottom: 22px; }
+  footer .fine { color: var(--ink-soft); font-size: 0.78rem; max-width: 62ch; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Portfolio Manifest — Updated September 11, 2026</p>
+    <h1 class="name">Terrence&nbsp;Daniels</h1>
+    <p class="role">Principal Full-Stack Engineer</p>
+    <p class="thesis">
+      <strong>GridPulse</strong> is an original, from-scratch event-driven platform simulating a utility
+      company's meter-reading, usage-aggregation, and billing pipeline — not a fork or a cloned reference
+      app. Built to demonstrate the skills a Principal Developer role expects: distributed systems design,
+      microservices decomposition, event streaming, and production-grade observability, tracked in the open
+      from before the first service existed.
+    </p>
+    <div class="hero-actions">
+      <a class="btn primary" href="https://github.com/Terrence721/GridPulse">View the repository →</a>
+      <a class="btn" href="https://github.com/Terrence721/GridPulse/blob/main/docs/gridpulse-design-doc.html">Design document</a>
+      <a class="btn" href="https://github.com/Terrence721/GridPulse/blob/main/todo.md">Working log</a>
+    </div>
+  </div>
+  <div class="stamp" aria-hidden="true">
+    <div class="stamp-inner">
+      <span class="n">2</span>
+      <span class="l">REAL CI<br />FIXES</span>
+    </div>
+  </div>
+</div>
+
+<div class="manifest">
+  <div class="wrap">
+    <div class="manifest-row">
+      <div class="manifest-cell"><span class="v">Phase 1/6</span><span class="k">current stage</span></div>
+      <div class="manifest-cell"><span class="v">13</span><span class="k">commits</span></div>
+      <div class="manifest-cell"><span class="v">15</span><span class="k">issues tracked</span></div>
+      <div class="manifest-cell"><span class="v">2</span><span class="k">real CI fixes</span></div>
+      <div class="manifest-cell"><span class="v">13.5.3</span><span class="k">Aspire</span></div>
+      <div class="manifest-cell"><span class="v">6</span><span class="k">build phases planned</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <section>
+    <h2>Why this project</h2>
+    <p class="h2-sub">The architecture was written down before a line of service code was</p>
+    <p class="lede">
+      The domain — utility metering and billing — is deliberately chosen, but the pipeline shape
+      generalizes to any high-volume telemetry-to-billing system: IoT sensor networks, subscription usage
+      billing, order processing. The full architecture, service breakdown, Kafka event contracts, and
+      cross-cutting concerns (resiliency, idempotency, tracing, security, testing) were designed and
+      documented up front, before any of it was built.
+    </p>
+    <div class="chips">
+      <span class="chip">.NET 10</span>
+      <span class="chip">.NET Aspire 13</span>
+      <span class="chip">Kafka</span>
+      <span class="chip">React 19</span>
+      <span class="chip">Redux Toolkit / RTK Query</span>
+      <span class="chip">TimescaleDB / Postgres</span>
+      <span class="chip">Node.js</span>
+      <span class="chip">GitHub Actions</span>
+      <span class="chip">OpenTelemetry</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Built one phase at a time, in the open</h2>
+    <p class="h2-sub">Six phases, staged deliberately — the core domain loop first, Kafka and the dashboard later</p>
+    <p class="lede">
+      Phase 1 is a direct-REST core loop (Meter Simulator → Usage Aggregation → Billing) on a single
+      Postgres database — get the domain logic right before introducing an event bus. Kafka, a polyglot
+      Node.js Notification Service, a React/Redux Toolkit dashboard, CI/CD, and full observability are
+      layered in afterward, one phase at a time, scaffolded one file or folder at a step with nothing
+      batched ahead of review.
+    </p>
+    <div class="twocol">
+      <div class="card">
+        <h3>Why event-driven, not a monolith</h3>
+        <p>Independent scaling of ingestion vs. billing, a natural audit trail of events, and the ability
+        to add new consumers later without touching the producers — reasoning recorded in the design doc,
+        not asserted after the fact.</p>
+      </div>
+      <div class="card">
+        <h3>Tracked before it was built</h3>
+        <p>A wiki, a GitHub project board (Backlog/Planned/In Progress/Verification &amp; QA/Done), and
+        this working log all went live during Phase 1's scaffolding — not retrofitted once there was
+        something to show.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Two real CI failures, found and fixed before any service existed</h2>
+    <p class="h2-sub">Both are logged in <a href="https://github.com/Terrence721/GridPulse/blob/main/todo.md">todo.md</a>, checkable against the commit history</p>
+    <p class="lede">
+      Setting up CodeQL on a repo with almost no source yet surfaced two genuine tooling failures on the
+      very first live runs — not hypothetical edge cases, actual red CI.
+    </p>
+    <div class="ledger">
+      <div class="item">
+        <div class="no">01</div>
+        <div>
+          <div class="file">.github/workflows/codeql.yml</div>
+          <div class="desc">
+            CodeQL's JavaScript/TypeScript extractor hard-fails <code>database finalize</code> when it
+            finds zero matching files — it does not just report zero findings the way
+            <code>build-mode: none</code> does for a language that does have source present. Fixed by
+            dropping <code>javascript-typescript</code> until real JS/TS code exists (Phase 3+) and adding
+            <code>csharp</code> instead, once real C# source (<code>ServiceDefaults</code>) landed.
+          </div>
+          <div class="meta"><span class="tag">real CI failure · tooling</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/3">issue #3</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">02</div>
+        <div>
+          <div class="file">src/AppHost/GridPulse.AppHost.csproj</div>
+          <div class="desc">
+            The <code>csharp</code> fix above then failed its own build: Aspire 13's AppHost SDK requires
+            the Aspire CLI bundle to compile at all (<code>ASPIRE009</code>), and hosted GitHub runners
+            don't have it. See the Judgment Calls section below for how this one was actually fixed rather
+            than just patched over.
+          </div>
+          <div class="meta"><span class="tag">real CI failure · tooling</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/3">issue #3</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Where this actually stands right now</h2>
+    <p class="h2-sub">Early, and said so — not oversold</p>
+    <div class="twocol">
+      <div class="card">
+        <h3>Phase 1 is in progress, not done</h3>
+        <p>The Aspire orchestration backbone (<code>AppHost</code> + <code>ServiceDefaults</code>) exists
+        and builds clean in CI. The Meter Simulator, Usage Aggregation, and Billing services — the actual
+        domain logic — haven't been written yet.</p>
+      </div>
+      <div class="card">
+        <h3>Nothing here is unverified</h3>
+        <p>Every number on this page is reproducible from this repository's own commit history and issue
+        tracker. See <a href="https://github.com/Terrence721/GridPulse/blob/main/todo.md">todo.md</a> for
+        current phase-by-phase status rather than assuming it's further along.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Judgment calls</h2>
+    <p class="h2-sub">Where the interesting decisions actually happened</p>
+    <p class="lede">
+      The AppHost build failure above was first worked around with a solution filter excluding
+      <code>AppHost</code> from the CI build entirely — a legitimate pattern, already used for the same
+      Aspire-13 issue on <a href="https://github.com/Terrence721/eshop-full">eshop-full</a>. But
+      <code>AppHost.cs</code> was about to gain real orchestration logic (the Postgres resource wiring)
+      worth actually building and analyzing, not quietly excluding forever. That filter was reverted in
+      favor of installing the real Aspire CLI in CI instead, pinned to the exact version the NuGet packages
+      use — a few extra seconds per run, in exchange for CI building and CodeQL-analyzing the actual,
+      complete solution instead of a narrower stand-in for it.
+    </p>
+  </section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a href="https://github.com/Terrence721/GridPulse">Repository</a>
+      <a href="https://github.com/Terrence721/GridPulse#readme">README</a>
+      <a href="https://github.com/Terrence721/GridPulse/blob/main/todo.md">Working log</a>
+      <a href="https://github.com/Terrence721/GridPulse/wiki">Wiki</a>
+      <a href="https://github.com/users/Terrence721/projects/9">Project board</a>
+      <a href="https://github.com/Terrence721/GridPulse/blob/main/docs/gridpulse-design-doc.html">Design document</a>
+    </div>
+    <p class="fine">
+      An original design, not a fork. Every number on this page is reproducible from the repository's own
+      commit history and issue tracker — nothing here is asserted without a link to check it against.
+    </p>
+  </div>
+</footer>

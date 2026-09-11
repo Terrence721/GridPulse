@@ -52,6 +52,7 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | 2026-09-11 | GitHub wiki initialized (Home page only for now — service pages land one at a time as each is actually built). |
 | 2026-09-11 | GitHub Pages enabled, serving `docs/` at `terrence721.github.io/GridPulse` — makes the design doc linkable as a live page instead of a repo-relative file. |
 | 2026-09-11 | [Project board](https://github.com/users/Terrence721/projects/9) created — same Backlog/Planned/In Progress/Verification & QA/Done shape as the other repos' boards. 15 issues filed and triaged: 3 closed (Done), 7 Planned (the rest of Phase 1, in build order), 5 Backlog (Phases 2-6, not yet broken into concrete tasks). |
+| 2026-09-11 | `docs/portfolio.html` added — the one-page portfolio, same design system as `coolify-full`/`saga-full`'s. Content kept honest to Phase 1's actual state rather than copying their case-study structure wholesale: the "ledger" section uses the two real CI failures above instead of app-level findings (there isn't a service yet to find bugs in), and a "Judgment calls" section documents the `.slnf` → real-CLI-install reconsideration. README's top-of-file link now points here instead of the design doc directly. |
 | 2026-09-11 | This project added to the [GitHub profile README](https://github.com/Terrence721/Terrence721) and the [portfolio hub](https://terrence721.github.io/) as an early-stage card. |
 
 ## 🚧 Still to do

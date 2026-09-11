@@ -1,5 +1,5 @@
 <!-- markdownlint-disable-next-line MD041 -->
-**[→ Read the design document](https://terrence721.github.io/GridPulse/gridpulse-design-doc.html)** — the full architecture and rationale in one page. (A one-page portfolio case study will replace/join this link once there's enough built to write one.)
+**[→ Read the one-page portfolio](https://terrence721.github.io/GridPulse/portfolio.html)** — the 60-second version, with links back into this repo for anyone who wants to go deeper.
 
 # ⚡ GridPulse — Real-Time Event-Driven Utility Monitoring & Billing Platform
 
