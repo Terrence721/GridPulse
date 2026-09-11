@@ -41,6 +41,14 @@ jobs:
         if: matrix.build-mode == 'manual'
         uses: actions/setup-dotnet@v6
 
+      - name: Install Aspire CLI
+        if: matrix.build-mode == 'manual'
+        # AppHost's SDK requires the Aspire CLI bundle to build (ASPIRE009) and hosted
+        # runners don't have it. Pinned to match the Aspire.Hosting.* package version.
+        # The script detects $GITHUB_ACTIONS and appends its install dir to $GITHUB_PATH
+        # itself, so no manual PATH wiring is needed here.
+        run: curl -sSL https://aspire.dev/install.sh | bash -s -- --version 13.5.3
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
@@ -49,10 +57,7 @@ jobs:
 
       - name: Build
         if: matrix.build-mode == 'manual'
-        # GridPulse.ci.slnf excludes AppHost: its SDK requires the Aspire CLI bundle to be
-        # installed for `dotnet build` to succeed (ASPIRE009), which isn't available on
-        # hosted runners. Same reasoning/pattern as eshop-full's eShop.Web.slnf.
-        run: dotnet build GridPulse.ci.slnf
+        run: dotnet build GridPulse.slnx
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
