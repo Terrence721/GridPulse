@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GridPulse — Design Document v1.0</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #555555;
+    --border: #dddddd;
+    --code-bg: #f5f5f5;
+    --accent: #2b6cb0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a1a;
+      --fg: #e8e8e8;
+      --muted: #aaaaaa;
+      --border: #3a3a3a;
+      --code-bg: #262626;
+      --accent: #6ea8e0;
+    }
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, Segoe UI, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 4rem;
+  }
+  h1 { font-size: 1.9rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.4rem; margin-top: 2.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; }
+  h3 { font-size: 1.1rem; margin-top: 1.75rem; color: var(--accent); }
+  .subtitle { color: var(--muted); margin-top: 0; }
+  .meta { color: var(--muted); border-left: 3px solid var(--accent); padding-left: 0.9rem; margin: 1.25rem 0; }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+  code { font-family: "SFMono-Regular", Consolas, Menlo, monospace; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+    font-size: 0.92rem;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 0.5rem 0.7rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--code-bg); }
+  ul, ol { padding-left: 1.4rem; }
+  li { margin-bottom: 0.35rem; }
+  .phase { font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>GridPulse — Real-Time Event-Driven Utility Monitoring &amp; Billing Platform</h1>
+<p class="subtitle">Design Document v1.0</p>
+<div class="meta">
+  <strong>Author:</strong> Terrence Daniels<br>
+  <strong>Purpose:</strong> Original flagship portfolio project demonstrating principal-level system design, event-driven architecture, full-stack delivery, and DevOps/observability maturity.
+</div>
+
+<h2>1. Overview</h2>
+<p>GridPulse is a self-contained, event-driven platform that simulates a utility company's meter-reading, usage-aggregation, and billing pipeline. It is designed to be small enough to build solo in a reasonable timeframe, but architecturally deep enough to demonstrate the skills a Principal Developer role expects: distributed systems design, microservices decomposition, event streaming, resilient service-to-service communication, CI/CD, and production-grade observability.</p>
+<p>The domain (utility metering/billing) is chosen deliberately to align with conversations already in progress with energy-sector employers, but the architecture generalizes to any high-volume telemetry-to-billing pipeline (IoT sensor networks, subscription usage billing, order processing, etc.), which is worth mentioning in interviews to show the design isn't domain-locked.</p>
+
+<h3>1.1 Goals</h3>
+<ul>
+  <li>Demonstrate original architecture and decision-making, not a cloned reference app.</li>
+  <li>Exercise the real stack you'd use on the job: .NET Core / .NET Aspire, Angular + NgRx, Kafka, GitHub Actions CI/CD, New Relic-style observability.</li>
+  <li>Produce enough surface area (multiple services, an event bus, a UI, a pipeline, dashboards) to sustain a 30–45 minute deep-dive technical interview conversation.</li>
+  <li>Be deployable end-to-end (even if just to a local Kubernetes cluster or a single cloud VM) so you can demo it live rather than just describe it.</li>
+</ul>
+
+<h3>1.2 Non-Goals</h3>
+<ul>
+  <li>Not a commercial-grade billing system — no real payment processing, no regulatory compliance (NERC/FERC, etc.).</li>
+  <li>Not optimized for massive scale — the point is to demonstrate correct patterns, not to handle millions of meters.</li>
+  <li>Not a mobile app — web dashboard only.</li>
+</ul>
+
+<h2>2. Architecture Overview</h2>
+<p>GridPulse follows an event-driven microservices architecture with a clear separation between ingestion, processing, and presentation concerns.</p>
+
+<pre>
+┌─────────────────────┐
+│  Meter Simulator     │  (publishes synthetic readings)
+│  (.NET worker)       │
+└──────────┬───────────┘
+           │ produces
+           ▼
+┌─────────────────────┐
+│  Kafka Topic:        │
+│  meter.readings.raw  │
+└──────────┬───────────┘
+           │ consumes
+           ▼
+┌────────────────────────────────────────┐
+│  Usage Aggregation Service (.NET)       │
+│  - Validates & normalizes readings      │
+│  - Rolls up into hourly/daily usage     │
+│  - Writes to TimescaleDB/Postgres       │
+└──────────────────┬───────────────────────┘
+                   │ produces
+                   ▼
+┌─────────────────────┐
+│  Kafka Topic:        │
+│  usage.aggregated    │
+└──────────┬───────────┘
+           │ consumes
+           ▼
+┌────────────────────────────────────────┐
+│  Billing Service (.NET)                 │
+│  - Applies rate plans                   │
+│  - Generates invoices                   │
+│  - Writes to SQL Server/Postgres        │
+└──────────────────┬───────────────────────┘
+                   │ produces
+                   ▼
+┌─────────────────────┐
+│  Kafka Topic:        │
+│  billing.invoice.    │
+│  generated           │
+└──────────┬───────────┘
+           │ consumes
+           ▼
+┌────────────────────────────────────────┐
+│  Notification Service (Node.js)         │
+│  - Sends email/webhook notifications    │
+│  - Demonstrates polyglot service design │
+└────────────────────────────────────────┘
+
+┌────────────────────────────────────────┐
+│  Account/Customer Service (.NET)        │
+│  - Owns customer & meter registration   │
+│  - Exposes REST API                     │
+└────────────────────────────────────────┘
+
+┌────────────────────────────────────────┐
+│  BFF / API Gateway (.NET Aspire)        │
+│  - Aggregates data for the Angular UI   │
+│  - Auth (OIDC)                          │
+└──────────────────┬───────────────────────┘
+                   │
+                   ▼
+┌────────────────────────────────────────┐
+│  Angular + NgRx Dashboard               │
+│  - Live usage charts                    │
+│  - Invoice history                      │
+│  - Account management                   │
+└────────────────────────────────────────┘
+</pre>
+
+<p>All services are orchestrated locally and in CI via <strong>.NET Aspire</strong>, which gives you a legitimate talking point about modern .NET cloud-native tooling (Aspire is relatively new and not everyone has hands-on experience with it — that's a differentiator).</p>
+
+<h2>3. Service Breakdown</h2>
+
+<h3>3.1 Meter Simulator</h3>
+<ul>
+  <li>Lightweight .NET worker service that generates synthetic meter readings at a configurable interval and publishes them to Kafka.</li>
+  <li>Stands in for real IoT hardware — makes the whole system runnable without physical devices.</li>
+</ul>
+
+<h3>3.2 Usage Aggregation Service</h3>
+<ul>
+  <li>Consumes raw readings, validates them (out-of-order detection, duplicate detection using idempotency keys), and rolls them into time-bucketed usage records.</li>
+  <li>Storage: TimescaleDB (Postgres extension) — a good opportunity to show you know time-series data modeling, which is directly relevant to utility/energy data.</li>
+</ul>
+
+<h3>3.3 Billing Service</h3>
+<ul>
+  <li>Consumes aggregated usage, applies a rate plan (flat rate, tiered, time-of-use), and generates invoices.</li>
+  <li>This is where you can demonstrate domain modeling with proper OOP/SOLID design (rate plan as a strategy pattern, for example) — ties directly to your stated OOP/SOLID strengths.</li>
+</ul>
+
+<h3>3.4 Notification Service (Node.js)</h3>
+<ul>
+  <li>Intentionally built in Node.js rather than .NET to demonstrate polyglot microservices competency and consistent event-contract design across language boundaries (a common enterprise reality, and a good discussion point given your Node.js background).</li>
+</ul>
+
+<h3>3.5 Account/Customer Service</h3>
+<ul>
+  <li>Simple CRUD REST service for customer and meter registration.</li>
+  <li>Keeps the "boring" parts of the system properly separated from the event-driven core.</li>
+</ul>
+
+<h3>3.6 BFF / API Gateway</h3>
+<ul>
+  <li>Backend-for-frontend that aggregates data from the above services for the Angular dashboard, and handles authentication (OIDC via an identity provider like Keycloak or Auth0 for demonstration).</li>
+</ul>
+
+<h3>3.7 Angular + NgRx Dashboard</h3>
+<ul>
+  <li>Real-time usage charts (via WebSocket or SignalR push from the gateway), invoice history, and account management screens.</li>
+  <li>NgRx used for state management to demonstrate the same pattern you'd use in a production Angular app.</li>
+</ul>
+
+<h2>4. Event Contracts (Kafka Topics)</h2>
+<table>
+  <thead>
+    <tr><th>Topic</th><th>Producer</th><th>Consumer(s)</th><th>Schema (key fields)</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>meter.readings.raw</code></td>
+      <td>Meter Simulator</td>
+      <td>Usage Aggregation</td>
+      <td><code>meterId</code>, <code>timestamp</code>, <code>kwh</code>, <code>readingId</code> (idempotency key)</td>
+    </tr>
+    <tr>
+      <td><code>usage.aggregated</code></td>
+      <td>Usage Aggregation</td>
+      <td>Billing</td>
+      <td><code>accountId</code>, <code>periodStart</code>, <code>periodEnd</code>, <code>totalKwh</code></td>
+    </tr>
+    <tr>
+      <td><code>billing.invoice.generated</code></td>
+      <td>Billing</td>
+      <td>Notification</td>
+      <td><code>invoiceId</code>, <code>accountId</code>, <code>amountDue</code>, <code>dueDate</code></td>
+    </tr>
+  </tbody>
+</table>
+<p>Use <strong>Avro or JSON Schema with a schema registry</strong> (Confluent Schema Registry, or a lightweight self-hosted alternative) to demonstrate schema evolution discipline — a detail that separates "used Kafka in a tutorial" from "understands operational Kafka."</p>
+
+<h2>5. Cross-Cutting Concerns</h2>
+<ul>
+  <li><strong>Resiliency:</strong> Polly-based retry policies and circuit breakers on inter-service HTTP calls; consumer-side dead-letter topics for poison messages.</li>
+  <li><strong>Idempotency:</strong> Every event carries a unique ID; consumers track processed IDs to guard against at-least-once delivery duplicates.</li>
+  <li><strong>Distributed tracing:</strong> OpenTelemetry instrumentation across all services, exported to a local Jaeger instance or New Relic (ties directly to your stated New Relic experience).</li>
+  <li><strong>Security:</strong> OIDC-based auth at the gateway; secrets managed via environment variables/user-secrets locally and a vault-style secret store in the deployed environment.</li>
+  <li>
+    <strong>Testing strategy:</strong>
+    <ul>
+      <li>Unit tests (xUnit for .NET, Vitest for Node service, Jest for Angular) — ties to your existing testing framework experience.</li>
+      <li>Contract tests for Kafka event schemas.</li>
+      <li>Integration tests using Testcontainers to spin up real Kafka/Postgres instances in CI.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2>6. CI/CD Pipeline (GitHub Actions)</h2>
+<ol>
+  <li><strong>Build &amp; test</strong> — per-service matrix build, unit + contract tests.</li>
+  <li><strong>Static analysis</strong> — integrate a linter/analyzer (SonarCloud free tier or built-in .NET analyzers) — ties to your stated static analysis experience.</li>
+  <li><strong>Container build</strong> — Docker images per service, pushed to GitHub Container Registry.</li>
+  <li><strong>Deploy</strong> — GitHub Actions deploys to a local k3s/minikube cluster for demo purposes, or to a single cloud VM via Docker Compose for simplicity.</li>
+  <li><strong>Post-deploy smoke test</strong> — automated health-check hitting each service's <code>/health</code> endpoint.</li>
+</ol>
+
+<h2>7. Observability</h2>
+<ul>
+  <li>OpenTelemetry traces + metrics from every service.</li>
+  <li>A New Relic free-tier account (or Grafana/Prometheus if you'd rather stay fully open-source) with a dashboard showing: Kafka consumer lag, request latency per service, invoice-generation throughput, and error rates.</li>
+  <li>This is one of the most valuable parts of the project for a Principal interview — most portfolio projects stop at "it works," very few show "and here's how I'd know if it broke in production."</li>
+</ul>
+
+<h2>8. Suggested Build Phases</h2>
+<ol>
+  <li><span class="phase">Phase 1 — Core loop, no Kafka:</span> Meter Simulator → Usage Aggregation → Billing, all via direct REST calls, single Postgres DB. Get the domain logic right first.</li>
+  <li><span class="phase">Phase 2 — Introduce Kafka:</span> Replace REST calls between services with Kafka topics. Add schema registry.</li>
+  <li><span class="phase">Phase 3 —</span> Add the Node.js Notification Service and Account Service.</li>
+  <li><span class="phase">Phase 4 —</span> Build the Angular/NgRx dashboard and BFF gateway.</li>
+  <li><span class="phase">Phase 5 —</span> CI/CD, containerization, and deployment automation.</li>
+  <li><span class="phase">Phase 6 —</span> Observability (OpenTelemetry + dashboards) and resiliency hardening (retries, dead-letter queues, chaos testing one service failure).</li>
+</ol>
+
+<h2>9. Interview Talking Points</h2>
+<ul>
+  <li>Why an event-driven architecture over a monolith for this domain (independent scaling of ingestion vs. billing, natural audit trail of events, easier to add new consumers later).</li>
+  <li>Trade-offs you considered (e.g., choosing Kafka over a simpler message queue like RabbitMQ — throughput and replay-ability).</li>
+  <li>How idempotency and exactly-once-ish processing were handled given Kafka's at-least-once guarantees.</li>
+  <li>How you'd scale this to real meter volumes (partitioning strategy on <code>meterId</code>, consumer group scaling).</li>
+  <li>What you'd change for a real production deployment (multi-region, real payment processing, compliance).</li>
+</ul>
+
+</body>
+</html>
