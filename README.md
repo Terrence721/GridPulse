@@ -1,5 +1,7 @@
 # ⚡ GridPulse — Real-Time Event-Driven Utility Monitoring & Billing Platform
 
+[![CodeQL](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml/badge.svg)](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml)
+
 <!-- markdownlint-disable-next-line MD036 -->
 **Status:** Phase 1 in progress — scaffolding the core REST loop (Meter Simulator → Usage Aggregation → Billing) on a single Postgres database, before Kafka enters the picture.
 
