@@ -97,7 +97,11 @@ Not yet runnable — this section will be filled in once the Phase 1 AppHost exi
 
 - .NET 10 SDK
 - Docker Desktop (for Postgres, and later Kafka)
-- Node.js 20+ (for the Notification Service and Angular dashboard, Phase 3+)
+- Node.js 20+ with [Corepack](https://nodejs.org/api/corepack.html) enabled (`corepack enable`) — resolves the pinned **Yarn 4.18.0** automatically for the Notification Service and Angular dashboard, Phase 3+
+
+### Package management
+
+All JS/TS packages in this repo (Notification Service, Angular dashboard, shared tooling) are managed with **Yarn Berry**, pinned to a specific version via `packageManager` in [`package.json`](package.json) so `corepack` resolves the same version everywhere. Shared dependency versions live in [`.yarnrc.yml`](.yarnrc.yml)'s `catalog`/`catalogs`, referenced from each package via the `catalog:` protocol instead of hardcoding a version per package — populated as each JS/TS package is actually added.
 
 ---
 
