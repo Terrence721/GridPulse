@@ -1,9 +1,11 @@
 name: CodeQL
 
-# javascript-typescript and actions run today, even with no source yet (both use
-# build-mode: none, so an empty/sparse repo just yields zero findings rather than
-# failing). A csharp entry (build-mode: manual, building GridPulse.sln) gets added
-# once the .NET solution exists — see the Build Phases checklist in README.md.
+# csharp runs now that real .cs source exists (ServiceDefaults, AppHost); actions
+# analyzes this repo's own workflow YAML. javascript-typescript is deliberately
+# left out until real JS/TS source exists (Phase 3+, Notification Service /
+# React dashboard) — CodeQL's JS/TS extractor hard-fails database finalize when
+# zero matching files are found, it does not just report zero findings the way
+# build-mode: none does for a language that does have matching files present.
 on:
   push:
     branches: ["main"]
@@ -26,8 +28,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - language: javascript-typescript
-            build-mode: none
+          - language: csharp
+            build-mode: manual
           - language: actions
             build-mode: none
 
@@ -35,11 +37,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
+      - name: Setup .NET
+        if: matrix.build-mode == 'manual'
+        uses: actions/setup-dotnet@v6
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
+
+      - name: Build
+        if: matrix.build-mode == 'manual'
+        run: dotnet build GridPulse.slnx
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4

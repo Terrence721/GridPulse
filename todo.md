@@ -20,7 +20,7 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | --- | --- |
 | Repo scaffolding | README, MIT LICENSE, `.gitignore`, design doc (PDF → HTML) — [#1](https://github.com/Terrence721/GridPulse/issues/1) |
 | Package management | Yarn Berry 4.18.0 pinned via Corepack, catalog scaffold for future JS/TS packages — [#2](https://github.com/Terrence721/GridPulse/issues/2) |
-| Code analysis | CodeQL (`javascript-typescript` + `actions` today, `csharp` once the `.sln` exists) — [#3](https://github.com/Terrence721/GridPulse/issues/3) |
+| Code analysis | CodeQL (`csharp` + `actions` today; `javascript-typescript` returns once real JS/TS source exists) — [#3](https://github.com/Terrence721/GridPulse/issues/3) |
 | Project tracking | GitHub wiki, GitHub Pages (serving `docs/`), and a [project board](https://github.com/users/Terrence721/projects/9) (Backlog/Planned/In Progress/Verification & QA/Done) all set up |
 
 **Actually still open, right now:** all of Phase 1's actual service code (7 items) plus Phases 2-6 at a high level — see **Still to do** below.
@@ -40,7 +40,8 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | Date | What |
 | - | - |
 | 2026-09-11 | Yarn Berry pinned to 4.18.0 via Corepack (`packageManager` in `package.json`); `.yarnrc.yml` sets `nodeLinker: node-modules` plus an empty `catalog`/`catalogs` scaffold, populated as each JS/TS package (Notification Service, React dashboard) actually lands. [#2](https://github.com/Terrence721/GridPulse/issues/2) |
-| 2026-09-11 | `.github/workflows/codeql.yml` added, scoped to `javascript-typescript` + `actions` (`build-mode: none`, so it runs clean even before any source exists). Replaced GitHub's auto-generated "Advanced setup" template, which had detected zero languages in this still-sparse repo and would have shipped with an empty matrix. A `csharp` entry lands once `GridPulse.sln` exists. [#3](https://github.com/Terrence721/GridPulse/issues/3) |
+| 2026-09-11 | `.github/workflows/codeql.yml` added, scoped to `javascript-typescript` + `actions` (`build-mode: none`, so it runs clean even before any source exists). Replaced GitHub's auto-generated "Advanced setup" template, which had detected zero languages in this still-sparse repo and would have shipped with an empty matrix. [#3](https://github.com/Terrence721/GridPulse/issues/3) |
+| 2026-09-11 | **Real CI failure found and fixed:** the first live run of `codeql.yml` failed — `database finalize` hard-errors when CodeQL's JS/TS extractor finds zero matching files, it does not just report zero findings the way `build-mode: none` does for languages that do have source present. `javascript-typescript` removed until real JS/TS code exists (Phase 3+); `csharp` added instead (`build-mode: manual`, `dotnet build GridPulse.slnx`) since real C# source now exists (`ServiceDefaults`, `AppHost`). [#3](https://github.com/Terrence721/GridPulse/issues/3) |
 
 ### Project tracking
 
