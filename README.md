@@ -98,11 +98,22 @@ docs/           Design doc and any supplementary docs
 
 ## 🖥 Running Locally
 
-Not yet runnable — this section will be filled in once the Phase 1 AppHost exists.
+The Aspire orchestration backbone exists and boots today, though there's no domain service wired into it yet:
+
+```text
+dotnet run --project src/AppHost
+```
+
+This provisions Postgres (via Docker) and starts the Aspire dashboard — the link prints in the console.
+Each service added from here (Meter Simulator, Usage Aggregation, Billing) registers itself in
+[`src/AppHost/AppHost.cs`](src/AppHost/AppHost.cs), so the same command keeps working as Phase 1 fills in.
+
+Open [`GridPulse.code-workspace`](GridPulse.code-workspace) in VS Code for the configured dev experience (recommended extensions, `dotnet.defaultSolution` pointed at `GridPulse.slnx`, sane file/search excludes for `bin`/`obj`/`node_modules`).
 
 ### Prerequisites
 
 - .NET 10 SDK
+- [Aspire CLI](https://aspire.dev) 13.5.3 (`irm https://aspire.dev/install.ps1 | iex` on Windows, `curl -sSL https://aspire.dev/install.sh | bash` on Linux/macOS — pass `--version 13.5.3` to match this repo's `Aspire.Hosting.*` package version)
 - Docker Desktop (for Postgres, and later Kafka)
 - Node.js 20+ with [Corepack](https://nodejs.org/api/corepack.html) enabled (`corepack enable`) — resolves the pinned **Yarn 4.18.0** automatically for the Notification Service and React dashboard, Phase 3+
 

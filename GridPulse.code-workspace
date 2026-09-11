@@ -1,0 +1,64 @@
+{
+  "folders": [
+    { "path": "." }
+  ],
+  "settings": {
+    "dotnet.defaultSolution": "GridPulse.slnx",
+
+    "files.exclude": {
+      "**/bin": true,
+      "**/obj": true,
+      "**/.vs": true,
+      "**/node_modules": true,
+      "**/.yarn/cache": true,
+      "**/.yarn/install-state.gz": true,
+      "**/.yarn/unplugged": true
+    },
+    "search.exclude": {
+      "**/bin": true,
+      "**/obj": true,
+      "**/node_modules": true,
+      "**/.yarn": true,
+      "**/dist": true,
+      "yarn.lock": true
+    },
+    "files.watcherExclude": {
+      "**/bin/**": true,
+      "**/obj/**": true,
+      "**/node_modules/**": true,
+      "**/.yarn/**": true
+    },
+
+    "yaml.schemas": {
+      "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.yml"
+    },
+
+    "cSpell.enabled": true,
+    "editor.formatOnSave": true
+  },
+  "extensions": {
+    "recommendations": [
+      // .NET / Aspire — current backbone (ServiceDefaults, AppHost) and every Phase 1 service to come
+      "ms-dotnettools.csdevkit",
+      "ms-dotnettools.csharp",
+      "microsoft-aspire.aspire-vscode",
+
+      // Postgres today, Kafka from Phase 2 — both run as containers via Aspire
+      "ms-azuretools.vscode-docker",
+
+      // CI (.github/workflows/codeql.yml today, more from Phase 5)
+      "redhat.vscode-yaml",
+      "github.vscode-github-actions",
+
+      // JS/TS tooling — Yarn Berry is already set up for the Phase 3 Notification
+      // Service and the Phase 4 React/Redux Toolkit dashboard
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+
+      // Repo-wide
+      "davidanson.vscode-markdownlint",
+      "streetsidesoftware.code-spell-checker",
+      "editorconfig.editorconfig"
+    ]
+  }
+}
