@@ -1,3 +1,6 @@
+<!-- markdownlint-disable-next-line MD041 -->
+**[→ Read the design document](https://terrence721.github.io/GridPulse/gridpulse-design-doc.html)** — the full architecture and rationale in one page. (A one-page portfolio case study will replace/join this link once there's enough built to write one.)
+
 # ⚡ GridPulse — Real-Time Event-Driven Utility Monitoring & Billing Platform
 
 [![CodeQL](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml/badge.svg)](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml)
@@ -10,7 +13,9 @@ GridPulse is a self-contained, event-driven platform simulating a utility compan
 ## 🧭 Start Here
 
 - **[Design Document](docs/gridpulse-design-doc.html)** — full architecture rationale, service breakdown, event contracts, cross-cutting concerns, and interview talking points.
-- **Build Phases** (below) — the order this project is actually being built in, and what's done so far.
+- **[`todo.md`](todo.md)** — the source of truth for what's done and what's left, phase by phase.
+- **[Wiki](https://github.com/Terrence721/GridPulse/wiki)** — short pointers into the docs, one page per service as each one lands.
+- **[Project board](https://github.com/users/Terrence721/projects/9)** — Backlog/Planned/In Progress/Verification & QA/Done, synced with `todo.md`.
 
 It's being built to demonstrate:
 
@@ -72,7 +77,7 @@ All services are orchestrated locally and in CI via **.NET Aspire**.
 
 ## 📋 Build Phases
 
-Work is tracked directly in this README for now (a dedicated tracking doc will show up once there's enough surface area to warrant one).
+Tracked in detail in [`todo.md`](todo.md) (the source of truth) and the [project board](https://github.com/users/Terrence721/projects/9); mirrored here as a quick-glance checklist.
 
 - [ ] **Phase 1 — Core loop, no Kafka.** Meter Simulator → Usage Aggregation → Billing via direct REST calls, single Postgres DB.
 - [ ] **Phase 2 — Introduce Kafka.** Replace REST calls between services with Kafka topics; add a schema registry.
