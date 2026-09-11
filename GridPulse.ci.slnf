@@ -1,0 +1,8 @@
+{
+  "solution": {
+    "path": "GridPulse.slnx",
+    "projects": [
+      "src/ServiceDefaults/GridPulse.ServiceDefaults.csproj"
+    ]
+  }
+}

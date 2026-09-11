@@ -49,7 +49,10 @@ jobs:
 
       - name: Build
         if: matrix.build-mode == 'manual'
-        run: dotnet build GridPulse.slnx
+        # GridPulse.ci.slnf excludes AppHost: its SDK requires the Aspire CLI bundle to be
+        # installed for `dotnet build` to succeed (ASPIRE009), which isn't available on
+        # hosted runners. Same reasoning/pattern as eshop-full's eShop.Web.slnf.
+        run: dotnet build GridPulse.ci.slnf
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
