@@ -1,2 +1,6 @@
 <Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/ServiceDefaults/">
+    <Project Path="src/ServiceDefaults/GridPulse.ServiceDefaults.csproj" />
+  </Folder>
 </Solution>
