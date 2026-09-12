@@ -16,6 +16,9 @@
     <Project Path="src/UsageAggregation/GridPulse.UsageAggregation.csproj" />
   </Folder>
   <Folder Name="/tests/" />
+  <Folder Name="/tests/AppHost.Tests/">
+    <Project Path="tests/AppHost.Tests/GridPulse.AppHost.Tests.csproj" />
+  </Folder>
   <Folder Name="/tests/Billing.Tests/">
     <Project Path="tests/Billing.Tests/GridPulse.Billing.Tests.csproj" />
   </Folder>
