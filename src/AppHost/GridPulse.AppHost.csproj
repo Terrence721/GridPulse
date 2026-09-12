@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MeterSimulator\GridPulse.MeterSimulator.csproj" />
+    <ProjectReference Include="..\UsageAggregation\GridPulse.UsageAggregation.csproj" />
   </ItemGroup>
 
 </Project>
