@@ -1,6 +1,6 @@
 # 📝 TODO
 
-**Last Updated:** September 12, 2026 (Billing built and verified end-to-end — Phase 1's core loop is complete)
+**Last Updated:** September 12, 2026 (Meter Simulator unit tests done — 17 passing; Usage Aggregation and Billing tests next)
 
 A phase-by-phase log of what's been done on this repo and what's still open. This is the source of truth for progress — the [README](README.md)'s Build Phases checklist and the [project board](https://github.com/users/Terrence721/projects/9) both mirror this file, not the other way around.
 
@@ -114,6 +114,13 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 
 **Where Billing actually stands:** scaffold, `AppHost`/Postgres wiring, the rate-plan Strategy pattern, invoice generation, and the `POST /invoices` endpoint are all built and verified live against real usage data and a real database. Nothing left open on this service for Phase 1 — full unit test coverage ([#9](https://github.com/Terrence721/GridPulse/issues/9)/[#16](https://github.com/Terrence721/GridPulse/issues/16)-[#18](https://github.com/Terrence721/GridPulse/issues/18)) and the end-to-end smoke check ([#10](https://github.com/Terrence721/GridPulse/issues/10)) are what remain for Phase 1 overall.
 
+### Phase 1 — Testing (in progress: Meter Simulator done, Usage Aggregation and Billing next)
+
+| Date | What |
+| - | - |
+| 2026-09-12 | `tests/MeterSimulator.Tests` scaffolded as an xUnit **v3** project (`xunit.v3` 4.0.0, current major version — `xunit` v2 is now in maintenance mode), registered in `GridPulse.slnx`. **Real tooling issue found and fixed:** `dotnet test` failed outright on .NET 10 SDK with xUnit v3 (`Testing with VSTest target is no longer supported`) — fixed by adding a repo-root `global.json` opting into the new `Microsoft.Testing.Platform` runner mode, the officially recommended fix over the legacy `TestingPlatformDotnetTestSupport` workaround. [#16](https://github.com/Terrence721/GridPulse/issues/16) |
+| 2026-09-12 | 17 tests written and passing, closing out [#16](https://github.com/Terrence721/GridPulse/issues/16): `CityBlockMeterIdFactory` (correct count, consecutive even/odd addressing, uniqueness), `MeterReadingGenerator` (Kwh range, unique `ReadingId`s, timestamp freshness), `MeterSimulatorOptions` fail-fast validation (all 5 required-field failure cases plus the fully-valid case, exercised directly via `Validator.TryValidateObject`), and `CensusAddressValidator` (match/no-match/HTTP-error cases against a hand-rolled `FakeHttpMessageHandler`/`FakeHttpClientFactory` test double — no mocking library added, since a plain `HttpMessageHandler` override covers the need). |
+
 ## 🚧 Still to do
 
 **Phase 1 — Core loop, no Kafka** (Meter Simulator → Usage Aggregation → Billing via direct REST calls, single Postgres DB — see [docs/gridpulse-design-doc.html](docs/gridpulse-design-doc.html)):
@@ -123,7 +130,7 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | 1 | Meter Simulator worker service | Done and verified live end-to-end (1,876/1,876 readings delivered via real HTTP, confirmed in Postgres) — [#6](https://github.com/Terrence721/GridPulse/issues/6) |
 | 2 | Usage Aggregation service (REST + EF Core/Postgres) | Done and verified live (idempotency + hourly rollup confirmed against real Postgres) — [#7](https://github.com/Terrence721/GridPulse/issues/7) |
 | 3 | Billing service (rate-plan Strategy pattern) | Done and verified live end-to-end (all 3 rate plans math-checked against real data) — [#8](https://github.com/Terrence721/GridPulse/issues/8) |
-| 4 | Full Phase 1 unit test coverage — parent issue [#9](https://github.com/Terrence721/GridPulse/issues/9), split into sub-issues [#16](https://github.com/Terrence721/GridPulse/issues/16) (Meter Simulator), [#17](https://github.com/Terrence721/GridPulse/issues/17) (Usage Aggregation), [#18](https://github.com/Terrence721/GridPulse/issues/18) (Billing) | Backlog — starts once Billing (#8) lands |
+| 4 | Full Phase 1 unit test coverage — parent issue [#9](https://github.com/Terrence721/GridPulse/issues/9): [#16](https://github.com/Terrence721/GridPulse/issues/16) (Meter Simulator) done — 17 tests passing; [#17](https://github.com/Terrence721/GridPulse/issues/17) (Usage Aggregation) and [#18](https://github.com/Terrence721/GridPulse/issues/18) (Billing) still open | In progress |
 | 5 | End-to-end Phase 1 smoke check | Planned — [#10](https://github.com/Terrence721/GridPulse/issues/10) |
 
 **Phases 2-6** — not yet broken into concrete tasks, tracked as one Backlog item each until their turn comes:
