@@ -19,4 +19,7 @@
   <Folder Name="/tests/MeterSimulator.Tests/">
     <Project Path="tests/MeterSimulator.Tests/GridPulse.MeterSimulator.Tests.csproj" />
   </Folder>
+  <Folder Name="/tests/UsageAggregation.Tests/">
+    <Project Path="tests/UsageAggregation.Tests/GridPulse.UsageAggregation.Tests.csproj" />
+  </Folder>
 </Solution>
