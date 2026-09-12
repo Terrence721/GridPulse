@@ -110,7 +110,7 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | 1 | Meter Simulator worker service | Done and verified live end-to-end (1,876/1,876 readings delivered via real HTTP, confirmed in Postgres) — [#6](https://github.com/Terrence721/GridPulse/issues/6) |
 | 2 | Usage Aggregation service (REST + EF Core/Postgres) | Done and verified live (idempotency + hourly rollup confirmed against real Postgres) — [#7](https://github.com/Terrence721/GridPulse/issues/7) |
 | 3 | Billing service (rate-plan Strategy pattern) | Up next — [#8](https://github.com/Terrence721/GridPulse/issues/8) |
-| 4 | Unit tests: UsageAggregation + Billing | Planned — [#9](https://github.com/Terrence721/GridPulse/issues/9) |
+| 4 | Full Phase 1 unit test coverage — parent issue [#9](https://github.com/Terrence721/GridPulse/issues/9), split into sub-issues [#16](https://github.com/Terrence721/GridPulse/issues/16) (Meter Simulator), [#17](https://github.com/Terrence721/GridPulse/issues/17) (Usage Aggregation), [#18](https://github.com/Terrence721/GridPulse/issues/18) (Billing) | Backlog — starts once Billing (#8) lands |
 | 5 | End-to-end Phase 1 smoke check | Planned — [#10](https://github.com/Terrence721/GridPulse/issues/10) |
 
 **Phases 2-6** — not yet broken into concrete tasks, tracked as one Backlog item each until their turn comes:
