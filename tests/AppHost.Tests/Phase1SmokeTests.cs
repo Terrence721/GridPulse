@@ -22,7 +22,7 @@ public sealed class Phase1SmokeTests
         var usageAggregationClient = app.CreateHttpClient("usage-aggregation");
         var billingClient = app.CreateHttpClient("billing");
 
-        const string meterId = "SMOKE-TEST-METER";
+        var meterId = $"SMOKE-TEST-METER-{Guid.NewGuid()}";
         var periodStart = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
 
         var readingResponse = await usageAggregationClient.PostAsJsonAsync("/readings", new
