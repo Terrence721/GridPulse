@@ -15,6 +15,12 @@ var usageAggregation = builder.AddProject<Projects.GridPulse_UsageAggregation>("
     .WithReference(gridpulseDb)
     .WaitFor(gridpulseDb);
 
+builder.AddProject<Projects.GridPulse_Billing>("billing")
+    .WithReference(gridpulseDb)
+    .WaitFor(gridpulseDb)
+    .WithReference(usageAggregation)
+    .WaitFor(usageAggregation);
+
 builder.AddProject<Projects.GridPulse_MeterSimulator>("meter-simulator")
     .WithReference(usageAggregation)
     .WaitFor(usageAggregation)
