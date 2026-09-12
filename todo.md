@@ -11,6 +11,7 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | # | Milestone | Date | Detail |
 | - | - | - | - |
 | 1 | Repo bootstrap & tooling foundation | 2026-09-11 | git init, README, MIT LICENSE, design doc converted PDF→HTML, Yarn Berry 4.18.0 + catalog scaffold, CodeQL analysis, GitHub Pages, wiki, and this project board all live before any service code — see "Repository bootstrap" below |
+| 2 | **Phase 1 — Core loop complete** | 2026-09-12 | Meter Simulator → Usage Aggregation → Billing built and verified live end-to-end over real REST calls against a real Postgres database — 28 simulated meters, real-address validation against the live Census API, idempotent hourly rollups, and a rate-plan Strategy pattern generating real invoices. Backed by 36 unit tests and 1 automated E2E smoke test, all passing. All 13 issues in the [Phase 1 — Core loop](https://github.com/Terrence721/GridPulse/milestone/1) GitHub milestone closed; the milestone itself closed. See "Phase 1" sections below for full detail. |
 
 ## At a glance
 
