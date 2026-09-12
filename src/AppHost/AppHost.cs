@@ -14,4 +14,8 @@ builder.AddProject<Projects.GridPulse_MeterSimulator>("meter-simulator")
     .WithEnvironment("MeterSimulator__StartingAddress", startingAddress)
     .WithEnvironment("MeterSimulator__BuildingsPerSide", buildingsPerSide);
 
+builder.AddProject<Projects.GridPulse_UsageAggregation>("usage-aggregation")
+    .WithReference(gridpulseDb)
+    .WaitFor(gridpulseDb);
+
 builder.Build().Run();
