@@ -273,7 +273,8 @@
       company's meter-reading, usage-aggregation, and billing pipeline — not a fork or a cloned reference
       app. Built to demonstrate the skills a Principal Developer role expects: distributed systems design,
       microservices decomposition, event streaming, and production-grade observability, tracked in the open
-      from before the first service existed.
+      from before the first service existed. Phase 1's core loop — Meter Simulator → Usage Aggregation →
+      Billing — is now complete and verified live end-to-end, backed by 37 automated tests.
     </p>
     <div class="hero-actions">
       <a class="btn primary" href="https://github.com/Terrence721/GridPulse">View the repository →</a>
@@ -283,8 +284,8 @@
   </div>
   <div class="stamp" aria-hidden="true">
     <div class="stamp-inner">
-      <span class="n">3</span>
-      <span class="l">REAL CI<br />FIXES</span>
+      <span class="n">9</span>
+      <span class="l">REAL BUGS<br />FOUND</span>
     </div>
   </div>
 </div>
@@ -292,12 +293,12 @@
 <div class="manifest">
   <div class="wrap">
     <div class="manifest-row">
-      <div class="manifest-cell"><span class="v">Phase 1/6</span><span class="k">current stage</span></div>
-      <div class="manifest-cell"><span class="v">70</span><span class="k">commits</span></div>
-      <div class="manifest-cell"><span class="v">15</span><span class="k">issues tracked</span></div>
-      <div class="manifest-cell"><span class="v">3</span><span class="k">real CI fixes</span></div>
+      <div class="manifest-cell"><span class="v">Phase 1 ✓</span><span class="k">core loop complete</span></div>
+      <div class="manifest-cell"><span class="v">108</span><span class="k">commits</span></div>
+      <div class="manifest-cell"><span class="v">18</span><span class="k">issues tracked</span></div>
+      <div class="manifest-cell"><span class="v">9</span><span class="k">real bugs found</span></div>
       <div class="manifest-cell"><span class="v">13.5.3</span><span class="k">Aspire</span></div>
-      <div class="manifest-cell"><span class="v">6</span><span class="k">build phases planned</span></div>
+      <div class="manifest-cell"><span class="v">37</span><span class="k">tests, all passing</span></div>
     </div>
   </div>
 </div>
@@ -331,11 +332,11 @@
     <h2>Built one phase at a time, in the open</h2>
     <p class="h2-sub">Six phases, staged deliberately — the core domain loop first, Kafka and the dashboard later</p>
     <p class="lede">
-      Phase 1 is a direct-REST core loop (Meter Simulator → Usage Aggregation → Billing) on a single
-      Postgres database — get the domain logic right before introducing an event bus. Kafka, a polyglot
-      Node.js Notification Service, a React/Redux Toolkit dashboard, CI/CD, and full observability are
-      layered in afterward, one phase at a time, scaffolded one file or folder at a step with nothing
-      batched ahead of review.
+      Phase 1 — a direct-REST core loop (Meter Simulator → Usage Aggregation → Billing) on a single
+      Postgres database — is done: real HTTP calls, real Postgres persistence, 37 tests passing, and an
+      automated end-to-end smoke test that spins up the real stack. Kafka, a polyglot Node.js Notification
+      Service, a React/Redux Toolkit dashboard, CI/CD, and full observability are layered in next, one
+      phase at a time, scaffolded one file or folder at a step with nothing batched ahead of review.
     </p>
     <div class="twocol">
       <div class="card">
@@ -354,11 +355,12 @@
   </section>
 
   <section>
-    <h2>Three real CI failures, found and fixed before any service existed</h2>
+    <h2>Nine real bugs, found by actually running the thing</h2>
     <p class="h2-sub">All logged in <a href="https://github.com/Terrence721/GridPulse/blob/main/todo.md">todo.md</a>, checkable against the commit history</p>
     <p class="lede">
-      Setting up CodeQL on a repo with almost no source yet surfaced genuine tooling failures — not
-      hypothetical edge cases, actual red CI (and one silently-stale green banner).
+      From CodeQL failing before any service existed, to a live DNS resolution bug caught only by running
+      the real distributed app end-to-end, to .NET 10 SDK/xUnit v3 tooling breakage — every one of these
+      was found by actually building and running the thing, not by inspection.
     </p>
     <div class="ledger">
       <div class="item">
@@ -405,6 +407,97 @@
             <a href="https://github.com/Terrence721/GridPulse/issues/3">issue #3</a></div>
         </div>
       </div>
+      <div class="item">
+        <div class="no">04</div>
+        <div>
+          <div class="file">src/AppHost/AppHost.cs</div>
+          <div class="desc">
+            The first live run of Meter Simulator → Usage Aggregation sent 0 of 7 readings successfully —
+            every attempt failed with <code>No such host is known (usage-aggregation:80)</code>.
+            <code>AppHost.cs</code> registered <code>meter-simulator</code> without
+            <code>.WithReference(usageAggregation)</code>, so Aspire never injected the service-discovery
+            config the DNS name needed to resolve. Caught only because the run was actually verified against
+            real output instead of trusting a clean build — fixed, then re-verified live: 1,876/1,876
+            readings delivered.
+          </div>
+          <div class="meta"><span class="tag">real bug · live E2E only</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/6">issue #6</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">05</div>
+        <div>
+          <div class="file">global.json</div>
+          <div class="desc">
+            Adding the first test project revealed that <code>dotnet test</code> is outright broken for
+            xUnit v3 on the .NET 10 SDK ("VSTest target is no longer supported") unless a project opts into
+            the new <code>Microsoft.Testing.Platform</code> runner mode — a repo-root <code>global.json</code>
+            setting most guides don't mention yet, since it's brand new with .NET 10.
+          </div>
+          <div class="meta"><span class="tag">real tooling break · .NET 10 SDK</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/16">issue #16</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">06</div>
+        <div>
+          <div class="file">tests/UsageAggregation.Tests/*.csproj</div>
+          <div class="desc">
+            Adding EF Core's InMemory provider for fast unit tests alongside the real Npgsql provider
+            produced an unresolved <code>Microsoft.EntityFrameworkCore.Relational</code> version conflict —
+            the app's own EF Core Design package forced 10.0.12 while the test project's transitive Npgsql
+            dependency settled on 10.0.11. Fixed by pinning the version explicitly rather than ignoring the
+            warning.
+          </div>
+          <div class="meta"><span class="tag">real dependency conflict</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/17">issue #17</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">07</div>
+        <div>
+          <div class="file">src/MeterSimulator/GridPulse.MeterSimulator.csproj</div>
+          <div class="desc">
+            The hand-written <code>.csproj</code> used <code>Microsoft.NET.Sdk.Worker</code> alone, which
+            doesn't pull in <code>Microsoft.Extensions.Hosting</code> as a framework reference —
+            <code>Host.CreateApplicationBuilder</code>/<code>BackgroundService</code>/<code>ILogger&lt;T&gt;</code>
+            all failed to resolve, 7 compile errors from one missing package reference.
+          </div>
+          <div class="meta"><span class="tag">real build failure</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/6">issue #6</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">08</div>
+        <div>
+          <div class="file">src/MeterSimulator/Program.cs</div>
+          <div class="desc">
+            Fail-fast config validation worked — the app exited non-zero with a clean message — but a full
+            stack trace printed first anyway. .NET's Generic Host logs <code>OptionsValidationException</code>
+            internally during its own <code>StartAsync()</code>, before any caller's <code>try/catch</code>
+            ever sees it. Fixed by resolving the options manually before <code>host.Run()</code>, so
+            validation happens in application code, never reaching the Host's internal failure logging.
+          </div>
+          <div class="meta"><span class="tag">real bug · noisy failure path</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/6">issue #6</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">09</div>
+        <div>
+          <div class="file">tests/AppHost.Tests/Phase1SmokeTests.cs</div>
+          <div class="desc">
+            Right after declaring Phase 1 done, re-running the smoke test a second time failed:
+            <code>Expected: 10, Actual: 50</code>. The test used a hardcoded meter ID against
+            <code>AppHost</code>'s Postgres, which uses a persistent data volume by design for real local dev —
+            so every run kept adding its reading to the same row left over from the last one. Fixed by generating
+            a unique meter ID per run; re-verified by running it twice in a row against the same persistent
+            database.
+          </div>
+          <div class="meta"><span class="tag">real bug · test isolation</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/10">issue #10</a></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -413,11 +506,11 @@
     <p class="h2-sub">Early, and said so — not oversold</p>
     <div class="twocol">
       <div class="card">
-        <h3>Phase 1 is in progress, not done</h3>
-        <p>Meter Simulator is done and verified live — 28 meters, fail-fast validated config, no
-        hardcoded values anywhere. Usage Aggregation's core logic (EF Core migrations, idempotency
-        checks, hourly rollup) is built and compiles clean, but not yet verified live the same way.
-        Billing hasn't been started.</p>
+        <h3>Phase 1 is done, verified live</h3>
+        <p>Meter Simulator, Usage Aggregation, and Billing all built, wired together through
+        <code>AppHost</code>, and verified against a real running stack — real HTTP calls, real Postgres,
+        real invoices with correct math. Backed by 37 automated tests, including an end-to-end smoke test
+        that spins up the whole thing and walks a reading through it.</p>
       </div>
       <div class="card">
         <h3>Nothing here is unverified</h3>
