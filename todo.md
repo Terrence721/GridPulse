@@ -1,6 +1,6 @@
 # 📝 TODO
 
-**Last Updated:** September 11, 2026
+**Last Updated:** September 12, 2026
 
 A phase-by-phase log of what's been done on this repo and what's still open. This is the source of truth for progress — the [README](README.md)'s Build Phases checklist and the [project board](https://github.com/users/Terrence721/projects/9) both mirror this file, not the other way around.
 
@@ -24,7 +24,9 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | Project tracking | GitHub wiki, GitHub Pages (serving `docs/`), a one-page portfolio, and a [project board](https://github.com/users/Terrence721/projects/9) (Backlog/Planned/In Progress/Verification & QA/Done) all set up |
 | Aspire backbone | `GridPulse.slnx`, `ServiceDefaults`, and `AppHost` — Postgres resource wired in and verified end-to-end (container up, `gridpulsedb` created) — [#4](https://github.com/Terrence721/GridPulse/issues/4)/[#5](https://github.com/Terrence721/GridPulse/issues/5) |
 
-**Actually still open, right now:** the three domain services (Meter Simulator, Usage Aggregation, Billing), their tests, and the Phase 1 smoke check (5 items) plus Phases 2-6 at a high level — see **Still to do** below.
+**In progress right now:** Meter Simulator — scaffold builds clean and references `ServiceDefaults`, but has no domain logic yet and isn't wired into `AppHost` — [#6](https://github.com/Terrence721/GridPulse/issues/6).
+
+**Actually still open:** finishing Meter Simulator, then Usage Aggregation and Billing (with tests) and the Phase 1 smoke check, plus Phases 2-6 at a high level — see **Still to do** below.
 
 ## ✅ Done
 
@@ -64,13 +66,21 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | 2026-09-11 | `src/ServiceDefaults` added (shared health checks, OpenTelemetry, service discovery — Microsoft's standard Aspire template, already composition-based with single-responsibility extension methods, checked against this repo's DRY/SOLID/composition-over-inheritance standard and needed no changes). `src/AppHost` scaffolded and given `Aspire.Hosting.PostgreSQL`. [#5](https://github.com/Terrence721/GridPulse/issues/5) |
 | 2026-09-11 | Postgres resource wired into `AppHost.cs` (`AddPostgres("postgres").WithDataVolume()` + `AddDatabase("gridpulsedb")`) and verified end-to-end, not just assumed from a clean build: ran the AppHost locally, confirmed the `postgres-nvnytrht` container reached `Running`, and confirmed `gridpulsedb` actually exists via `psql -l` inside the container. Closes out the Aspire backbone. [#5](https://github.com/Terrence721/GridPulse/issues/5) |
 
+### Phase 1 — Meter Simulator (in progress, not done)
+
+| Date | What |
+| - | - |
+| 2026-09-11 | Bare scaffold hand-written file by file rather than via `dotnet new` (`.csproj`, `Program.cs`, `Worker.cs`, `appsettings.json`/`.Development.json`, `launchSettings.json`) — each its own commit. [#6](https://github.com/Terrence721/GridPulse/issues/6) |
+| 2026-09-11 | **Real build failure found and fixed:** the hand-written `.csproj` used `Microsoft.NET.Sdk.Worker` alone, which doesn't pull in `Microsoft.Extensions.Hosting` as a framework reference — `Host.CreateApplicationBuilder`/`BackgroundService`/`ILogger<T>` all failed to resolve (7 compile errors). Fixed by adding the explicit `Microsoft.Extensions.Hosting` package reference (resolved to 10.0.12); standalone build verified clean afterward. [#6](https://github.com/Terrence721/GridPulse/issues/6) |
+| 2026-09-11 | Registered in `GridPulse.slnx`; referenced `ServiceDefaults` and wired `builder.AddServiceDefaults()` into `Program.cs`; re-verified with a standalone `dotnet build`, 0 warnings/errors. **Not yet done:** no reference from `AppHost` (so it isn't orchestrated yet), and no domain logic — `Worker.cs` is still the placeholder template loop, not a meter-reading generator. [#6](https://github.com/Terrence721/GridPulse/issues/6) |
+
 ## 🚧 Still to do
 
 **Phase 1 — Core loop, no Kafka** (Meter Simulator → Usage Aggregation → Billing via direct REST calls, single Postgres DB — see [docs/gridpulse-design-doc.html](docs/gridpulse-design-doc.html)):
 
 | # | Item | Status |
 | - | - | - |
-| 1 | Meter Simulator worker service | Planned — [#6](https://github.com/Terrence721/GridPulse/issues/6) |
+| 1 | Meter Simulator worker service | In progress — scaffold + `ServiceDefaults` wiring done, domain logic + `AppHost` wiring pending — [#6](https://github.com/Terrence721/GridPulse/issues/6) |
 | 2 | Usage Aggregation service (REST + EF Core/Postgres) | Planned — [#7](https://github.com/Terrence721/GridPulse/issues/7) |
 | 3 | Billing service (rate-plan Strategy pattern) | Planned — [#8](https://github.com/Terrence721/GridPulse/issues/8) |
 | 4 | Unit tests: UsageAggregation + Billing | Planned — [#9](https://github.com/Terrence721/GridPulse/issues/9) |
@@ -80,8 +90,8 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 
 | # | Item | Status |
 | - | - | - |
-| 8 | Phase 2 — Introduce Kafka + schema registry | Backlog — [#11](https://github.com/Terrence721/GridPulse/issues/11) |
-| 9 | Phase 3 — Node.js Notification Service + Account/Customer Service | Backlog — [#12](https://github.com/Terrence721/GridPulse/issues/12) |
-| 10 | Phase 4 — React/Redux Toolkit dashboard + BFF gateway | Backlog — [#13](https://github.com/Terrence721/GridPulse/issues/13) |
-| 11 | Phase 5 — CI/CD pipeline | Backlog — [#14](https://github.com/Terrence721/GridPulse/issues/14) |
-| 12 | Phase 6 — Observability + resiliency hardening | Backlog — [#15](https://github.com/Terrence721/GridPulse/issues/15) |
+| 6 | Phase 2 — Introduce Kafka + schema registry | Backlog — [#11](https://github.com/Terrence721/GridPulse/issues/11) |
+| 7 | Phase 3 — Node.js Notification Service + Account/Customer Service | Backlog — [#12](https://github.com/Terrence721/GridPulse/issues/12) |
+| 8 | Phase 4 — React/Redux Toolkit dashboard + BFF gateway | Backlog — [#13](https://github.com/Terrence721/GridPulse/issues/13) |
+| 9 | Phase 5 — CI/CD pipeline | Backlog — [#14](https://github.com/Terrence721/GridPulse/issues/14) |
+| 10 | Phase 6 — Observability + resiliency hardening | Backlog — [#15](https://github.com/Terrence721/GridPulse/issues/15) |
