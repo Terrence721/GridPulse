@@ -9,4 +9,7 @@
   <Folder Name="/src/ServiceDefaults/">
     <Project Path="src/ServiceDefaults/GridPulse.ServiceDefaults.csproj" />
   </Folder>
+  <Folder Name="/src/UsageAggregation/">
+    <Project Path="src/UsageAggregation/GridPulse.UsageAggregation.csproj" />
+  </Folder>
 </Solution>
