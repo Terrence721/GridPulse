@@ -1,6 +1,6 @@
 # 📝 TODO
 
-**Last Updated:** September 12, 2026
+**Last Updated:** September 12, 2026 (Meter Simulator's HTTP publish verified end-to-end)
 
 A phase-by-phase log of what's been done on this repo and what's still open. This is the source of truth for progress — the [README](README.md)'s Build Phases checklist and the [project board](https://github.com/users/Terrence721/projects/9) both mirror this file, not the other way around.
 
@@ -23,10 +23,10 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | Code analysis | CodeQL (`csharp` + `actions` today; `javascript-typescript` returns once real JS/TS source exists) — [#3](https://github.com/Terrence721/GridPulse/issues/3) |
 | Project tracking | GitHub wiki, GitHub Pages (serving `docs/`), a one-page portfolio, and a [project board](https://github.com/users/Terrence721/projects/9) (Backlog/Planned/In Progress/Verification & QA/Done) all set up |
 | Aspire backbone | `GridPulse.slnx`, `ServiceDefaults`, and `AppHost` — Postgres resource wired in and verified end-to-end (container up, `gridpulsedb` created) — [#4](https://github.com/Terrence721/GridPulse/issues/4)/[#5](https://github.com/Terrence721/GridPulse/issues/5) |
-| Meter Simulator | 28 meters (both sides of a configurable city block), fail-fast validated config (no hardcoded values anywhere — Aspire parameters + user secrets locally), verified live for 2+ minutes. Only the HTTP publish to Usage Aggregation is left, now unblocked — [#6](https://github.com/Terrence721/GridPulse/issues/6) |
-| Usage Aggregation | `POST /readings` with idempotency (duplicate `readingId` ignored) and hourly rollup (`TotalKwh` correctly summed), verified live against real Postgres via curl + `psql` — [#7](https://github.com/Terrence721/GridPulse/issues/7) |
+| Meter Simulator | 28 meters (both sides of a configurable city block), fail-fast validated config (no hardcoded values anywhere — Aspire parameters + user secrets locally), now sending real `POST /readings` HTTP calls to Usage Aggregation via service discovery — verified live end-to-end — [#6](https://github.com/Terrence721/GridPulse/issues/6) |
+| Usage Aggregation | `POST /readings` with idempotency (duplicate `readingId` ignored) and hourly rollup (`TotalKwh` correctly summed), verified live against real Postgres via curl + `psql`, and now receiving real traffic from Meter Simulator — [#7](https://github.com/Terrence721/GridPulse/issues/7) |
 
-**Actually still open:** Meter Simulator's HTTP call to Usage Aggregation, then Billing (with tests) and the Phase 1 smoke check, plus Phases 2-6 at a high level — see **Still to do** below.
+**Actually still open:** Billing (with tests) and the Phase 1 smoke check, plus Phases 2-6 at a high level — see **Still to do** below.
 
 ## ✅ Done
 
@@ -67,7 +67,7 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | 2026-09-11 | `src/ServiceDefaults` added (shared health checks, OpenTelemetry, service discovery — Microsoft's standard Aspire template, already composition-based with single-responsibility extension methods, checked against this repo's DRY/SOLID/composition-over-inheritance standard and needed no changes). `src/AppHost` scaffolded and given `Aspire.Hosting.PostgreSQL`. [#5](https://github.com/Terrence721/GridPulse/issues/5) |
 | 2026-09-11 | Postgres resource wired into `AppHost.cs` (`AddPostgres("postgres").WithDataVolume()` + `AddDatabase("gridpulsedb")`) and verified end-to-end, not just assumed from a clean build: ran the AppHost locally, confirmed the `postgres-nvnytrht` container reached `Running`, and confirmed `gridpulsedb` actually exists via `psql -l` inside the container. Closes out the Aspire backbone. [#5](https://github.com/Terrence721/GridPulse/issues/5) |
 
-### Phase 1 — Meter Simulator (done, blocked on Usage Aggregation for the HTTP publish)
+### Phase 1 — Meter Simulator (done and verified live end-to-end)
 
 | Date | What |
 | - | - |
@@ -82,8 +82,11 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | 2026-09-12 | **Real bug found and fixed — validation ran, but noisily:** the first fail-fast attempt worked (app exited non-zero with a caught, clean message) but a full stack trace still printed first — .NET's Generic Host logs `OptionsValidationException` internally during `StartAsync()`, before any caller's own try/catch ever sees it. Fixed by resolving `IOptions<MeterSimulatorOptions>.Value` manually right after `builder.Build()`, *before* `host.Run()` — validation now happens in our own code, never reaching the Host's internal startup-failure logging path. Re-verified live: clean 3-line output, no stack trace. |
 | 2026-09-12 | **Self-caught and corrected — hardcoding just moved, not removed:** first fix for `AppHost` orchestrating the now-required config was `.WithEnvironment("MeterSimulator__StreetName", "MAIN-ST")` with literal values — same hardcoding problem, just relocated from `MeterSimulatorOptions.cs` to `AppHost.cs`. Caught before committing. Replaced with Aspire's `builder.AddParameter(...)` (no default value, by design), which resolves from `AppHost`'s own configuration (`dotnet user-secrets`, never a committed file) and fails `AppHost` itself if unset — the same fail-fast discipline as `MeterSimulator`, one layer up. Local values set via `dotnet user-secrets set "Parameters:meter-simulator-*" ... --project src/AppHost`, landing in `%APPDATA%\Microsoft\UserSecrets\<AppHost's UserSecretsId>\secrets.json` — outside the repo, never committed. |
 | 2026-09-12 | Considered and rejected `appsettings.Production.json`: environment variables already take precedence over any `appsettings.{Environment}.json` in .NET's config load order, so a real deployment's env vars would override it anyway — and there's no safe content to put in it that wouldn't either be dead weight (empty) or reintroduce the exact hardcoding this design eliminates (real-looking example values). |
+| 2026-09-12 | Worker rewritten to actually `POST /readings` to Usage Aggregation via a named `HttpClient` (`http://usage-aggregation`, resolved through Aspire service discovery), replacing the placeholder logging loop — catches `HttpRequestException` per-reading and logs a warning rather than crashing the whole worker on a transient failure. [#6](https://github.com/Terrence721/GridPulse/issues/6) |
+| 2026-09-12 | **Real bug found and fixed:** first live run sent 0/7 readings successfully — every attempt failed with `System.Net.Http.HttpRequestException: No such host is known. (usage-aggregation:80)`. Root cause: `AppHost.cs` registered `meter-simulator` without `.WithReference(usageAggregation)`, so Aspire never injected the service-discovery configuration `usage-aggregation` needs to resolve to a real address — the DNS name was never going to exist. Fixed by capturing the `usage-aggregation` resource builder in a variable and adding `.WithReference(usageAggregation)` + `.WaitFor(usageAggregation)` to `meter-simulator`'s registration. [#6](https://github.com/Terrence721/GridPulse/issues/6) |
+| 2026-09-12 | **End-to-end verification, not just a clean build:** re-ran `dotnet run --project src/AppHost` after the fix. Meter Simulator's own log: **1,876 "Sent reading" successes, 0 failures**, all resolving to `http://localhost:5101/readings` and returning `202 Accepted`. Confirmed directly against Postgres via `psql`: `ProcessedReadings` at 2,242 rows, `HourlyUsages` at 29 rollup rows, each correctly bucketed per meter per hour (e.g. `MTR-100-MAIN-ST` accumulating 208.65 kWh in one hourly bucket). Meter Simulator → Usage Aggregation → Postgres is now a genuinely working pipeline, not an assumption from a green build. [#6](https://github.com/Terrence721/GridPulse/issues/6) |
 
-**Where Meter Simulator actually stands:** scaffold, domain logic, configuration, validation, and `AppHost` wiring are all done and verified live. The only remaining piece is the actual HTTP POST to Usage Aggregation, which can't be built until that service exists (Step 5) — readings are logged, not yet sent anywhere.
+**Where Meter Simulator actually stands:** scaffold, domain logic, configuration, validation, `AppHost` wiring, and the HTTP publish to Usage Aggregation are all done and verified live end-to-end. Nothing left open on this service for Phase 1.
 
 ### Phase 1 — Usage Aggregation (in progress)
 
@@ -96,7 +99,7 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | 2026-09-12 | `ReadingProcessor` added: checks `ProcessedReadings` for the incoming `ReadingId` before doing anything else (idempotency — a duplicate returns `false` without reprocessing), then upserts the `(MeterId, PeriodStart)` hourly bucket, adding the new reading's `Kwh` to the running total. Wired up as `POST /readings`, returning `202 Accepted` for a newly processed reading or `200 OK` for a duplicate. [#7](https://github.com/Terrence721/GridPulse/issues/7) |
 | 2026-09-12 | **End-to-end verification, not just a clean build:** ran `dotnet run --project src/AppHost`, confirmed `/health` returns `200`, then sent real `POST /readings` requests via curl. Sent one reading (2.5 kWh) — `202 Accepted`. Resent the identical `readingId` — `200 OK` with `"duplicate"`, not reprocessed. Sent a second, genuinely new reading for the same meter in the same hour (1.75 kWh). Verified directly against Postgres via `psql`: `ProcessedReadings` has exactly 2 rows (the duplicate never created a 3rd), and `HourlyUsages` has exactly 1 row for that hour with `TotalKwh = 4.25` — the correct sum. Idempotency and rollup both confirmed against a real database, not assumed from the code. [#7](https://github.com/Terrence721/GridPulse/issues/7) |
 
-**Where Usage Aggregation actually stands:** scaffold, `AppHost`/Postgres wiring, domain model, migrations, and the core idempotency+rollup logic are all built and verified live against a real database. The only remaining piece is Meter Simulator actually calling this endpoint instead of just logging.
+**Where Usage Aggregation actually stands:** scaffold, `AppHost`/Postgres wiring, domain model, migrations, and the core idempotency+rollup logic are all built and verified live against a real database, and it's now receiving real traffic from Meter Simulator end-to-end. Nothing left open on this service for Phase 1.
 
 ## 🚧 Still to do
 
@@ -104,9 +107,9 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 
 | # | Item | Status |
 | - | - | - |
-| 1 | Meter Simulator worker service | Unblocked — Usage Aggregation now exists and is verified live; only remaining piece is wiring the actual `POST /readings` HTTP call in place of logging — [#6](https://github.com/Terrence721/GridPulse/issues/6) |
+| 1 | Meter Simulator worker service | Done and verified live end-to-end (1,876/1,876 readings delivered via real HTTP, confirmed in Postgres) — [#6](https://github.com/Terrence721/GridPulse/issues/6) |
 | 2 | Usage Aggregation service (REST + EF Core/Postgres) | Done and verified live (idempotency + hourly rollup confirmed against real Postgres) — [#7](https://github.com/Terrence721/GridPulse/issues/7) |
-| 3 | Billing service (rate-plan Strategy pattern) | Planned — [#8](https://github.com/Terrence721/GridPulse/issues/8) |
+| 3 | Billing service (rate-plan Strategy pattern) | Up next — [#8](https://github.com/Terrence721/GridPulse/issues/8) |
 | 4 | Unit tests: UsageAggregation + Billing | Planned — [#9](https://github.com/Terrence721/GridPulse/issues/9) |
 | 5 | End-to-end Phase 1 smoke check | Planned — [#10](https://github.com/Terrence721/GridPulse/issues/10) |
 
