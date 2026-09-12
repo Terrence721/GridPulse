@@ -16,4 +16,10 @@ public sealed class MeterSimulatorOptions
 
     [Range(1, int.MaxValue, ErrorMessage = "BuildingsPerSide must be set by the field engineer for this deployment.")]
     public int BuildingsPerSide { get; set; }
+
+    [Required(AllowEmptyStrings = false, ErrorMessage = "City must be set by the field engineer for this deployment.")]
+    public string City { get; set; } = string.Empty;
+
+    [Required(AllowEmptyStrings = false, ErrorMessage = "ZipCode must be set by the field engineer for this deployment.")]
+    public string ZipCode { get; set; } = string.Empty;
 }

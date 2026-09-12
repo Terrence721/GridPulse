@@ -8,6 +8,8 @@ var gridpulseDb = postgres.AddDatabase("gridpulsedb");
 var streetName = builder.AddParameter("meter-simulator-street-name");
 var startingAddress = builder.AddParameter("meter-simulator-starting-address");
 var buildingsPerSide = builder.AddParameter("meter-simulator-buildings-per-side");
+var city = builder.AddParameter("meter-simulator-city");
+var zipCode = builder.AddParameter("meter-simulator-zip-code");
 
 var usageAggregation = builder.AddProject<Projects.GridPulse_UsageAggregation>("usage-aggregation")
     .WithReference(gridpulseDb)
@@ -18,6 +20,8 @@ builder.AddProject<Projects.GridPulse_MeterSimulator>("meter-simulator")
     .WaitFor(usageAggregation)
     .WithEnvironment("MeterSimulator__StreetName", streetName)
     .WithEnvironment("MeterSimulator__StartingAddress", startingAddress)
-    .WithEnvironment("MeterSimulator__BuildingsPerSide", buildingsPerSide);
+    .WithEnvironment("MeterSimulator__BuildingsPerSide", buildingsPerSide)
+    .WithEnvironment("MeterSimulator__City", city)
+    .WithEnvironment("MeterSimulator__ZipCode", zipCode);
 
 builder.Build().Run();
