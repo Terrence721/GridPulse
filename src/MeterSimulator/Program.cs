@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using GridPulse.MeterSimulator;
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -12,4 +13,17 @@ builder.Services.AddSingleton<CityBlockMeterIdFactory>();
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();
-host.Run();
+
+try
+{
+    host.Run();
+}
+catch (OptionsValidationException ex)
+{
+    foreach (var failure in ex.Failures)
+    {
+        Console.Error.WriteLine(failure);
+    }
+
+    Environment.Exit(1);
+}
