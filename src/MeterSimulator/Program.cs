@@ -5,6 +5,7 @@ builder.AddServiceDefaults();
 builder.Services.Configure<MeterSimulatorOptions>(
     builder.Configuration.GetSection(MeterSimulatorOptions.SectionName));
 builder.Services.AddSingleton<MeterReadingGenerator>();
+builder.Services.AddSingleton<CityBlockMeterIdFactory>();
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();
