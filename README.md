@@ -13,6 +13,7 @@ GridPulse is a self-contained, event-driven platform simulating a utility compan
 ## 🧭 Start Here
 
 - **[Design Document](docs/gridpulse-design-doc.html)** — full architecture rationale, service breakdown, event contracts, cross-cutting concerns, and interview talking points.
+- **[`docs/architecture.md`](docs/architecture.md)** — decision-by-decision reasoning (context, alternatives, consequences) for design choices made along the way.
 - **[`todo.md`](todo.md)** — the source of truth for what's done and what's left, phase by phase.
 - **[Wiki](https://github.com/Terrence721/GridPulse/wiki)** — short pointers into the docs, one page per service as each one lands.
 - **[Project board](https://github.com/users/Terrence721/projects/9)** — Backlog/Planned/In Progress/Verification & QA/Done, synced with `todo.md`.
