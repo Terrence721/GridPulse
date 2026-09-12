@@ -16,7 +16,10 @@ var host = builder.Build();
 
 try
 {
-    host.Run();
+    // Trigger validation here, before host.Run() starts the hosting pipeline —
+    // resolving it inside host.Run() means the Generic Host's own StartAsync()
+    // logs the exception (with a full stack trace) before this catch ever runs.
+    _ = host.Services.GetRequiredService<IOptions<MeterSimulatorOptions>>().Value;
 }
 catch (OptionsValidationException ex)
 {
@@ -27,3 +30,5 @@ catch (OptionsValidationException ex)
 
     Environment.Exit(1);
 }
+
+host.Run();
