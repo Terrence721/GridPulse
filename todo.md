@@ -1,6 +1,6 @@
 # 📝 TODO
 
-**Last Updated:** September 12, 2026 (Meter Simulator's HTTP publish verified end-to-end)
+**Last Updated:** September 12, 2026 (Billing built and verified end-to-end — Phase 1's core loop is complete)
 
 A phase-by-phase log of what's been done on this repo and what's still open. This is the source of truth for progress — the [README](README.md)'s Build Phases checklist and the [project board](https://github.com/users/Terrence721/projects/9) both mirror this file, not the other way around.
 
@@ -25,8 +25,9 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | Aspire backbone | `GridPulse.slnx`, `ServiceDefaults`, and `AppHost` — Postgres resource wired in and verified end-to-end (container up, `gridpulsedb` created) — [#4](https://github.com/Terrence721/GridPulse/issues/4)/[#5](https://github.com/Terrence721/GridPulse/issues/5) |
 | Meter Simulator | 28 meters (both sides of a configurable city block), fail-fast validated config (no hardcoded values anywhere — Aspire parameters + user secrets locally), now sending real `POST /readings` HTTP calls to Usage Aggregation via service discovery — verified live end-to-end — [#6](https://github.com/Terrence721/GridPulse/issues/6) |
 | Usage Aggregation | `POST /readings` with idempotency (duplicate `readingId` ignored) and hourly rollup (`TotalKwh` correctly summed), verified live against real Postgres via curl + `psql`, and now receiving real traffic from Meter Simulator — [#7](https://github.com/Terrence721/GridPulse/issues/7) |
+| Billing | Rate-plan Strategy pattern (flat, tiered, time-of-use), `POST /invoices` generating real invoices from Usage Aggregation's live data, verified against all three rate plans with exact math confirmed in Postgres — [#8](https://github.com/Terrence721/GridPulse/issues/8) |
 
-**Actually still open:** Billing (with tests) and the Phase 1 smoke check, plus Phases 2-6 at a high level — see **Still to do** below.
+**Actually still open:** Full Phase 1 unit test coverage and the Phase 1 smoke check, plus Phases 2-6 at a high level — see **Still to do** below.
 
 ## ✅ Done
 
@@ -101,6 +102,18 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 
 **Where Usage Aggregation actually stands:** scaffold, `AppHost`/Postgres wiring, domain model, migrations, and the core idempotency+rollup logic are all built and verified live against a real database, and it's now receiving real traffic from Meter Simulator end-to-end. Nothing left open on this service for Phase 1.
 
+### Phase 1 — Billing (done and verified live end-to-end)
+
+| Date | What |
+| - | - |
+| 2026-09-12 | Scaffold hand-written file by file (`.csproj` on `Microsoft.NET.Sdk.Web`, ports 5102/7102 — confirmed free before use), registered in `GridPulse.slnx`. Referenced `ServiceDefaults`, wired `builder.AddServiceDefaults()` + `app.MapDefaultEndpoints()` for `/health`. Wired into `AppHost`: project reference + `AddProject<...>("billing").WithReference(gridpulseDb).WaitFor(gridpulseDb).WithReference(usageAggregation).WaitFor(usageAggregation)` — Billing needs both its own Postgres tables and a live path to Usage Aggregation's data. [#8](https://github.com/Terrence721/GridPulse/issues/8) |
+| 2026-09-12 | Usage Aggregation gained a new `GET /usage/{meterId}?periodStart=&periodEnd=` read endpoint (`HourlyUsageResponse` DTO) so Billing pulls a meter's hourly rollups over REST rather than reaching into Usage Aggregation's Postgres tables directly — keeps service boundaries real even though Phase 1 shares one physical database. |
+| 2026-09-12 | Rate-plan **Strategy pattern** built — the design doc's explicit OOP/SOLID demonstration piece: `IRatePlan` interface, `FlatRateRatePlan`, `TieredRatePlan` (an open-ended final bracket via a large sentinel `UpToKwh`, not a special-cased "infinity" branch), and `TimeOfUseRatePlan` (peak/off-peak, correctly handles a peak window that wraps past midnight). Actual pricing values live in `RatePlanOptions`, bound from a checked-in `appsettings.json` — a deliberate exception to Meter Simulator's "no checked-in config" rule, since rate schedules are real published business configuration, not a deployment-specific value like a street address. |
+| 2026-09-12 | `Invoice` entity (keyed by `MeterId`, same deliberate deviation as `HourlyUsage` — no Account/Customer Service yet), `BillingDbContext`, `BillingDbContextFactory` for design-time migration tooling, `InitialCreate` migration. `InvoiceGenerator` ties it together: calls Usage Aggregation's new endpoint via `IHttpClientFactory`, picks the requested `IRatePlan` implementation, computes `AmountDue`, persists the `Invoice`. Wired up as `POST /invoices` (meterId, periodStart, periodEnd, ratePlanType), returning `201 Created`. The caller picks which rate plan applies per invoice, since there's no persisted customer-to-plan mapping yet. [#8](https://github.com/Terrence721/GridPulse/issues/8) |
+| 2026-09-12 | **End-to-end verification, not just a clean build:** ran `dotnet run --project src/AppHost` with all four resources (Postgres, Usage Aggregation, Billing, Meter Simulator) live together. Called `POST /invoices` for a real meter (`MTR-100-W Michigan Ave`) with real accumulated usage, against all three rate plans: Flat (82.901 kWh × $0.16 = $13.26416), Tiered (93.455 kWh, entirely within the first $0.14 bracket = $13.0837), and TimeOfUse (93.455 kWh, entirely inside the 14:00–19:00 peak window × $0.22 = $20.5601) — all three math-checked exactly and confirmed persisted in Postgres via `psql`. Closes out Phase 1's core loop: Meter Simulator → Usage Aggregation → Billing is now real, working, and verified end-to-end. [#8](https://github.com/Terrence721/GridPulse/issues/8) |
+
+**Where Billing actually stands:** scaffold, `AppHost`/Postgres wiring, the rate-plan Strategy pattern, invoice generation, and the `POST /invoices` endpoint are all built and verified live against real usage data and a real database. Nothing left open on this service for Phase 1 — full unit test coverage ([#9](https://github.com/Terrence721/GridPulse/issues/9)/[#16](https://github.com/Terrence721/GridPulse/issues/16)-[#18](https://github.com/Terrence721/GridPulse/issues/18)) and the end-to-end smoke check ([#10](https://github.com/Terrence721/GridPulse/issues/10)) are what remain for Phase 1 overall.
+
 ## 🚧 Still to do
 
 **Phase 1 — Core loop, no Kafka** (Meter Simulator → Usage Aggregation → Billing via direct REST calls, single Postgres DB — see [docs/gridpulse-design-doc.html](docs/gridpulse-design-doc.html)):
@@ -109,7 +122,7 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | - | - | - |
 | 1 | Meter Simulator worker service | Done and verified live end-to-end (1,876/1,876 readings delivered via real HTTP, confirmed in Postgres) — [#6](https://github.com/Terrence721/GridPulse/issues/6) |
 | 2 | Usage Aggregation service (REST + EF Core/Postgres) | Done and verified live (idempotency + hourly rollup confirmed against real Postgres) — [#7](https://github.com/Terrence721/GridPulse/issues/7) |
-| 3 | Billing service (rate-plan Strategy pattern) | Up next — [#8](https://github.com/Terrence721/GridPulse/issues/8) |
+| 3 | Billing service (rate-plan Strategy pattern) | Done and verified live end-to-end (all 3 rate plans math-checked against real data) — [#8](https://github.com/Terrence721/GridPulse/issues/8) |
 | 4 | Full Phase 1 unit test coverage — parent issue [#9](https://github.com/Terrence721/GridPulse/issues/9), split into sub-issues [#16](https://github.com/Terrence721/GridPulse/issues/16) (Meter Simulator), [#17](https://github.com/Terrence721/GridPulse/issues/17) (Usage Aggregation), [#18](https://github.com/Terrence721/GridPulse/issues/18) (Billing) | Backlog — starts once Billing (#8) lands |
 | 5 | End-to-end Phase 1 smoke check | Planned — [#10](https://github.com/Terrence721/GridPulse/issues/10) |
 
