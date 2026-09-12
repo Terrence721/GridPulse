@@ -99,7 +99,7 @@ docs/           Design doc and any supplementary docs
 
 ## 🖥 Running Locally
 
-The Aspire orchestration backbone exists and boots today, though there's no domain service wired into it yet:
+The Aspire orchestration backbone, Meter Simulator, and Usage Aggregation are all wired in and boot together today:
 
 ```text
 dotnet run --project src/AppHost
