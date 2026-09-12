@@ -15,4 +15,8 @@
   <Folder Name="/src/UsageAggregation/">
     <Project Path="src/UsageAggregation/GridPulse.UsageAggregation.csproj" />
   </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/MeterSimulator.Tests/">
+    <Project Path="tests/MeterSimulator.Tests/GridPulse.MeterSimulator.Tests.csproj" />
+  </Folder>
 </Solution>
