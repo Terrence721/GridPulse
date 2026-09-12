@@ -25,7 +25,9 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | Aspire backbone | `GridPulse.slnx`, `ServiceDefaults`, and `AppHost` — Postgres resource wired in and verified end-to-end (container up, `gridpulsedb` created) — [#4](https://github.com/Terrence721/GridPulse/issues/4)/[#5](https://github.com/Terrence721/GridPulse/issues/5) |
 | Meter Simulator | 28 meters (both sides of a configurable city block), fail-fast validated config (no hardcoded values anywhere — Aspire parameters + user secrets locally), verified live for 2+ minutes. Only the HTTP publish to Usage Aggregation is left, blocked on that service existing — [#6](https://github.com/Terrence721/GridPulse/issues/6) |
 
-**Actually still open:** Meter Simulator's HTTP publish (blocked on Usage Aggregation existing), then Usage Aggregation and Billing (with tests) and the Phase 1 smoke check, plus Phases 2-6 at a high level — see **Still to do** below.
+**In progress right now:** Usage Aggregation — scaffold, EF Core migrations, and the `POST /readings` idempotency+rollup logic are built and compile clean, but not yet verified live — [#7](https://github.com/Terrence721/GridPulse/issues/7).
+
+**Actually still open:** Usage Aggregation's live verification + Meter Simulator's HTTP call, then Billing (with tests) and the Phase 1 smoke check, plus Phases 2-6 at a high level — see **Still to do** below.
 
 ## ✅ Done
 
@@ -84,6 +86,18 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 
 **Where Meter Simulator actually stands:** scaffold, domain logic, configuration, validation, and `AppHost` wiring are all done and verified live. The only remaining piece is the actual HTTP POST to Usage Aggregation, which can't be built until that service exists (Step 5) — readings are logged, not yet sent anywhere.
 
+### Phase 1 — Usage Aggregation (in progress)
+
+| Date | What |
+| - | - |
+| 2026-09-12 | Scaffold hand-written file by file (`.csproj` on `Microsoft.NET.Sdk.Web`, not `.Sdk.Worker` — this is a REST API, not a background worker; `Program.cs`, `appsettings.json`/`.Development.json`, `launchSettings.json` on ports 5101/7101), registered in `GridPulse.slnx`. [#7](https://github.com/Terrence721/GridPulse/issues/7) |
+| 2026-09-12 | Referenced `ServiceDefaults`, wired `builder.AddServiceDefaults()` + `app.MapDefaultEndpoints()` for `/health`. Wired into `AppHost`: project reference + `AddProject<...>("usage-aggregation").WithReference(gridpulseDb).WaitFor(gridpulseDb)` — the `Postgres` dependency other services don't have. [#7](https://github.com/Terrence721/GridPulse/issues/7) |
+| 2026-09-12 | Domain model built one file at a time: `MeterReadingRequest` (the incoming POST shape, matching the design doc's `meter.readings.raw` schema), `ProcessedReading` (idempotency tracking, keyed by `ReadingId`), `HourlyUsage` (the rollup record). **Deliberate deviation from the design doc:** `HourlyUsage` is keyed by `MeterId`, not `accountId` as the doc's `usage.aggregated` Kafka schema shows — there's no Account/Customer Service yet to map meters to accounts (that's Phase 3), so account-level aggregation isn't buildable yet. `UsageAggregationDbContext` added with `ReadingId` explicitly configured as `ProcessedReading`'s primary key (EF's naming convention wouldn't infer it) and a unique index on `(MeterId, PeriodStart)` so a rollup row can't be duplicated for the same meter/hour. [#7](https://github.com/Terrence721/GridPulse/issues/7) |
+| 2026-09-12 | EF Core migrations added: `Aspire.Npgsql.EntityFrameworkCore.PostgreSQL` (the Aspire client integration — wires up the `DbContext`, health check, and OpenTelemetry from the `WithReference` connection string automatically) plus `Microsoft.EntityFrameworkCore.Design`. A `UsageAggregationDbContextFactory` (`IDesignTimeDbContextFactory`) was needed since EF's design-time tooling can't ask a real `AppHost` for a connection string the way the running app does — its placeholder connection string is never actually used to connect, only to tell the tooling which SQL dialect to generate. `InitialCreate` migration generated via `dotnet ef migrations add`, applied automatically at startup (`dbContext.Database.Migrate()`). Caught and fixed a real compile error along the way: `Microsoft.EntityFrameworkCore`'s `Migrate()` extension method isn't in the Web SDK's implicit usings (EF Core is a separate package from ASP.NET Core), so `Program.cs` needed an explicit `using` the IDE caught immediately. [#7](https://github.com/Terrence721/GridPulse/issues/7) |
+| 2026-09-12 | `ReadingProcessor` added: checks `ProcessedReadings` for the incoming `ReadingId` before doing anything else (idempotency — a duplicate returns `false` without reprocessing), then upserts the `(MeterId, PeriodStart)` hourly bucket, adding the new reading's `Kwh` to the running total. Wired up as `POST /readings`, returning `202 Accepted` for a newly processed reading or `200 OK` for a duplicate. Not yet verified live end-to-end (real HTTP calls against a real running Postgres) — that's the next step. [#7](https://github.com/Terrence721/GridPulse/issues/7) |
+
+**Where Usage Aggregation actually stands:** scaffold, `AppHost`/Postgres wiring, domain model, migrations, and the core idempotency+rollup logic are all built and compile clean. Not yet done: live end-to-end verification (the same rigor Meter Simulator got — real HTTP requests against a real running Postgres, not just a clean build), and Meter Simulator hasn't been updated yet to actually call this endpoint instead of just logging.
+
 ## 🚧 Still to do
 
 **Phase 1 — Core loop, no Kafka** (Meter Simulator → Usage Aggregation → Billing via direct REST calls, single Postgres DB — see [docs/gridpulse-design-doc.html](docs/gridpulse-design-doc.html)):
@@ -91,7 +105,7 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | # | Item | Status |
 | - | - | - |
 | 1 | Meter Simulator worker service | Blocked on Usage Aggregation — everything else done and verified live (28 meters, config-driven, fail-fast validated, wired into `AppHost`); only the HTTP publish is left, and it needs Usage Aggregation to exist first — [#6](https://github.com/Terrence721/GridPulse/issues/6) |
-| 2 | Usage Aggregation service (REST + EF Core/Postgres) | Planned — [#7](https://github.com/Terrence721/GridPulse/issues/7) |
+| 2 | Usage Aggregation service (REST + EF Core/Postgres) | In progress — scaffold, migrations, and core idempotency+rollup logic done; live verification and Meter Simulator's actual HTTP call still pending — [#7](https://github.com/Terrence721/GridPulse/issues/7) |
 | 3 | Billing service (rate-plan Strategy pattern) | Planned — [#8](https://github.com/Terrence721/GridPulse/issues/8) |
 | 4 | Unit tests: UsageAggregation + Billing | Planned — [#9](https://github.com/Terrence721/GridPulse/issues/9) |
 | 5 | End-to-end Phase 1 smoke check | Planned — [#10](https://github.com/Terrence721/GridPulse/issues/10) |
