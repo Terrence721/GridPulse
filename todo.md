@@ -1,6 +1,6 @@
 # 📝 TODO
 
-**Last Updated:** September 12, 2026 (Usage Aggregation unit tests done — 21 tests passing across both services; Billing tests next)
+**Last Updated:** September 12, 2026 (Full Phase 1 test coverage complete — 36 tests passing; only the E2E smoke check remains for Phase 1)
 
 A phase-by-phase log of what's been done on this repo and what's still open. This is the source of truth for progress — the [README](README.md)'s Build Phases checklist and the [project board](https://github.com/users/Terrence721/projects/9) both mirror this file, not the other way around.
 
@@ -26,8 +26,9 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | Meter Simulator | 28 meters (both sides of a configurable city block), fail-fast validated config (no hardcoded values anywhere — Aspire parameters + user secrets locally), now sending real `POST /readings` HTTP calls to Usage Aggregation via service discovery — verified live end-to-end — [#6](https://github.com/Terrence721/GridPulse/issues/6) |
 | Usage Aggregation | `POST /readings` with idempotency (duplicate `readingId` ignored) and hourly rollup (`TotalKwh` correctly summed), verified live against real Postgres via curl + `psql`, and now receiving real traffic from Meter Simulator — [#7](https://github.com/Terrence721/GridPulse/issues/7) |
 | Billing | Rate-plan Strategy pattern (flat, tiered, time-of-use), `POST /invoices` generating real invoices from Usage Aggregation's live data, verified against all three rate plans with exact math confirmed in Postgres — [#8](https://github.com/Terrence721/GridPulse/issues/8) |
+| Full Phase 1 test coverage | 36 xUnit tests across all three services (Meter Simulator, Usage Aggregation, Billing), all passing — [#9](https://github.com/Terrence721/GridPulse/issues/9)/[#16](https://github.com/Terrence721/GridPulse/issues/16)-[#18](https://github.com/Terrence721/GridPulse/issues/18) |
 
-**Actually still open:** Full Phase 1 unit test coverage and the Phase 1 smoke check, plus Phases 2-6 at a high level — see **Still to do** below.
+**Actually still open:** the Phase 1 end-to-end smoke check, plus Phases 2-6 at a high level — see **Still to do** below.
 
 ## ✅ Done
 
@@ -114,7 +115,7 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 
 **Where Billing actually stands:** scaffold, `AppHost`/Postgres wiring, the rate-plan Strategy pattern, invoice generation, and the `POST /invoices` endpoint are all built and verified live against real usage data and a real database. Nothing left open on this service for Phase 1 — full unit test coverage ([#9](https://github.com/Terrence721/GridPulse/issues/9)/[#16](https://github.com/Terrence721/GridPulse/issues/16)-[#18](https://github.com/Terrence721/GridPulse/issues/18)) and the end-to-end smoke check ([#10](https://github.com/Terrence721/GridPulse/issues/10)) are what remain for Phase 1 overall.
 
-### Phase 1 — Testing (in progress: Meter Simulator and Usage Aggregation done, Billing next)
+### Phase 1 — Testing (done — 36 tests passing across all three services)
 
 | Date | What |
 | - | - |
@@ -122,6 +123,8 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | 2026-09-12 | 17 tests written and passing, closing out [#16](https://github.com/Terrence721/GridPulse/issues/16): `CityBlockMeterIdFactory` (correct count, consecutive even/odd addressing, uniqueness), `MeterReadingGenerator` (Kwh range, unique `ReadingId`s, timestamp freshness), `MeterSimulatorOptions` fail-fast validation (all 5 required-field failure cases plus the fully-valid case, exercised directly via `Validator.TryValidateObject`), and `CensusAddressValidator` (match/no-match/HTTP-error cases against a hand-rolled `FakeHttpMessageHandler`/`FakeHttpClientFactory` test double — no mocking library added, since a plain `HttpMessageHandler` override covers the need). |
 | 2026-09-12 | `tests/UsageAggregation.Tests` scaffolded the same way, using EF Core's **InMemory** provider rather than a real Postgres — `ReadingProcessor`'s idempotency and rollup logic is pure C# (an `AnyAsync`/`FirstOrDefaultAsync` check, not a database-level constraint), so it doesn't need a real database to verify; Postgres-specific behavior (the actual unique index) was already confirmed in the earlier live E2E run. **Real version conflict found and fixed:** referencing `Microsoft.EntityFrameworkCore.InMemory` alongside the project's existing `Aspire.Npgsql.EntityFrameworkCore.PostgreSQL` produced an `MSB3277` warning — Usage Aggregation's own `Microsoft.EntityFrameworkCore.Design` reference forces `Microsoft.EntityFrameworkCore.Relational` to 10.0.12, while the test project's transitive Npgsql dependency alone resolved it to 10.0.11. Fixed by pinning `Microsoft.EntityFrameworkCore.Relational` to 10.0.12 explicitly in the test project — back to 0 warnings. [#17](https://github.com/Terrence721/GridPulse/issues/17) |
 | 2026-09-12 | 4 tests written and passing, closing out [#17](https://github.com/Terrence721/GridPulse/issues/17): a new reading persists and returns `true`; a duplicate `ReadingId` is a no-op and returns `false`; two readings for the same meter in the same hour sum into one `HourlyUsage` row; readings in different hours create separate rows. |
+| 2026-09-12 | `tests/Billing.Tests` scaffolded (same xUnit v3 + EF Core InMemory pattern, `Microsoft.EntityFrameworkCore.Relational` pinned upfront this time — 0 warnings from the start). 15 tests written and passing, closing out [#18](https://github.com/Terrence721/GridPulse/issues/18): `FlatRateRatePlan`, `TieredRatePlan` (including the exact-boundary edge case, confirming usage precisely at a tier threshold doesn't spill into the next tier), and `TimeOfUseRatePlan` (including a peak window that wraps past midnight, e.g. 22:00–06:00); plus `InvoiceGenerator` (a fake `HttpMessageHandler` standing in for the real Usage Aggregation call, same pattern as `CensusAddressValidatorTests`) — correct `AmountDue` for a flat-rate invoice, an unknown rate plan type throwing `ArgumentOutOfRangeException`, and a zero-usage edge case producing a zero-amount invoice. [#18](https://github.com/Terrence721/GridPulse/issues/18) |
+| 2026-09-12 | **Full Phase 1 test coverage complete:** 36 tests total (17 + 4 + 15), all passing, closing out parent issue [#9](https://github.com/Terrence721/GridPulse/issues/9) and all three sub-issues. |
 
 ## 🚧 Still to do
 
@@ -132,7 +135,7 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | 1 | Meter Simulator worker service | Done and verified live end-to-end (1,876/1,876 readings delivered via real HTTP, confirmed in Postgres) — [#6](https://github.com/Terrence721/GridPulse/issues/6) |
 | 2 | Usage Aggregation service (REST + EF Core/Postgres) | Done and verified live (idempotency + hourly rollup confirmed against real Postgres) — [#7](https://github.com/Terrence721/GridPulse/issues/7) |
 | 3 | Billing service (rate-plan Strategy pattern) | Done and verified live end-to-end (all 3 rate plans math-checked against real data) — [#8](https://github.com/Terrence721/GridPulse/issues/8) |
-| 4 | Full Phase 1 unit test coverage — parent issue [#9](https://github.com/Terrence721/GridPulse/issues/9): [#16](https://github.com/Terrence721/GridPulse/issues/16) (Meter Simulator, 17 tests) and [#17](https://github.com/Terrence721/GridPulse/issues/17) (Usage Aggregation, 4 tests) done; [#18](https://github.com/Terrence721/GridPulse/issues/18) (Billing) still open | In progress |
+| 4 | Full Phase 1 unit test coverage — [#9](https://github.com/Terrence721/GridPulse/issues/9)/[#16](https://github.com/Terrence721/GridPulse/issues/16)/[#17](https://github.com/Terrence721/GridPulse/issues/17)/[#18](https://github.com/Terrence721/GridPulse/issues/18) | Done — 36 tests passing across Meter Simulator, Usage Aggregation, and Billing |
 | 5 | End-to-end Phase 1 smoke check | Planned — [#10](https://github.com/Terrence721/GridPulse/issues/10) |
 
 **Phases 2-6** — not yet broken into concrete tasks, tracked as one Backlog item each until their turn comes:
