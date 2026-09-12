@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace GridPulse.MeterSimulator;
 
 public sealed class MeterSimulatorOptions
@@ -6,9 +8,12 @@ public sealed class MeterSimulatorOptions
 
     public int IntervalSeconds { get; set; } = 5;
 
-    public string StreetName { get; set; } = "MAIN-ST";
+    [Required(AllowEmptyStrings = false, ErrorMessage = "StreetName must be set by the field engineer for this deployment.")]
+    public string StreetName { get; set; } = string.Empty;
 
-    public int StartingAddress { get; set; } = 100;
+    [Range(1, int.MaxValue, ErrorMessage = "StartingAddress must be set by the field engineer for this deployment.")]
+    public int StartingAddress { get; set; }
 
-    public int BuildingsPerSide { get; set; } = 14;
+    [Range(1, int.MaxValue, ErrorMessage = "BuildingsPerSide must be set by the field engineer for this deployment.")]
+    public int BuildingsPerSide { get; set; }
 }
