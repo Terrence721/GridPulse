@@ -1,0 +1,20 @@
+using Microsoft.EntityFrameworkCore;
+
+namespace GridPulse.UsageAggregation;
+
+public sealed class UsageAggregationDbContext(DbContextOptions<UsageAggregationDbContext> options) : DbContext(options)
+{
+    public DbSet<ProcessedReading> ProcessedReadings => Set<ProcessedReading>();
+
+    public DbSet<HourlyUsage> HourlyUsages => Set<HourlyUsage>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ProcessedReading>()
+            .HasKey(r => r.ReadingId);
+
+        modelBuilder.Entity<HourlyUsage>()
+            .HasIndex(u => new { u.MeterId, u.PeriodStart })
+            .IsUnique();
+    }
+}
