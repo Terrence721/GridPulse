@@ -3,6 +3,9 @@
   <Folder Name="/src/AppHost/">
     <Project Path="src/AppHost/GridPulse.AppHost.csproj" />
   </Folder>
+  <Folder Name="/src/MeterSimulator/">
+    <Project Path="src/MeterSimulator/GridPulse.MeterSimulator.csproj" />
+  </Folder>
   <Folder Name="/src/ServiceDefaults/">
     <Project Path="src/ServiceDefaults/GridPulse.ServiceDefaults.csproj" />
   </Folder>
