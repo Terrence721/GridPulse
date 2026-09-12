@@ -10,6 +10,10 @@ builder.Services.AddOptions<MeterSimulatorOptions>()
     .ValidateOnStart();
 builder.Services.AddSingleton<MeterReadingGenerator>();
 builder.Services.AddSingleton<CityBlockMeterIdFactory>();
+builder.Services.AddHttpClient("usage-aggregation", client =>
+{
+    client.BaseAddress = new Uri("http://usage-aggregation");
+});
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();
