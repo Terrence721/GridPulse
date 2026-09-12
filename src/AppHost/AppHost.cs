@@ -5,6 +5,13 @@ var postgres = builder.AddPostgres("postgres")
 
 var gridpulseDb = postgres.AddDatabase("gridpulsedb");
 
-builder.AddProject<Projects.GridPulse_MeterSimulator>("meter-simulator");
+var streetName = builder.AddParameter("meter-simulator-street-name");
+var startingAddress = builder.AddParameter("meter-simulator-starting-address");
+var buildingsPerSide = builder.AddParameter("meter-simulator-buildings-per-side");
+
+builder.AddProject<Projects.GridPulse_MeterSimulator>("meter-simulator")
+    .WithEnvironment("MeterSimulator__StreetName", streetName)
+    .WithEnvironment("MeterSimulator__StartingAddress", startingAddress)
+    .WithEnvironment("MeterSimulator__BuildingsPerSide", buildingsPerSide);
 
 builder.Build().Run();
