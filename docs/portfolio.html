@@ -293,7 +293,7 @@
   <div class="wrap">
     <div class="manifest-row">
       <div class="manifest-cell"><span class="v">Phase 1/6</span><span class="k">current stage</span></div>
-      <div class="manifest-cell"><span class="v">13</span><span class="k">commits</span></div>
+      <div class="manifest-cell"><span class="v">27</span><span class="k">commits</span></div>
       <div class="manifest-cell"><span class="v">15</span><span class="k">issues tracked</span></div>
       <div class="manifest-cell"><span class="v">2</span><span class="k">real CI fixes</span></div>
       <div class="manifest-cell"><span class="v">13.5.3</span><span class="k">Aspire</span></div>
@@ -400,8 +400,9 @@
       <div class="card">
         <h3>Phase 1 is in progress, not done</h3>
         <p>The Aspire orchestration backbone (<code>AppHost</code> + <code>ServiceDefaults</code>) exists
-        and builds clean in CI. The Meter Simulator, Usage Aggregation, and Billing services — the actual
-        domain logic — haven't been written yet.</p>
+        and builds clean in CI. Meter Simulator's scaffold exists and builds too, but its actual reading-
+        generation logic — like Usage Aggregation's and Billing's — hasn't been written yet, and it isn't
+        wired into <code>AppHost</code> so it isn't orchestrated yet either.</p>
       </div>
       <div class="card">
         <h3>Nothing here is unverified</h3>
