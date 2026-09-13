@@ -1,8 +1,10 @@
+using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
+using GridPulse.UsageAggregation.Avro;
 
 namespace GridPulse.UsageAggregation;
 
-public sealed class ReadingProcessor(UsageAggregationDbContext dbContext)
+public sealed class ReadingProcessor(UsageAggregationDbContext dbContext, IProducer<string, UsageAggregated> producer)
 {
     public async Task<bool> ProcessAsync(MeterReadingRequest request, CancellationToken cancellationToken)
     {
@@ -47,6 +49,18 @@ public sealed class ReadingProcessor(UsageAggregationDbContext dbContext)
         hourlyUsage.TotalKwh += request.Kwh;
 
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        await producer.ProduceAsync("usage.aggregated", new Message<string, UsageAggregated>
+        {
+            Key = hourlyUsage.MeterId,
+            Value = new UsageAggregated
+            {
+                MeterId = hourlyUsage.MeterId,
+                PeriodStartUnixMilliseconds = hourlyUsage.PeriodStart.ToUnixTimeMilliseconds(),
+                PeriodEndUnixMilliseconds = hourlyUsage.PeriodEnd.ToUnixTimeMilliseconds(),
+                TotalKwh = hourlyUsage.TotalKwh
+            }
+        }, cancellationToken);
 
         return true;
     }
