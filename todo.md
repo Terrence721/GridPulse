@@ -1,6 +1,6 @@
 # 📝 TODO
 
-**Last Updated:** September 12, 2026 (Phase 1 complete — core loop, 36 unit tests, and an automated E2E smoke test, all verified live; Phase 2 up next)
+**Last Updated:** September 13, 2026 (Phase 2 started — Kafka broker + Confluent Schema Registry live and verified in AppHost)
 
 A phase-by-phase log of what's been done on this repo and what's still open. This is the source of truth for progress — the [README](README.md)'s Build Phases checklist and the [project board](https://github.com/users/Terrence721/projects/9) both mirror this file, not the other way around.
 
@@ -131,6 +131,14 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | 2026-09-12 | **True end-to-end smoke test, not a mock:** spins up the *real* AppHost (Postgres, Usage Aggregation, Billing, Meter Simulator all actually running, Meter Simulator's address validated against the live Census API), waits for every resource healthy, `POST`s a synthetic reading straight to the running Usage Aggregation, then calls Billing's real `POST /invoices` — which makes Billing's own live HTTP call back to Usage Aggregation — and asserts the correct amount comes back. Passed in ~37s; confirmed no leftover containers/networks afterward. Closes out [#10](https://github.com/Terrence721/GridPulse/issues/10) and **all of Phase 1**. Deliberately not wired into CI yet: it needs the same local user secrets Meter Simulator's config already requires, and CI/CD integration is Phase 5 scope, not Phase 1's. |
 | 2026-09-12 | **Real test-isolation bug found and fixed, right after declaring Phase 1 done:** re-running the smoke test a second time failed — `Assert.Equal() Failure: Expected: 10, Actual: 50`. Root cause: the test used a hardcoded `meterId` and a fixed historical `periodStart` against `AppHost`'s Postgres, which uses `.WithDataVolume()` — a *persistent* volume, correct for real local dev, but it meant every test run added its 10 kWh reading to the *same* `HourlyUsage` row left over from every prior run (`ReadingProcessor`'s upsert-and-add behavior is correct production logic; the test just wasn't isolated from it). Fixed by generating a unique `meterId` per test run (`$"SMOKE-TEST-METER-{Guid.NewGuid()}"`) so each run starts from a clean row regardless of what's already in the volume. Re-verified by running the test twice in a row against the same persistent database — passed both times. [#10](https://github.com/Terrence721/GridPulse/issues/10) |
 
+### Phase 2 — Kafka + Schema Registry (in progress)
+
+Key decisions locked in before scaffolding (see the Phase 2 plan): Avro + Confluent Schema Registry for all three topics; REST endpoints removed entirely rather than kept alongside Kafka; Usage Aggregation republishes `usage.aggregated` on every reading update (a continuously-updated aggregate stream, not a new "period closed" concept); Billing auto-generates invoices from `usage.aggregated` using one configured default rate plan rather than a per-call choice. Same `MeterId`-not-`AccountId` deviation as Phase 1 carries into the Avro schemas, for the same reason (no Account/Customer Service until Phase 3).
+
+| Date | What |
+| - | - |
+| 2026-09-13 | AppHost infrastructure: added `Aspire.Hosting.Kafka` (13.5.3, matching every other Aspire package in this repo) — `AddKafka("kafka").WithDataVolume().WithKafkaUI()` — plus a Confluent Schema Registry container (`confluentinc/cp-schema-registry:8.3.1`, current stable; no Aspire hosting package exists for it, so added as a generic `AddContainer` resource). **Real bug found and fixed:** the schema registry's first live run failed to connect to Kafka at all (`Expected 1 brokers but found only 0`) — the bootstrap-servers env var was wired to Kafka's `Resource.Host`/`.Port` (its *external*, host-facing endpoint), which isn't reachable from inside another container's own network namespace. Fixed by using `kafka.Resource.InternalEndpoint.Property(EndpointProperty.HostAndPort)` instead — the container-to-container address, discovered via a throwaway reflection script against the real `Aspire.Hosting`/`Aspire.Hosting.Kafka` assemblies rather than guessed. Re-verified live: schema registry connects, starts its HTTP server, and `GET /subjects` returns `200 OK` with an empty list. [#11](https://github.com/Terrence721/GridPulse/issues/11) |
+
 ## 🚧 Still to do
 
 **Phase 1 — Core loop, no Kafka** (Meter Simulator → Usage Aggregation → Billing via direct REST calls, single Postgres DB — see [docs/gridpulse-design-doc.html](docs/gridpulse-design-doc.html)) — **complete, all 5 items done:**
@@ -147,7 +155,7 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 
 | # | Item | Status |
 | - | - | - |
-| 6 | Phase 2 — Introduce Kafka + schema registry | Backlog — [#11](https://github.com/Terrence721/GridPulse/issues/11) |
+| 6 | Phase 2 — Introduce Kafka + schema registry | In progress — Kafka + Schema Registry infrastructure live and verified — [#11](https://github.com/Terrence721/GridPulse/issues/11) |
 | 7 | Phase 3 — Node.js Notification Service + Account/Customer Service | Backlog — [#12](https://github.com/Terrence721/GridPulse/issues/12) |
 | 8 | Phase 4 — React/Redux Toolkit dashboard + BFF gateway | Backlog — [#13](https://github.com/Terrence721/GridPulse/issues/13) |
 | 9 | Phase 5 — CI/CD pipeline | Backlog — [#14](https://github.com/Terrence721/GridPulse/issues/14) |
