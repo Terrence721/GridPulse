@@ -33,6 +33,7 @@ public sealed class MeterReadingConsumer(
             var raw = result.Message.Value;
             var request = new MeterReadingRequest(
                 raw.MeterId,
+                raw.AccountId,
                 DateTimeOffset.FromUnixTimeMilliseconds(raw.TimestampUnixMilliseconds),
                 raw.Kwh,
                 Guid.Parse(raw.ReadingId));

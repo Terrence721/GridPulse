@@ -8,10 +8,10 @@ public sealed class UsageAggregatedPublisher(IProducer<string, UsageAggregated> 
     public Task PublishAsync(HourlyUsage hourlyUsage, CancellationToken cancellationToken) =>
         producer.ProduceAsync("usage.aggregated", new Message<string, UsageAggregated>
         {
-            Key = hourlyUsage.MeterId,
+            Key = hourlyUsage.AccountId,
             Value = new UsageAggregated
             {
-                MeterId = hourlyUsage.MeterId,
+                AccountId = hourlyUsage.AccountId,
                 PeriodStartUnixMilliseconds = hourlyUsage.PeriodStart.ToUnixTimeMilliseconds(),
                 PeriodEndUnixMilliseconds = hourlyUsage.PeriodEnd.ToUnixTimeMilliseconds(),
                 TotalKwh = hourlyUsage.TotalKwh

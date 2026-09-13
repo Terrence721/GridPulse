@@ -18,6 +18,7 @@ public sealed class ReadingProcessor(UsageAggregationDbContext dbContext, IUsage
         {
             ReadingId = request.ReadingId,
             MeterId = request.MeterId,
+            AccountId = request.AccountId,
             Timestamp = request.Timestamp,
             Kwh = request.Kwh,
             ReceivedAt = DateTimeOffset.UtcNow
@@ -29,14 +30,14 @@ public sealed class ReadingProcessor(UsageAggregationDbContext dbContext, IUsage
         var periodEnd = periodStart.AddHours(1);
 
         var hourlyUsage = await dbContext.HourlyUsages
-            .FirstOrDefaultAsync(u => u.MeterId == request.MeterId && u.PeriodStart == periodStart, cancellationToken);
+            .FirstOrDefaultAsync(u => u.AccountId == request.AccountId && u.PeriodStart == periodStart, cancellationToken);
 
         if (hourlyUsage is null)
         {
             hourlyUsage = new HourlyUsage
             {
                 Id = Guid.NewGuid(),
-                MeterId = request.MeterId,
+                AccountId = request.AccountId,
                 PeriodStart = periodStart,
                 PeriodEnd = periodEnd,
                 TotalKwh = 0

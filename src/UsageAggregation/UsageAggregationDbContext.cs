@@ -14,7 +14,7 @@ public sealed class UsageAggregationDbContext(DbContextOptions<UsageAggregationD
             .HasKey(r => r.ReadingId);
 
         modelBuilder.Entity<HourlyUsage>()
-            .HasIndex(u => new { u.MeterId, u.PeriodStart })
+            .HasIndex(u => new { u.AccountId, u.PeriodStart })
             .IsUnique();
     }
 }
