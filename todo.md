@@ -175,6 +175,10 @@ Re-verified live via direct Postgres inspection (not a separate consumer script 
 
 Deliberately **deferred**, not built here: a monthly GitHub Actions job to cycle through the archive's other real months (only one month fits under GitHub's file-size limit), and a daily per-account billing-cycle feature tied to the dataset's real calendar dates — both need their own separate plan.
 
+### Monthly refresh automation (in progress)
+
+Started work to actually build the deferred monthly refresh: renamed `power-data-february-2007.json` → `power-data-current-month.json` and added `current-month.json` so the automation can swap content without ever touching code. **Real CI break found and fixed:** the rename landed in one commit (`d453eb7`) and the `.csproj`/`HouseholdPowerDataset.cs` reference updates landed in the *next* commit (`5c6b9ac`) — both individually verified locally, but only the *combined* final state was ever built before either was committed. `d453eb7` alone was pushed in a genuinely broken state (`error CS1566: Error reading resource ... Could not find file`) and failed CI for real, for a few real minutes on `main`, before the very next push fixed it. Root process gap: verifying the end state of a multi-file change isn't the same as verifying every individual commit along the way is independently buildable — when a rename and its reference updates are truly one atomic change, they need to land in one commit, not be split across pushes. Re-verified: `5c6b9ac`'s CI run is green (full build + both CodeQL jobs). [#22](https://github.com/Terrence721/GridPulse/issues/22)
+
 ## 🚧 Still to do
 
 **Phase 1 — Core loop, no Kafka** (Meter Simulator → Usage Aggregation → Billing via direct REST calls, single Postgres DB — see [docs/gridpulse-design-doc.html](docs/gridpulse-design-doc.html)) — **complete, all 5 items done:**
