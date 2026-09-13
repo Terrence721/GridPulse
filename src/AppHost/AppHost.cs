@@ -4,6 +4,7 @@ var postgres = builder.AddPostgres("postgres")
     .WithDataVolume();
 
 var gridpulseDb = postgres.AddDatabase("gridpulsedb");
+var accountsDb = postgres.AddDatabase("accountsdb");
 
 var kafka = builder.AddKafka("kafka")
     .WithDataVolume()
@@ -21,6 +22,16 @@ var startingAddress = builder.AddParameter("meter-simulator-starting-address");
 var buildingsPerSide = builder.AddParameter("meter-simulator-buildings-per-side");
 var city = builder.AddParameter("meter-simulator-city");
 var zipCode = builder.AddParameter("meter-simulator-zip-code");
+var notificationWebhookUrl = builder.AddParameter("notification-webhook-url");
+
+var accountCustomer = builder.AddProject<Projects.GridPulse_AccountCustomer>("account-customer")
+    .WithReference(accountsDb)
+    .WaitFor(accountsDb)
+    .WithHttpHealthCheck("/health")
+    .WithEnvironment("AccountSeed__StreetName", streetName)
+    .WithEnvironment("AccountSeed__StartingAddress", startingAddress)
+    .WithEnvironment("AccountSeed__BuildingsPerSide", buildingsPerSide)
+    .WithEnvironment("AccountSeed__NotificationWebhookUrl", notificationWebhookUrl);
 
 builder.AddProject<Projects.GridPulse_UsageAggregation>("usage-aggregation")
     .WithReference(gridpulseDb)
@@ -43,6 +54,8 @@ builder.AddProject<Projects.GridPulse_MeterSimulator>("meter-simulator")
     .WaitFor(kafka)
     .WithReference(schemaRegistry.GetEndpoint("http"))
     .WaitFor(schemaRegistry)
+    .WithReference(accountCustomer)
+    .WaitFor(accountCustomer)
     .WithEnvironment("MeterSimulator__StreetName", streetName)
     .WithEnvironment("MeterSimulator__StartingAddress", startingAddress)
     .WithEnvironment("MeterSimulator__BuildingsPerSide", buildingsPerSide)
