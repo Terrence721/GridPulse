@@ -22,7 +22,7 @@ var buildingsPerSide = builder.AddParameter("meter-simulator-buildings-per-side"
 var city = builder.AddParameter("meter-simulator-city");
 var zipCode = builder.AddParameter("meter-simulator-zip-code");
 
-var usageAggregation = builder.AddProject<Projects.GridPulse_UsageAggregation>("usage-aggregation")
+builder.AddProject<Projects.GridPulse_UsageAggregation>("usage-aggregation")
     .WithReference(gridpulseDb)
     .WaitFor(gridpulseDb)
     .WithReference(kafka)
@@ -33,8 +33,10 @@ var usageAggregation = builder.AddProject<Projects.GridPulse_UsageAggregation>("
 builder.AddProject<Projects.GridPulse_Billing>("billing")
     .WithReference(gridpulseDb)
     .WaitFor(gridpulseDb)
-    .WithReference(usageAggregation)
-    .WaitFor(usageAggregation);
+    .WithReference(kafka)
+    .WaitFor(kafka)
+    .WithReference(schemaRegistry.GetEndpoint("http"))
+    .WaitFor(schemaRegistry);
 
 builder.AddProject<Projects.GridPulse_MeterSimulator>("meter-simulator")
     .WithReference(kafka)
