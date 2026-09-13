@@ -1,5 +1,10 @@
+using Confluent.Kafka;
+using Confluent.Kafka.SyncOverAsync;
+using Confluent.SchemaRegistry;
+using Confluent.SchemaRegistry.Serdes;
 using Microsoft.Extensions.Options;
 using GridPulse.MeterSimulator;
+using GridPulse.MeterSimulator.Avro;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.AddServiceDefaults();
@@ -11,9 +16,16 @@ builder.Services.AddOptions<MeterSimulatorOptions>()
 builder.Services.AddSingleton<MeterReadingGenerator>();
 builder.Services.AddSingleton<CityBlockMeterIdFactory>();
 builder.Services.AddSingleton<CensusAddressValidator>();
-builder.Services.AddHttpClient("usage-aggregation", client =>
+builder.Services.AddSingleton<ISchemaRegistryClient>(_ =>
 {
-    client.BaseAddress = new Uri("http://usage-aggregation");
+    var schemaRegistryUrl = builder.Configuration["services:schema-registry:http:0"]
+        ?? throw new InvalidOperationException("Schema registry endpoint not configured.");
+    return new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = schemaRegistryUrl });
+});
+builder.AddKafkaProducer<string, MeterReadingRaw>("kafka", (sp, producerBuilder) =>
+{
+    var schemaRegistry = sp.GetRequiredService<ISchemaRegistryClient>();
+    producerBuilder.SetValueSerializer(new AvroSerializer<MeterReadingRaw>(schemaRegistry).AsSyncOverAsync());
 });
 builder.Services.AddHttpClient("census-geocoder", client =>
 {
