@@ -16,6 +16,8 @@ builder.Services.AddOptions<MeterSimulatorOptions>()
 builder.Services.AddSingleton<MeterReadingGenerator>();
 builder.Services.AddSingleton<CityBlockMeterIdFactory>();
 builder.Services.AddSingleton<CensusAddressValidator>();
+builder.Services.AddSingleton<AccountResolver>();
+builder.Services.AddSingleton<AccountLookupCache>();
 builder.Services.AddSingleton<ISchemaRegistryClient>(_ =>
 {
     var schemaRegistryUrl = builder.Configuration["services:schema-registry:http:0"]
@@ -30,6 +32,10 @@ builder.AddKafkaProducer<string, MeterReadingRaw>("kafka", (sp, producerBuilder)
 builder.Services.AddHttpClient("census-geocoder", client =>
 {
     client.BaseAddress = new Uri("https://geocoding.geo.census.gov/geocoder/");
+});
+builder.Services.AddHttpClient("account-customer", client =>
+{
+    client.BaseAddress = new Uri("http://account-customer");
 });
 builder.Services.AddHostedService<Worker>();
 
@@ -71,6 +77,21 @@ catch (HttpRequestException ex)
 if (!isRealAddress)
 {
     Console.Error.WriteLine($"'{configuredAddress}' is not a recognized real-world address. Check StreetName/StartingAddress/City/ZipCode for this deployment.");
+    return 1;
+}
+
+var meterIdFactory = host.Services.GetRequiredService<CityBlockMeterIdFactory>();
+var meterIds = meterIdFactory.Create(options);
+var accountResolver = host.Services.GetRequiredService<AccountResolver>();
+
+try
+{
+    var accountIdsByMeterId = await accountResolver.ResolveAccountIdsAsync(meterIds, CancellationToken.None);
+    host.Services.GetRequiredService<AccountLookupCache>().Populate(accountIdsByMeterId);
+}
+catch (HttpRequestException ex)
+{
+    Console.Error.WriteLine($"Could not resolve accountId for a configured meter via Account/Customer Service: {ex.Message}");
     return 1;
 }
 
