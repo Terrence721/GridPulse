@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "UsageAggregated",
+  "namespace": "gridpulse.avro",
+  "fields": [
+    { "name": "meterId", "type": "string" },
+    { "name": "periodStart", "type": "long" },
+    { "name": "periodEnd", "type": "long" },
+    { "name": "totalKwh", "type": "double" }
+  ]
+}
