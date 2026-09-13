@@ -13,6 +13,7 @@ var schemaRegistry = builder.AddContainer("schema-registry", "confluentinc/cp-sc
     .WithEnvironment("SCHEMA_REGISTRY_HOST_NAME", "schema-registry")
     .WithEnvironment("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS", $"PLAINTEXT://{kafka.Resource.InternalEndpoint.Property(EndpointProperty.HostAndPort)}")
     .WithHttpEndpoint(targetPort: 8081, name: "http")
+    .WithHttpHealthCheck("/subjects")
     .WaitFor(kafka);
 
 var streetName = builder.AddParameter("meter-simulator-street-name");
