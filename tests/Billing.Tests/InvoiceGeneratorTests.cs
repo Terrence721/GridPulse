@@ -1,4 +1,3 @@
-using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -25,25 +24,24 @@ public sealed class InvoiceGeneratorTests
         PeakEnd = new TimeOnly(19, 0)
     };
 
-    private static InvoiceGenerator CreateGenerator(BillingDbContext dbContext, string usageResponseJson)
-    {
-        var handler = new FakeHttpMessageHandler(HttpStatusCode.OK, usageResponseJson);
-        var httpClientFactory = new FakeHttpClientFactory(handler);
-        return new InvoiceGenerator(httpClientFactory, dbContext, Options.Create(RatePlanOptions()));
-    }
+    private static InvoiceGenerator CreateGenerator(BillingDbContext dbContext, string defaultRatePlanType = "Flat") =>
+        new(
+            dbContext,
+            Options.Create(RatePlanOptions()),
+            Options.Create(new BillingOptions { DefaultRatePlanType = defaultRatePlanType, PaymentTermsDays = 30 }),
+            new FakeBillingInvoiceGeneratedPublisher());
 
     [Fact]
     public async Task GenerateAsync_FlatPlan_PersistsInvoiceWithCorrectAmountDue()
     {
-        const string usageJson = """[{"MeterId":"MTR-100-Elm St","PeriodStart":"2026-09-12T17:00:00+00:00","PeriodEnd":"2026-09-12T18:00:00+00:00","TotalKwh":10.0}]""";
         await using var dbContext = CreateDbContext();
-        var generator = CreateGenerator(dbContext, usageJson);
+        var generator = CreateGenerator(dbContext);
 
         var invoice = await generator.GenerateAsync(
             "MTR-100-Elm St",
             new DateTimeOffset(2026, 9, 12, 17, 0, 0, TimeSpan.Zero),
             new DateTimeOffset(2026, 9, 12, 18, 0, 0, TimeSpan.Zero),
-            "Flat",
+            10.0,
             CancellationToken.None);
 
         Assert.Equal(1.6m, invoice.AmountDue);
@@ -55,30 +53,46 @@ public sealed class InvoiceGeneratorTests
     public async Task GenerateAsync_UnknownRatePlanType_ThrowsArgumentOutOfRangeException()
     {
         await using var dbContext = CreateDbContext();
-        var generator = CreateGenerator(dbContext, "[]");
+        var generator = CreateGenerator(dbContext, defaultRatePlanType: "Unknown");
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => generator.GenerateAsync(
             "MTR-100-Elm St",
             DateTimeOffset.UtcNow.AddHours(-1),
             DateTimeOffset.UtcNow,
-            "Unknown",
+            10.0,
             CancellationToken.None));
     }
 
     [Fact]
-    public async Task GenerateAsync_NoUsageReturned_PersistsZeroAmountInvoice()
+    public async Task GenerateAsync_NoUsage_PersistsZeroAmountInvoice()
     {
         await using var dbContext = CreateDbContext();
-        var generator = CreateGenerator(dbContext, "[]");
+        var generator = CreateGenerator(dbContext);
 
         var invoice = await generator.GenerateAsync(
             "MTR-100-Elm St",
             DateTimeOffset.UtcNow.AddHours(-1),
             DateTimeOffset.UtcNow,
-            "Flat",
+            0.0,
             CancellationToken.None);
 
         Assert.Equal(0m, invoice.AmountDue);
         Assert.Equal(0.0, invoice.TotalKwh);
+    }
+
+    [Fact]
+    public async Task GenerateAsync_CalledTwiceForSamePeriod_UpsertsInsteadOfDuplicating()
+    {
+        await using var dbContext = CreateDbContext();
+        var generator = CreateGenerator(dbContext);
+        var periodStart = new DateTimeOffset(2026, 9, 12, 17, 0, 0, TimeSpan.Zero);
+        var periodEnd = periodStart.AddHours(1);
+
+        await generator.GenerateAsync("MTR-100-Elm St", periodStart, periodEnd, 10.0, CancellationToken.None);
+        var invoice = await generator.GenerateAsync("MTR-100-Elm St", periodStart, periodEnd, 25.0, CancellationToken.None);
+
+        Assert.Single(dbContext.Invoices);
+        Assert.Equal(25.0, invoice.TotalKwh);
+        Assert.Equal(4.0m, invoice.AmountDue);
     }
 }
