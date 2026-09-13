@@ -19,4 +19,8 @@
     <ProjectReference Include="..\ServiceDefaults\GridPulse.ServiceDefaults.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Data\power-data-february-2007.json" />
+  </ItemGroup>
+
 </Project>

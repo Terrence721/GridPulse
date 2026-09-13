@@ -18,6 +18,7 @@ builder.Services.AddSingleton<CityBlockMeterIdFactory>();
 builder.Services.AddSingleton<CensusAddressValidator>();
 builder.Services.AddSingleton<AccountResolver>();
 builder.Services.AddSingleton<AccountLookupCache>();
+builder.Services.AddSingleton<HouseholdPowerDataset>();
 builder.Services.AddSingleton<ISchemaRegistryClient>(_ =>
 {
     var schemaRegistryUrl = builder.Configuration["services:schema-registry:http:0"]

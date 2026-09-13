@@ -38,7 +38,7 @@ public sealed class Worker : BackgroundService
         {
             foreach (var meterId in meterIds)
             {
-                var reading = _generator.Generate(meterId);
+                var reading = _generator.Generate(meterId, _options.IntervalSeconds);
                 var message = new Message<string, MeterReadingRaw>
                 {
                     Key = reading.MeterId,
