@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "BillingInvoiceGenerated",
+  "namespace": "gridpulse.avro",
+  "fields": [
+    { "name": "invoiceId", "type": "string" },
+    { "name": "meterId", "type": "string" },
+    { "name": "amountDue", "type": "double" },
+    { "name": "dueDate", "type": "long" }
+  ]
+}
