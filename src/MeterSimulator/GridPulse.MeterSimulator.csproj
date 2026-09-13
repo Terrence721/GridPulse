@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Data\power-data-february-2007.json" />
+    <EmbeddedResource Include="Data\power-data-current-month.json" />
   </ItemGroup>
 
 </Project>

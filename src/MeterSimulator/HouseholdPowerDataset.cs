@@ -9,7 +9,7 @@ public sealed class HouseholdPowerDataset
     public HouseholdPowerDataset()
     {
         using var stream = typeof(HouseholdPowerDataset).Assembly.GetManifestResourceStream(
-            "GridPulse.MeterSimulator.Data.power-data-february-2007.json")
+            "GridPulse.MeterSimulator.Data.power-data-current-month.json")
             ?? throw new InvalidOperationException("Embedded power dataset not found.");
 
         var rows = JsonSerializer.Deserialize<List<JsonElement[]>>(stream)
