@@ -112,7 +112,9 @@
     letter-spacing: -0.01em;
     line-height: 1.02;
     margin: 0 0 10px;
-    text-wrap: balance;
+  }
+  @supports (text-wrap: balance) {
+    h1.name { text-wrap: balance; }
   }
   .role {
     font-family: var(--font-display);
@@ -205,7 +207,9 @@
     font-weight: 400;
     font-size: 1.7rem;
     margin: 0 0 6px;
-    text-wrap: balance;
+  }
+  @supports (text-wrap: balance) {
+    h2 { text-wrap: balance; }
   }
   .h2-sub { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 22px; }
   p { max-width: 68ch; }
