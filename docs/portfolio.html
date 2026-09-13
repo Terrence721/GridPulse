@@ -361,7 +361,7 @@
   </section>
 
   <section>
-    <h2>Nine real bugs, found by actually running the thing</h2>
+    <h2>12 real bugs, found by actually running the thing</h2>
     <p class="h2-sub">All logged in <a href="https://github.com/Terrence721/GridPulse/blob/main/todo.md">todo.md</a>, checkable against the commit history</p>
     <p class="lede">
       From CodeQL failing before any service existed, to a live DNS resolution bug caught only by running
@@ -502,6 +502,59 @@
           </div>
           <div class="meta"><span class="tag">real bug · test isolation</span>
             <a href="https://github.com/Terrence721/GridPulse/issues/10">issue #10</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">10</div>
+        <div>
+          <div class="file">src/AppHost/AppHost.cs</div>
+          <div class="desc">
+            The schema registry's first live run failed to connect to Kafka at all
+            (<code>Expected 1 brokers but found only 0</code>). Its bootstrap-servers env var was wired to
+            Kafka's <em>external</em>, host-facing endpoint (<code>Resource.Host</code>/<code>.Port</code>),
+            which isn't reachable from inside another container's own network namespace. Fixed with
+            <code>kafka.Resource.InternalEndpoint.Property(EndpointProperty.HostAndPort)</code> — the
+            container-to-container address, found by reflecting on the real installed
+            <code>Aspire.Hosting.Kafka</code> assembly rather than guessing. Re-verified live: schema
+            registry connects and <code>GET /subjects</code> returns <code>200 OK</code>.
+          </div>
+          <div class="meta"><span class="tag">real bug · container networking</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/11">issue #11</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">11</div>
+        <div>
+          <div class="file">src/AppHost/AppHost.cs</div>
+          <div class="desc">
+            The first live run after wiring Meter Simulator's Kafka producer sent 274 of 280 readings
+            successfully — 6 failed with <code>HttpIOException: The response ended prematurely</code>
+            calling the schema registry. <code>WaitFor(schemaRegistry)</code> without a configured health
+            check only waits for the <em>container</em> to reach <code>Running</code>, not for the app
+            inside it to actually be ready to serve requests. Fixed by adding
+            <code>.WithHttpHealthCheck("/subjects")</code> to the resource. Re-verified live: 924/924
+            readings sent successfully, 0 failures.
+          </div>
+          <div class="meta"><span class="tag">real bug · startup race</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/11">issue #11</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">12</div>
+        <div>
+          <div class="file">src/UsageAggregation/ReadingProcessor.cs</div>
+          <div class="desc">
+            Changing <code>ReadingProcessor</code>'s constructor to require a Kafka producer broke
+            <code>UsageAggregation.Tests</code> on <code>main</code> (<code>error CS7036</code>) — caught
+            only because CI builds the <em>full</em> solution on every push, while local verification during
+            this step had only built the single changed project. Fixed properly, not just patched: introduced
+            a small project-owned <code>IUsageAggregatedPublisher</code> interface instead of depending
+            directly on Confluent.Kafka's much larger <code>IProducer&lt;TKey,TValue&gt;</code> — a genuine
+            SOLID improvement that also let the test use a trivial hand-rolled fake, no mocking library
+            needed.
+          </div>
+          <div class="meta"><span class="tag">real bug · CI break</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/11">issue #11</a></div>
         </div>
       </div>
     </div>
