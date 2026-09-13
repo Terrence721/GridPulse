@@ -9,6 +9,12 @@ var kafka = builder.AddKafka("kafka")
     .WithDataVolume()
     .WithKafkaUI();
 
+var schemaRegistry = builder.AddContainer("schema-registry", "confluentinc/cp-schema-registry", "8.3.1")
+    .WithEnvironment("SCHEMA_REGISTRY_HOST_NAME", "schema-registry")
+    .WithEnvironment("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS", $"PLAINTEXT://{kafka.Resource.InternalEndpoint.Property(EndpointProperty.HostAndPort)}")
+    .WithHttpEndpoint(targetPort: 8081, name: "http")
+    .WaitFor(kafka);
+
 var streetName = builder.AddParameter("meter-simulator-street-name");
 var startingAddress = builder.AddParameter("meter-simulator-starting-address");
 var buildingsPerSide = builder.AddParameter("meter-simulator-buildings-per-side");
