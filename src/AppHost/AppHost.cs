@@ -32,8 +32,10 @@ builder.AddProject<Projects.GridPulse_Billing>("billing")
     .WaitFor(usageAggregation);
 
 builder.AddProject<Projects.GridPulse_MeterSimulator>("meter-simulator")
-    .WithReference(usageAggregation)
-    .WaitFor(usageAggregation)
+    .WithReference(kafka)
+    .WaitFor(kafka)
+    .WithReference(schemaRegistry.GetEndpoint("http"))
+    .WaitFor(schemaRegistry)
     .WithEnvironment("MeterSimulator__StreetName", streetName)
     .WithEnvironment("MeterSimulator__StartingAddress", startingAddress)
     .WithEnvironment("MeterSimulator__BuildingsPerSide", buildingsPerSide)
