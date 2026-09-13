@@ -278,8 +278,9 @@
       app. Built to demonstrate the skills a Principal Developer role expects: distributed systems design,
       microservices decomposition, event streaming, and production-grade observability, tracked in the open
       from before the first service existed. Phase 1's core loop — Meter Simulator → Usage Aggregation →
-      Billing — is complete and verified live end-to-end, backed by 38 automated tests. Phase 2 is
-      replacing those REST calls with real Kafka events through a real Confluent Schema Registry.
+      Billing — is complete and verified live end-to-end, backed by 38 automated tests. Phase 2 has since
+      replaced those REST calls with real Kafka events through a real Confluent Schema Registry, also
+      verified live end-to-end.
     </p>
     <div class="hero-actions">
       <a class="btn primary" href="https://github.com/Terrence721/GridPulse">View the repository →</a>
@@ -289,7 +290,7 @@
   </div>
   <div class="stamp" aria-hidden="true">
     <div class="stamp-inner">
-      <span class="n">12</span>
+      <span class="n">13</span>
       <span class="l">REAL BUGS<br />FOUND</span>
     </div>
   </div>
@@ -298,10 +299,10 @@
 <div class="manifest">
   <div class="wrap">
     <div class="manifest-row">
-      <div class="manifest-cell"><span class="v">Phase 2</span><span class="k">Kafka underway</span></div>
-      <div class="manifest-cell"><span class="v">139</span><span class="k">commits</span></div>
+      <div class="manifest-cell"><span class="v">Phase 2</span><span class="k">Kafka complete</span></div>
+      <div class="manifest-cell"><span class="v">145</span><span class="k">commits</span></div>
       <div class="manifest-cell"><span class="v">18</span><span class="k">issues tracked</span></div>
-      <div class="manifest-cell"><span class="v">12</span><span class="k">real bugs found</span></div>
+      <div class="manifest-cell"><span class="v">13</span><span class="k">real bugs found</span></div>
       <div class="manifest-cell"><span class="v">13.5.3</span><span class="k">Aspire</span></div>
       <div class="manifest-cell"><span class="v">38</span><span class="k">tests, all passing</span></div>
     </div>
@@ -339,8 +340,8 @@
     <p class="lede">
       Phase 1 — a direct-REST core loop (Meter Simulator → Usage Aggregation → Billing) on a single
       Postgres database — is done: real HTTP calls, real Postgres persistence, 38 tests passing, and an
-      automated end-to-end smoke test that spins up the real stack. Phase 2 is already replacing those
-      REST calls with real Kafka events through a real Confluent Schema Registry, one service at a time.
+      automated end-to-end smoke test that spins up the real stack. Phase 2 has replaced those REST calls
+      with real Kafka events through a real Confluent Schema Registry, verified live end-to-end.
       A polyglot Node.js Notification Service, a React/Redux Toolkit dashboard, CI/CD, and full
       observability come next, scaffolded one file or folder at a step with nothing batched ahead of review.
     </p>
@@ -361,7 +362,7 @@
   </section>
 
   <section>
-    <h2>12 real bugs, found by actually running the thing</h2>
+    <h2>13 real bugs, found by actually running the thing</h2>
     <p class="h2-sub">All logged in <a href="https://github.com/Terrence721/GridPulse/blob/main/todo.md">todo.md</a>, checkable against the commit history</p>
     <p class="lede">
       From CodeQL failing before any service existed, to a live DNS resolution bug caught only by running
@@ -557,6 +558,25 @@
             <a href="https://github.com/Terrence721/GridPulse/issues/11">issue #11</a></div>
         </div>
       </div>
+      <div class="item">
+        <div class="no">13</div>
+        <div>
+          <div class="file">src/Billing/Migrations/20260913120150_AddInvoiceDueDateAndUniqueIndex.cs</div>
+          <div class="desc">
+            The first live run exercising Billing's new Kafka wiring crashed it at startup — its resource
+            state went from <code>Running</code> to <code>Finished</code> about 12 seconds in, with no
+            restart. Root cause: <code>Program.cs</code> calls <code>dbContext.Database.Migrate()</code> on
+            startup, and the migration's new unique index failed against real data — 5 pre-existing
+            <code>Invoices</code> rows shared the same key, left over from repeated Phase 1 smoke-test runs
+            that predated the upsert logic. Fixed by adding a dedup step to the migration itself (keeping the
+            most-recently-generated row per key) before creating the index, so it's safe against any
+            environment with pre-existing duplicate data, not just this one. Re-verified live: 91 real
+            <code>Invoice</code> rows landed with correct math and the upsert confirmed working in place.
+          </div>
+          <div class="meta"><span class="tag">real bug · migration vs. real data</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/19">issue #19</a></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -565,12 +585,12 @@
     <p class="h2-sub">Early, and said so — not oversold</p>
     <div class="twocol">
       <div class="card">
-        <h3>Phase 1 is done, verified live — Phase 2 is real</h3>
+        <h3>Phase 1 and Phase 2 are both done, verified live</h3>
         <p>Meter Simulator, Usage Aggregation, and Billing all built, wired together through
         <code>AppHost</code>, and verified against a real running stack — real HTTP calls, real Postgres,
         real invoices with correct math. Backed by 38 automated tests, including an end-to-end smoke test
-        that spins up the whole thing and walks a reading through it. Now replacing those REST calls with
-        real Kafka events through a real Confluent Schema Registry, service by service.</p>
+        that spins up the whole thing and walks a reading through it. Those REST calls have since been
+        replaced with real Kafka events through a real Confluent Schema Registry, verified live end-to-end.</p>
       </div>
       <div class="card">
         <h3>Nothing here is unverified</h3>
