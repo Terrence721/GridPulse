@@ -10,4 +10,5 @@ public sealed class Invoice
     public decimal AmountDue { get; set; }
     public required string RatePlanType { get; set; }
     public DateTimeOffset GeneratedAt { get; set; }
+    public DateTimeOffset DueDate { get; set; }
 }
