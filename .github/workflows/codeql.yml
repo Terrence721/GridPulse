@@ -1,11 +1,12 @@
 name: CodeQL
 
 # csharp runs now that real .cs source exists (ServiceDefaults, AppHost); actions
-# analyzes this repo's own workflow YAML. javascript-typescript is deliberately
-# left out until real JS/TS source exists (Phase 3+, Notification Service /
-# React dashboard) — CodeQL's JS/TS extractor hard-fails database finalize when
-# zero matching files are found, it does not just report zero findings the way
-# build-mode: none does for a language that does have matching files present.
+# analyzes this repo's own workflow YAML; javascript-typescript runs now that
+# real JS/TS source exists (Phase 3's Notification Service) — CodeQL's JS/TS
+# extractor hard-fails database finalize when zero matching files are found,
+# it does not just report zero findings the way build-mode: none does for a
+# language that does have matching files present, which is why this was
+# deliberately left out until now.
 on:
   push:
     branches: ["main"]
@@ -30,6 +31,8 @@ jobs:
         include:
           - language: csharp
             build-mode: manual
+          - language: javascript-typescript
+            build-mode: none
           - language: actions
             build-mode: none
 
