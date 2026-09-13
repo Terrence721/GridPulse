@@ -6,7 +6,7 @@
 [![CodeQL](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml/badge.svg)](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml)
 
 <!-- markdownlint-disable-next-line MD036 -->
-**Status:** Phase 1 in progress — scaffolding the core REST loop (Meter Simulator → Usage Aggregation → Billing) on a single Postgres database, before Kafka enters the picture.
+**Status:** Phase 1 complete, Phase 2 (Kafka) underway — Meter Simulator → Usage Aggregation → Billing all run end-to-end, and REST between services is being replaced with real Kafka events through a real Confluent Schema Registry. See [Build Phases](#-build-phases).
 
 GridPulse is a self-contained, event-driven platform simulating a utility company's meter-reading, usage-aggregation, and billing pipeline. It's an original portfolio project (not a fork or a cloned tutorial) built to demonstrate principal-level system design: distributed systems, microservices decomposition, event streaming, resilient service-to-service communication, CI/CD, and production-grade observability. The domain is utility metering/billing, but the pipeline shape — high-volume telemetry in, aggregation, billing out — generalizes to IoT sensor networks, subscription usage billing, or order processing.
 
@@ -72,7 +72,7 @@ React + Redux Toolkit Dashboard          — live usage charts, invoice history,
 
 All services are orchestrated locally and in CI via **.NET Aspire**.
 
-**Where things actually stand right now (Phase 1):** the Kafka topics above are simplified to direct REST calls between Meter Simulator → Usage Aggregation → Billing, against a single Postgres database. The goal of Phase 1 is to get the domain logic right before introducing the event bus — see [Build Phases](#-build-phases).
+**Where things actually stand right now (Phase 2):** the Kafka topics above are real — all three services produce and consume Avro-encoded events through a real Confluent Schema Registry, replacing the direct REST calls Phase 1 used first to get the domain logic right. Meter Simulator → Usage Aggregation is verified live end-to-end over Kafka; Billing's Kafka wiring just landed and hasn't yet been verified against the full three-service pipeline — see [Build Phases](#-build-phases).
 
 ---
 
@@ -80,8 +80,8 @@ All services are orchestrated locally and in CI via **.NET Aspire**.
 
 Tracked in detail in [`todo.md`](todo.md) (the source of truth) and the [project board](https://github.com/users/Terrence721/projects/9); mirrored here as a quick-glance checklist.
 
-- [ ] **Phase 1 — Core loop, no Kafka.** Meter Simulator → Usage Aggregation → Billing via direct REST calls, single Postgres DB.
-- [ ] **Phase 2 — Introduce Kafka.** Replace REST calls between services with Kafka topics; add a schema registry.
+- [x] **Phase 1 — Core loop, no Kafka.** Meter Simulator → Usage Aggregation → Billing via direct REST calls, single Postgres DB.
+- [ ] **Phase 2 — Introduce Kafka (in progress).** Replace REST calls between services with Kafka topics; add a schema registry.
 - [ ] **Phase 3 — Polyglot + accounts.** Add the Node.js Notification Service and the Account/Customer Service.
 - [ ] **Phase 4 — Dashboard.** Build the React/Redux Toolkit dashboard and BFF gateway.
 - [ ] **Phase 5 — CI/CD.** GitHub Actions build/test/containerize/deploy pipeline.
@@ -99,15 +99,15 @@ docs/           Design doc and any supplementary docs
 
 ## 🖥 Running Locally
 
-The Aspire orchestration backbone, Meter Simulator, and Usage Aggregation are all wired in and boot together today:
+All three services — Meter Simulator, Usage Aggregation, and Billing — are wired in and boot together today, communicating entirely over real Kafka:
 
 ```text
 dotnet run --project src/AppHost
 ```
 
-This provisions Postgres (via Docker) and starts the Aspire dashboard — the link prints in the console.
-Each service added from here (Meter Simulator, Usage Aggregation, Billing) registers itself in
-[`src/AppHost/AppHost.cs`](src/AppHost/AppHost.cs), so the same command keeps working as Phase 1 fills in.
+This provisions Postgres, Kafka, and a Confluent Schema Registry (all via Docker) and starts the Aspire
+dashboard — the link prints in the console. Every service registers itself in
+[`src/AppHost/AppHost.cs`](src/AppHost/AppHost.cs), so the same command keeps working as later phases fill in.
 
 Open [`GridPulse.code-workspace`](GridPulse.code-workspace) in VS Code for the configured dev experience (recommended extensions, `dotnet.defaultSolution` pointed at `GridPulse.slnx`, sane file/search excludes for `bin`/`obj`/`node_modules`).
 
@@ -115,7 +115,7 @@ Open [`GridPulse.code-workspace`](GridPulse.code-workspace) in VS Code for the c
 
 - .NET 10 SDK
 - [Aspire CLI](https://aspire.dev) 13.5.3 (`irm https://aspire.dev/install.ps1 | iex` on Windows, `curl -sSL https://aspire.dev/install.sh | bash` on Linux/macOS — pass `--version 13.5.3` to match this repo's `Aspire.Hosting.*` package version)
-- Docker Desktop (for Postgres, and later Kafka)
+- Docker Desktop (for Postgres, Kafka, and the Confluent Schema Registry)
 - Node.js 20+ with [Corepack](https://nodejs.org/api/corepack.html) enabled (`corepack enable`) — resolves the pinned **Yarn 4.18.0** automatically for the Notification Service and React dashboard, Phase 3+
 
 ### Package management
