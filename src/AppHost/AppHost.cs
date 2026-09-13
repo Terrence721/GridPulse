@@ -62,4 +62,14 @@ builder.AddProject<Projects.GridPulse_MeterSimulator>("meter-simulator")
     .WithEnvironment("MeterSimulator__City", city)
     .WithEnvironment("MeterSimulator__ZipCode", zipCode);
 
+builder.AddNodeApp("notification-service", "../notification-service", "src/index.ts")
+    .WithYarn()
+    .WithRunScript("start")
+    .WithReference(kafka)
+    .WaitFor(kafka)
+    .WithReference(schemaRegistry.GetEndpoint("http"))
+    .WaitFor(schemaRegistry)
+    .WithReference(accountCustomer)
+    .WaitFor(accountCustomer);
+
 builder.Build().Run();
