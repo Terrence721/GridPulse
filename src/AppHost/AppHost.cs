@@ -27,7 +27,7 @@ var notificationWebhookUrl = builder.AddParameter("notification-webhook-url");
 var accountCustomer = builder.AddProject<Projects.GridPulse_AccountCustomer>("account-customer")
     .WithReference(accountsDb)
     .WaitFor(accountsDb)
-    .WithHttpHealthCheck("/health")
+    .WithHttpHealthCheck(path: "/health", endpointName: "http")
     .WithEnvironment("AccountSeed__StreetName", streetName)
     .WithEnvironment("AccountSeed__StartingAddress", startingAddress)
     .WithEnvironment("AccountSeed__BuildingsPerSide", buildingsPerSide)
