@@ -24,7 +24,11 @@ var zipCode = builder.AddParameter("meter-simulator-zip-code");
 
 var usageAggregation = builder.AddProject<Projects.GridPulse_UsageAggregation>("usage-aggregation")
     .WithReference(gridpulseDb)
-    .WaitFor(gridpulseDb);
+    .WaitFor(gridpulseDb)
+    .WithReference(kafka)
+    .WaitFor(kafka)
+    .WithReference(schemaRegistry.GetEndpoint("http"))
+    .WaitFor(schemaRegistry);
 
 builder.AddProject<Projects.GridPulse_Billing>("billing")
     .WithReference(gridpulseDb)
