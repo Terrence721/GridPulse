@@ -8,11 +8,11 @@ public sealed class BillingInvoiceGeneratedPublisher(IProducer<string, BillingIn
     public Task PublishAsync(Invoice invoice, CancellationToken cancellationToken) =>
         producer.ProduceAsync("billing.invoice.generated", new Message<string, BillingInvoiceGenerated>
         {
-            Key = invoice.MeterId,
+            Key = invoice.AccountId,
             Value = new BillingInvoiceGenerated
             {
                 InvoiceId = invoice.Id.ToString(),
-                MeterId = invoice.MeterId,
+                AccountId = invoice.AccountId,
                 AmountDue = (double)invoice.AmountDue,
                 DueDateUnixMilliseconds = invoice.DueDate.ToUnixTimeMilliseconds()
             }

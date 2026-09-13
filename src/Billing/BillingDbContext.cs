@@ -9,7 +9,7 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Invoice>()
-            .HasIndex(i => new { i.MeterId, i.PeriodStart, i.PeriodEnd, i.RatePlanType })
+            .HasIndex(i => new { i.AccountId, i.PeriodStart, i.PeriodEnd, i.RatePlanType })
             .IsUnique();
     }
 }

@@ -38,7 +38,7 @@ public sealed class InvoiceGeneratorTests
         var generator = CreateGenerator(dbContext);
 
         var invoice = await generator.GenerateAsync(
-            "MTR-100-Elm St",
+            "ACC-1",
             new DateTimeOffset(2026, 9, 12, 17, 0, 0, TimeSpan.Zero),
             new DateTimeOffset(2026, 9, 12, 18, 0, 0, TimeSpan.Zero),
             10.0,
@@ -46,6 +46,7 @@ public sealed class InvoiceGeneratorTests
 
         Assert.Equal(1.6m, invoice.AmountDue);
         Assert.Equal(10.0, invoice.TotalKwh);
+        Assert.Equal("ACC-1", invoice.AccountId);
         Assert.Single(dbContext.Invoices);
     }
 
@@ -56,7 +57,7 @@ public sealed class InvoiceGeneratorTests
         var generator = CreateGenerator(dbContext, defaultRatePlanType: "Unknown");
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => generator.GenerateAsync(
-            "MTR-100-Elm St",
+            "ACC-1",
             DateTimeOffset.UtcNow.AddHours(-1),
             DateTimeOffset.UtcNow,
             10.0,
@@ -70,7 +71,7 @@ public sealed class InvoiceGeneratorTests
         var generator = CreateGenerator(dbContext);
 
         var invoice = await generator.GenerateAsync(
-            "MTR-100-Elm St",
+            "ACC-1",
             DateTimeOffset.UtcNow.AddHours(-1),
             DateTimeOffset.UtcNow,
             0.0,
@@ -88,8 +89,8 @@ public sealed class InvoiceGeneratorTests
         var periodStart = new DateTimeOffset(2026, 9, 12, 17, 0, 0, TimeSpan.Zero);
         var periodEnd = periodStart.AddHours(1);
 
-        await generator.GenerateAsync("MTR-100-Elm St", periodStart, periodEnd, 10.0, CancellationToken.None);
-        var invoice = await generator.GenerateAsync("MTR-100-Elm St", periodStart, periodEnd, 25.0, CancellationToken.None);
+        await generator.GenerateAsync("ACC-1", periodStart, periodEnd, 10.0, CancellationToken.None);
+        var invoice = await generator.GenerateAsync("ACC-1", periodStart, periodEnd, 25.0, CancellationToken.None);
 
         Assert.Single(dbContext.Invoices);
         Assert.Equal(25.0, invoice.TotalKwh);

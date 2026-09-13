@@ -9,15 +9,15 @@ public sealed class InvoiceGenerator(
     IOptions<BillingOptions> billingOptions,
     IBillingInvoiceGeneratedPublisher publisher)
 {
-    public async Task<Invoice> GenerateAsync(string meterId, DateTimeOffset periodStart, DateTimeOffset periodEnd, double totalKwh, CancellationToken cancellationToken)
+    public async Task<Invoice> GenerateAsync(string accountId, DateTimeOffset periodStart, DateTimeOffset periodEnd, double totalKwh, CancellationToken cancellationToken)
     {
         var ratePlanType = billingOptions.Value.DefaultRatePlanType;
         var ratePlan = CreateRatePlan(ratePlanType, ratePlanOptions.Value);
-        var hourlyUsage = new List<HourlyUsageSnapshot> { new(meterId, periodStart, periodEnd, totalKwh) };
+        var hourlyUsage = new List<HourlyUsageSnapshot> { new(accountId, periodStart, periodEnd, totalKwh) };
         var amountDue = ratePlan.CalculateCost(hourlyUsage);
 
         var invoice = await dbContext.Invoices.FirstOrDefaultAsync(
-            i => i.MeterId == meterId && i.PeriodStart == periodStart && i.PeriodEnd == periodEnd && i.RatePlanType == ratePlanType,
+            i => i.AccountId == accountId && i.PeriodStart == periodStart && i.PeriodEnd == periodEnd && i.RatePlanType == ratePlanType,
             cancellationToken);
 
         if (invoice is null)
@@ -25,7 +25,7 @@ public sealed class InvoiceGenerator(
             invoice = new Invoice
             {
                 Id = Guid.NewGuid(),
-                MeterId = meterId,
+                AccountId = accountId,
                 PeriodStart = periodStart,
                 PeriodEnd = periodEnd,
                 RatePlanType = ratePlanType

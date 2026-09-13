@@ -35,7 +35,7 @@ public sealed class UsageAggregatedConsumer(
             using var scope = scopeFactory.CreateScope();
             var generator = scope.ServiceProvider.GetRequiredService<InvoiceGenerator>();
             await generator.GenerateAsync(
-                usage.MeterId,
+                usage.AccountId,
                 DateTimeOffset.FromUnixTimeMilliseconds(usage.PeriodStartUnixMilliseconds),
                 DateTimeOffset.FromUnixTimeMilliseconds(usage.PeriodEndUnixMilliseconds),
                 usage.TotalKwh,

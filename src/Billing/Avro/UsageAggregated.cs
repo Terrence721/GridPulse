@@ -12,7 +12,7 @@ public sealed class UsageAggregated : ISpecificRecord
           "name": "UsageAggregated",
           "namespace": "gridpulse.avro",
           "fields": [
-            { "name": "meterId", "type": "string" },
+            { "name": "accountId", "type": "string", "default": "" },
             { "name": "periodStart", "type": "long" },
             { "name": "periodEnd", "type": "long" },
             { "name": "totalKwh", "type": "double" }
@@ -20,7 +20,7 @@ public sealed class UsageAggregated : ISpecificRecord
         }
         """);
 
-    public string MeterId { get; set; } = string.Empty;
+    public string AccountId { get; set; } = string.Empty;
     public long PeriodStartUnixMilliseconds { get; set; }
     public long PeriodEndUnixMilliseconds { get; set; }
     public double TotalKwh { get; set; }
@@ -29,7 +29,7 @@ public sealed class UsageAggregated : ISpecificRecord
 
     public object Get(int fieldPos) => fieldPos switch
     {
-        0 => MeterId,
+        0 => AccountId,
         1 => PeriodStartUnixMilliseconds,
         2 => PeriodEndUnixMilliseconds,
         3 => TotalKwh,
@@ -40,7 +40,7 @@ public sealed class UsageAggregated : ISpecificRecord
     {
         switch (fieldPos)
         {
-            case 0: MeterId = (string)fieldValue; break;
+            case 0: AccountId = (string)fieldValue; break;
             case 1: PeriodStartUnixMilliseconds = (long)fieldValue; break;
             case 2: PeriodEndUnixMilliseconds = (long)fieldValue; break;
             case 3: TotalKwh = (double)fieldValue; break;
