@@ -1,5 +1,6 @@
-using System.Net.Http.Json;
+using Confluent.Kafka;
 using Microsoft.Extensions.Options;
+using GridPulse.MeterSimulator.Avro;
 
 namespace GridPulse.MeterSimulator;
 
@@ -9,44 +10,53 @@ public sealed class Worker : BackgroundService
     private readonly MeterReadingGenerator _generator;
     private readonly CityBlockMeterIdFactory _meterIdFactory;
     private readonly MeterSimulatorOptions _options;
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IProducer<string, MeterReadingRaw> _producer;
 
     public Worker(
         ILogger<Worker> logger,
         MeterReadingGenerator generator,
         CityBlockMeterIdFactory meterIdFactory,
         IOptions<MeterSimulatorOptions> options,
-        IHttpClientFactory httpClientFactory)
+        IProducer<string, MeterReadingRaw> producer)
     {
         _logger = logger;
         _generator = generator;
         _meterIdFactory = meterIdFactory;
         _options = options.Value;
-        _httpClientFactory = httpClientFactory;
+        _producer = producer;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var meterIds = _meterIdFactory.Create(_options);
         var interval = TimeSpan.FromSeconds(_options.IntervalSeconds);
-        var httpClient = _httpClientFactory.CreateClient("usage-aggregation");
 
         while (!stoppingToken.IsCancellationRequested)
         {
             foreach (var meterId in meterIds)
             {
                 var reading = _generator.Generate(meterId);
+                var message = new Message<string, MeterReadingRaw>
+                {
+                    Key = reading.MeterId,
+                    Value = new MeterReadingRaw
+                    {
+                        MeterId = reading.MeterId,
+                        TimestampUnixMilliseconds = reading.Timestamp.ToUnixTimeMilliseconds(),
+                        Kwh = reading.Kwh,
+                        ReadingId = reading.ReadingId.ToString()
+                    }
+                };
 
                 try
                 {
-                    var response = await httpClient.PostAsJsonAsync("/readings", reading, stoppingToken);
-                    response.EnsureSuccessStatusCode();
+                    await _producer.ProduceAsync("meter.readings.raw", message, stoppingToken);
 
                     _logger.LogInformation(
                         "Sent reading {ReadingId} from {MeterId}: {Kwh} kWh at {Timestamp}",
                         reading.ReadingId, reading.MeterId, reading.Kwh, reading.Timestamp);
                 }
-                catch (HttpRequestException ex)
+                catch (ProduceException<string, MeterReadingRaw> ex)
                 {
                     _logger.LogWarning(ex,
                         "Failed to send reading {ReadingId} from {MeterId}",
