@@ -9,6 +9,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
+    <PackageReference Include="Confluent.Kafka" Version="2.15.1" />
+    <PackageReference Include="Confluent.SchemaRegistry.Serdes.Avro" Version="2.15.1" />
+    <PackageReference Include="Apache.Avro" Version="1.12.2" />
   </ItemGroup>
 
   <ItemGroup>
