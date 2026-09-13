@@ -5,6 +5,10 @@ var postgres = builder.AddPostgres("postgres")
 
 var gridpulseDb = postgres.AddDatabase("gridpulsedb");
 
+var kafka = builder.AddKafka("kafka")
+    .WithDataVolume()
+    .WithKafkaUI();
+
 var streetName = builder.AddParameter("meter-simulator-street-name");
 var startingAddress = builder.AddParameter("meter-simulator-starting-address");
 var buildingsPerSide = builder.AddParameter("meter-simulator-buildings-per-side");
