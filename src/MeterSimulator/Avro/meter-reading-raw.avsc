@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "MeterReadingRaw",
+  "namespace": "gridpulse.avro",
+  "fields": [
+    { "name": "meterId", "type": "string" },
+    { "name": "timestamp", "type": "long" },
+    { "name": "kwh", "type": "double" },
+    { "name": "readingId", "type": "string" }
+  ]
+}
