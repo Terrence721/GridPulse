@@ -6,7 +6,7 @@
 [![CodeQL](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml/badge.svg)](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml)
 
 <!-- markdownlint-disable-next-line MD036 -->
-**Status:** Phase 1 complete, Phase 2 (Kafka) underway — Meter Simulator → Usage Aggregation → Billing all run end-to-end, and REST between services is being replaced with real Kafka events through a real Confluent Schema Registry. See [Build Phases](#-build-phases).
+**Status:** Phase 1 and Phase 2 both complete — Meter Simulator → Usage Aggregation → Billing all run end-to-end over real Kafka events through a real Confluent Schema Registry, replacing the direct REST calls Phase 1 started with. See [Build Phases](#-build-phases).
 
 GridPulse is a self-contained, event-driven platform simulating a utility company's meter-reading, usage-aggregation, and billing pipeline. It's an original portfolio project (not a fork or a cloned tutorial) built to demonstrate principal-level system design: distributed systems, microservices decomposition, event streaming, resilient service-to-service communication, CI/CD, and production-grade observability. The domain is utility metering/billing, but the pipeline shape — high-volume telemetry in, aggregation, billing out — generalizes to IoT sensor networks, subscription usage billing, or order processing.
 
@@ -72,7 +72,7 @@ React + Redux Toolkit Dashboard          — live usage charts, invoice history,
 
 All services are orchestrated locally and in CI via **.NET Aspire**.
 
-**Where things actually stand right now (Phase 2):** the Kafka topics above are real — all three services produce and consume Avro-encoded events through a real Confluent Schema Registry, replacing the direct REST calls Phase 1 used first to get the domain logic right. Meter Simulator → Usage Aggregation is verified live end-to-end over Kafka; Billing's Kafka wiring just landed and hasn't yet been verified against the full three-service pipeline — see [Build Phases](#-build-phases).
+**Where things actually stand right now (Phase 2 complete):** the Kafka topics above are real — all three services produce and consume Avro-encoded events through a real Confluent Schema Registry, replacing the direct REST calls Phase 1 used first to get the domain logic right. The full three-service pipeline is verified live end-to-end, including a real `Invoice` row landing in Postgres from real Kafka traffic — see [Build Phases](#-build-phases).
 
 ---
 
@@ -81,7 +81,7 @@ All services are orchestrated locally and in CI via **.NET Aspire**.
 Tracked in detail in [`todo.md`](todo.md) (the source of truth) and the [project board](https://github.com/users/Terrence721/projects/9); mirrored here as a quick-glance checklist.
 
 - [x] **Phase 1 — Core loop, no Kafka.** Meter Simulator → Usage Aggregation → Billing via direct REST calls, single Postgres DB.
-- [ ] **Phase 2 — Introduce Kafka (in progress).** Replace REST calls between services with Kafka topics; add a schema registry.
+- [x] **Phase 2 — Introduce Kafka.** Replace REST calls between services with Kafka topics; add a schema registry.
 - [ ] **Phase 3 — Polyglot + accounts.** Add the Node.js Notification Service and the Account/Customer Service.
 - [ ] **Phase 4 — Dashboard.** Build the React/Redux Toolkit dashboard and BFF gateway.
 - [ ] **Phase 5 — CI/CD.** GitHub Actions build/test/containerize/deploy pipeline.
