@@ -17,7 +17,7 @@ public sealed class ReadingProcessorTests
     public async Task ProcessAsync_NewReading_ReturnsTrueAndPersistsIt()
     {
         await using var dbContext = CreateDbContext();
-        var processor = new ReadingProcessor(dbContext);
+        var processor = new ReadingProcessor(dbContext, new FakeUsageAggregatedPublisher());
         var request = new MeterReadingRequest("MTR-100-Elm St", DateTimeOffset.UtcNow, 2.5, Guid.NewGuid());
 
         var processed = await processor.ProcessAsync(request, CancellationToken.None);
@@ -30,7 +30,7 @@ public sealed class ReadingProcessorTests
     public async Task ProcessAsync_DuplicateReadingId_ReturnsFalseAndDoesNotReprocess()
     {
         await using var dbContext = CreateDbContext();
-        var processor = new ReadingProcessor(dbContext);
+        var processor = new ReadingProcessor(dbContext, new FakeUsageAggregatedPublisher());
         var request = new MeterReadingRequest("MTR-100-Elm St", DateTimeOffset.UtcNow, 2.5, Guid.NewGuid());
 
         await processor.ProcessAsync(request, CancellationToken.None);
@@ -44,7 +44,7 @@ public sealed class ReadingProcessorTests
     public async Task ProcessAsync_TwoReadingsSameMeterSameHour_SumsIntoOneHourlyUsageRow()
     {
         await using var dbContext = CreateDbContext();
-        var processor = new ReadingProcessor(dbContext);
+        var processor = new ReadingProcessor(dbContext, new FakeUsageAggregatedPublisher());
         var timestamp = new DateTimeOffset(2026, 9, 12, 17, 15, 0, TimeSpan.Zero);
 
         await processor.ProcessAsync(new MeterReadingRequest("MTR-100-Elm St", timestamp, 2.5, Guid.NewGuid()), CancellationToken.None);
@@ -58,7 +58,7 @@ public sealed class ReadingProcessorTests
     public async Task ProcessAsync_ReadingsInDifferentHours_CreatesSeparateHourlyUsageRows()
     {
         await using var dbContext = CreateDbContext();
-        var processor = new ReadingProcessor(dbContext);
+        var processor = new ReadingProcessor(dbContext, new FakeUsageAggregatedPublisher());
         var firstHour = new DateTimeOffset(2026, 9, 12, 17, 15, 0, TimeSpan.Zero);
         var secondHour = firstHour.AddHours(1);
 
