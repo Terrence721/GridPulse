@@ -1,0 +1,55 @@
+name: Test
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  dotnet-tests:
+    name: .NET tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+
+      - name: Install Aspire CLI
+        # AppHost.Tests references AppHost, whose SDK requires the Aspire CLI
+        # bundle to build (ASPIRE009) even though its own tests are excluded
+        # below. Pinned to match the Aspire.Hosting.* package version.
+        run: curl -sSL https://aspire.dev/install.sh | bash -s -- --version 13.5.3
+
+      - name: Run fast tests
+        # AppHost.Tests' CoreLoopSmokeTests spins up the full real stack
+        # (Kafka, Postgres, schema-registry) and takes several minutes — it
+        # runs on its own schedule in smoke-test.yml, not on every push/PR.
+        # --ignore-exit-code 8 is required because AppHost.Tests matches zero
+        # tests under this filter, which the new Microsoft.Testing.Platform
+        # runner otherwise reports as a failure even though every real test
+        # (all 46) passed.
+        run: dotnet test GridPulse.slnx --filter "FullyQualifiedName!~AppHost.Tests" --ignore-exit-code 8
+
+  notification-service-tests:
+    name: Notification Service tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Run tests
+        run: yarn workspace notification-service test

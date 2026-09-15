@@ -1,0 +1,27 @@
+name: Smoke Test
+
+# CoreLoopSmokeTests stands up the full real Aspire stack (Kafka, Postgres,
+# schema-registry, and all services) and proves a reading actually flows
+# through to a billed invoice end-to-end. It takes several minutes, so it
+# runs on a weekly schedule and on demand rather than on every push/PR.
+on:
+  schedule:
+    - cron: "0 2 * * 0"
+  workflow_dispatch:
+
+jobs:
+  smoke-test:
+    name: Core loop smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+
+      - name: Install Aspire CLI
+        run: curl -sSL https://aspire.dev/install.sh | bash -s -- --version 13.5.3
+
+      - name: Run CoreLoopSmokeTests
+        run: dotnet test tests/AppHost.Tests
