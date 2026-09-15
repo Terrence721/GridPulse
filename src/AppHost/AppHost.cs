@@ -43,7 +43,8 @@ builder.AddProject<Projects.GridPulse_UsageAggregation>("usage-aggregation")
     .WithReference(kafka)
     .WaitFor(kafka)
     .WithReference(schemaRegistry.GetEndpoint("http"))
-    .WaitFor(schemaRegistry);
+    .WaitFor(schemaRegistry)
+    .WithHttpHealthCheck(path: "/health", endpointName: "http");
 
 builder.AddProject<Projects.GridPulse_Billing>("billing")
     .WithReference(gridpulseDb)
