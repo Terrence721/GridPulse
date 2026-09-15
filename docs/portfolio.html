@@ -269,18 +269,19 @@
 
 <div class="hero">
   <div class="wrap">
-    <p class="eyebrow">Portfolio Manifest — Updated September 13, 2026</p>
+    <p class="eyebrow">Portfolio Manifest — Updated September 15, 2026</p>
     <h1 class="name">Terrence&nbsp;Daniels</h1>
     <p class="role">Principal Full-Stack Engineer</p>
     <p class="thesis">
       <strong>GridPulse</strong> is an original, from-scratch event-driven platform simulating a utility
       company's meter-reading, usage-aggregation, and billing pipeline — not a fork or a cloned reference
       app. Built to demonstrate the skills a Principal Developer role expects: distributed systems design,
-      microservices decomposition, event streaming, and production-grade observability, tracked in the open
-      from before the first service existed. Phase 1's core loop — Meter Simulator → Usage Aggregation →
-      Billing — is complete and verified live end-to-end, backed by 38 automated tests. Phase 2 has since
-      replaced those REST calls with real Kafka events through a real Confluent Schema Registry, also
-      verified live end-to-end.
+      microservices decomposition, event streaming, polyglot service boundaries, and production-grade
+      observability, tracked in the open from before the first service existed. Phases 1 through 3 are
+      complete and verified live end-to-end: the core Kafka-driven loop, a real Account/Customer Service
+      backing genuine <code>AccountId</code>-keyed usage and billing, and a real Node.js/TypeScript
+      Notification Service delivering an actual webhook POST — 53 automated tests, five services, one
+      real distributed system.
     </p>
     <div class="hero-actions">
       <a class="btn primary" href="https://github.com/Terrence721/GridPulse">View the repository →</a>
@@ -290,7 +291,7 @@
   </div>
   <div class="stamp" aria-hidden="true">
     <div class="stamp-inner">
-      <span class="n">13</span>
+      <span class="n">18</span>
       <span class="l">REAL BUGS<br />FOUND</span>
     </div>
   </div>
@@ -299,12 +300,12 @@
 <div class="manifest">
   <div class="wrap">
     <div class="manifest-row">
-      <div class="manifest-cell"><span class="v">Phase 2</span><span class="k">Kafka complete</span></div>
-      <div class="manifest-cell"><span class="v">145</span><span class="k">commits</span></div>
-      <div class="manifest-cell"><span class="v">18</span><span class="k">issues tracked</span></div>
-      <div class="manifest-cell"><span class="v">13</span><span class="k">real bugs found</span></div>
+      <div class="manifest-cell"><span class="v">Phase 3</span><span class="k">Polyglot + accounts complete</span></div>
+      <div class="manifest-cell"><span class="v">174</span><span class="k">commits</span></div>
+      <div class="manifest-cell"><span class="v">24</span><span class="k">issues tracked</span></div>
+      <div class="manifest-cell"><span class="v">18</span><span class="k">real bugs found</span></div>
       <div class="manifest-cell"><span class="v">13.5.3</span><span class="k">Aspire</span></div>
-      <div class="manifest-cell"><span class="v">38</span><span class="k">tests, all passing</span></div>
+      <div class="manifest-cell"><span class="v">53</span><span class="k">tests, all passing</span></div>
     </div>
   </div>
 </div>
@@ -339,11 +340,13 @@
     <p class="h2-sub">Six phases, staged deliberately — the core domain loop first, Kafka and the dashboard later</p>
     <p class="lede">
       Phase 1 — a direct-REST core loop (Meter Simulator → Usage Aggregation → Billing) on a single
-      Postgres database — is done: real HTTP calls, real Postgres persistence, 38 tests passing, and an
-      automated end-to-end smoke test that spins up the real stack. Phase 2 has replaced those REST calls
-      with real Kafka events through a real Confluent Schema Registry, verified live end-to-end.
-      A polyglot Node.js Notification Service, a React/Redux Toolkit dashboard, CI/CD, and full
-      observability come next, scaffolded one file or folder at a step with nothing batched ahead of review.
+      Postgres database — shipped first. Phase 2 replaced those REST calls with real Kafka events through
+      a real Confluent Schema Registry. Phase 3 added a genuine Account/Customer Service, re-keyed usage
+      and billing from a placeholder <code>MeterId</code> to a real <code>AccountId</code>, and shipped
+      this project's first polyglot service — a Node.js/TypeScript Notification Service delivering an
+      actual webhook POST. All three phases verified live end-to-end, 53 tests passing. A React/Redux
+      Toolkit dashboard, CI/CD, and full observability come next, scaffolded one file or folder at a step
+      with nothing batched ahead of review.
     </p>
     <div class="twocol">
       <div class="card">
@@ -362,12 +365,13 @@
   </section>
 
   <section>
-    <h2>13 real bugs, found by actually running the thing</h2>
+    <h2>18 real bugs, found by actually running the thing</h2>
     <p class="h2-sub">All logged in <a href="https://github.com/Terrence721/GridPulse/blob/main/todo.md">todo.md</a>, checkable against the commit history</p>
     <p class="lede">
       From CodeQL failing before any service existed, to a live DNS resolution bug caught only by running
-      the real distributed app end-to-end, to .NET 10 SDK/xUnit v3 tooling breakage — every one of these
-      was found by actually building and running the thing, not by inspection.
+      the real distributed app end-to-end, to a Node.js Kafka consumer crashing permanently on a poison
+      message only real traffic could surface — every one of these was found by actually building and
+      running the thing, not by inspection.
     </p>
     <div class="ledger">
       <div class="item">
@@ -577,6 +581,87 @@
             <a href="https://github.com/Terrence721/GridPulse/issues/19">issue #19</a></div>
         </div>
       </div>
+      <div class="item">
+        <div class="no">14</div>
+        <div>
+          <div class="file">src/AccountCustomer/GridPulse.AccountCustomer.csproj</div>
+          <div class="desc">
+            The first live run of the new Account/Customer Service threw <code>Could not create HTTP
+            health check for resource 'account-customer' as no endpoint was found matching one of the
+            specified names: https, http</code>. The hand-scaffolded project had no
+            <code>Properties/launchSettings.json</code> — every other service in this repo has one because
+            it was generated by <code>dotnet new</code> tooling, this one was hand-written, and Aspire's
+            <code>AddProject&lt;T&gt;()</code> reads that file to discover HTTP endpoints. Fixed by adding a
+            proper <code>launchSettings.json</code> and pinning the health check to the <code>http</code>
+            endpoint explicitly.
+          </div>
+          <div class="meta"><span class="tag">real bug · live E2E only</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/20">issue #20</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">15</div>
+        <div>
+          <div class="file">src/UsageAggregation/Avro/MeterReadingRaw.cs</div>
+          <div class="desc">
+            Adding an <code>accountId</code> field to <code>meter.readings.raw</code>'s schema silently
+            broke every publish — the topic stayed pinned at schema version 1 in the registry, meaning the
+            new field was never actually accepted. Confluent Schema Registry defaults to
+            <code>BACKWARD</code> compatibility, which requires a new field to carry a <code>default</code>
+            value; it had none. Fixed by adding <code>"default": ""</code>. Re-verified live: schema
+            version 2 registered cleanly, real <code>accountId</code> values confirmed for every meter.
+          </div>
+          <div class="meta"><span class="tag">real bug · schema evolution</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/21">issue #21</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">16</div>
+        <div>
+          <div class="file">src/notification-service/package.json</div>
+          <div class="desc">
+            <code>yarn install</code>'s peer-dependency warning about <code>vite</code> looked like routine
+            noise. It wasn't: <code>vitest</code> 5.0.0 requires <code>vite</code> as a real runtime
+            dependency, and without it <code>yarn test</code> failed outright with
+            <code>ERR_MODULE_NOT_FOUND</code> before running a single test. Fixed by adding <code>vite</code>
+            to the shared Yarn Berry catalog and this service's dev dependencies.
+          </div>
+          <div class="meta"><span class="tag">real bug · missing runtime dependency</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/23">issue #23</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">17</div>
+        <div>
+          <div class="file">src/notification-service/src/notificationConsumer.ts</div>
+          <div class="desc">
+            Live verification found the Notification Service's Kafka consumer group sitting at zero
+            members after several minutes with no webhooks delivered. <code>@kafkajs/confluent-schema-registry</code>
+            decodes strictly against the writer's registered schema, with no reader-schema projection — an
+            old message from before the <code>AccountId</code> re-keying decoded to
+            <code>accountId: undefined</code>, which threw, which kafkajs retried forever on the same
+            offset until the consumer crashed out of its group entirely. Fixed by skipping messages with a
+            missing <code>accountId</code> instead of letting the exception propagate. Re-verified live:
+            skipped ~4,387 old incompatible messages, then delivered real webhooks for genuinely new
+            invoices.
+          </div>
+          <div class="meta"><span class="tag">real bug · poison message</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/24">issue #24</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">18</div>
+        <div>
+          <div class="file">.github/workflows/test.yml</div>
+          <div class="desc">
+            This repo's own CodeQL <code>actions</code> analysis flagged both new test workflows as missing
+            an explicit <code>permissions</code> block, falling back to the default (broader)
+            <code>GITHUB_TOKEN</code> scope instead of least privilege. Fixed with a top-level
+            <code>contents: read</code> on each — all either ever does is checkout code and run tests.
+          </div>
+          <div class="meta"><span class="tag">real finding · CodeQL self-check, not live</span></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -585,12 +670,13 @@
     <p class="h2-sub">Early, and said so — not oversold</p>
     <div class="twocol">
       <div class="card">
-        <h3>Phase 1 and Phase 2 are both done, verified live</h3>
-        <p>Meter Simulator, Usage Aggregation, and Billing all built, wired together through
-        <code>AppHost</code>, and verified against a real running stack — real HTTP calls, real Postgres,
-        real invoices with correct math. Backed by 38 automated tests, including an end-to-end smoke test
-        that spins up the whole thing and walks a reading through it. Those REST calls have since been
-        replaced with real Kafka events through a real Confluent Schema Registry, verified live end-to-end.</p>
+        <h3>Phases 1 through 3 are all done, verified live</h3>
+        <p>Five services — Account/Customer Service, Meter Simulator, Usage Aggregation, Billing, and a
+        polyglot Node.js Notification Service — all built, wired together through <code>AppHost</code>,
+        and verified against a real running stack: real Kafka events through a real Confluent Schema
+        Registry, real <code>AccountId</code>-keyed invoices with correct math, and a real webhook actually
+        received. Backed by 53 automated tests, including an end-to-end smoke test that spins up the whole
+        stack and walks a reading all the way through to a delivered invoice.</p>
       </div>
       <div class="card">
         <h3>Nothing here is unverified</h3>
