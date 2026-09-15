@@ -1,3 +1,7 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using System.Diagnostics;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 var postgres = builder.AddPostgres("postgres")
@@ -72,4 +76,45 @@ builder.AddNodeApp("notification-service", "../notification-service", "src/index
     .WithReference(accountCustomer)
     .WaitFor(accountCustomer);
 
-builder.Build().Run();
+var appHostDirectory = builder.AppHostDirectory;
+var app = builder.Build();
+
+if (OperatingSystem.IsWindows())
+{
+    var stopScriptPath = Path.GetFullPath(Path.Combine(appHostDirectory, "..", "..", "scripts", "stop-app.ps1"));
+
+    app.Services.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping.Register(() =>
+    {
+        if (!File.Exists(stopScriptPath))
+        {
+            return;
+        }
+
+        // Runs on a graceful stop no matter how this AppHost was started (Visual
+        // Studio, `dotnet run`, `aspire run`, or scripts/run-app.ps1) — not just
+        // when stopped via the script, which only covers its own invocation.
+        // A forceful kill (Task Manager, taskkill /F, a crash) bypasses this
+        // entirely, the same as it would bypass any other in-process hook —
+        // scripts/stop-app.ps1 remains available to run manually for that case.
+        try
+        {
+            using var cleanup = Process.Start(new ProcessStartInfo
+            {
+                FileName = "powershell",
+                ArgumentList = { "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", stopScriptPath },
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+            cleanup?.WaitForExit(20_000);
+        }
+        catch (Exception ex)
+        {
+            // Best-effort cleanup — a failure here (e.g. powershell isn't
+            // resolvable) shouldn't turn into an unhandled exception during
+            // the host's own shutdown sequence.
+            Console.Error.WriteLine($"GridPulse cleanup sweep failed to run: {ex.Message}");
+        }
+    });
+}
+
+app.Run();
