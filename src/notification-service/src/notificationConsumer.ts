@@ -38,14 +38,25 @@ export async function runNotificationConsumer(config: Config): Promise<void> {
         return;
       }
 
-      const webhookUrl = await getAccountWebhookUrl(config.accountCustomerBaseUrl, invoice.accountId);
+      try {
+        const webhookUrl = await getAccountWebhookUrl(config.accountCustomerBaseUrl, invoice.accountId);
 
-      await sendInvoiceNotification(webhookUrl, {
-        invoiceId: invoice.invoiceId,
-        accountId: invoice.accountId,
-        amountDue: invoice.amountDue,
-        dueDate: new Date(invoice.dueDate).toISOString()
-      });
+        await sendInvoiceNotification(webhookUrl, {
+          invoiceId: invoice.invoiceId,
+          accountId: invoice.accountId,
+          amountDue: invoice.amountDue,
+          dueDate: new Date(invoice.dueDate).toISOString()
+        });
+      } catch (error) {
+        // A delivery failure (account lookup or the webhook itself) shouldn't
+        // crash the whole consumer the way a malformed message does above —
+        // kafkajs retries an unhandled eachMessage error a few times, then
+        // gives up and leaves the group entirely, blocking every other
+        // invoice's notification along with this one. Log and move on
+        // instead; webhook delivery here is best-effort, not guaranteed.
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`Failed to deliver notification for invoice ${invoice.invoiceId}: ${message}`);
+      }
     }
   });
 }
