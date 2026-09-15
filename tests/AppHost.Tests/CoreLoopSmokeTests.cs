@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using Confluent.Kafka;
 using Confluent.Kafka.SyncOverAsync;
 using Confluent.SchemaRegistry;
@@ -9,6 +10,8 @@ namespace GridPulse.AppHost.Tests;
 
 public sealed class CoreLoopSmokeTests
 {
+    private sealed record AccountResponse(Guid Id, string ContactWebhookUrl);
+
     [Fact]
     public async Task CoreLoop_ReadingFlowsThroughKafkaToBilling()
     {
@@ -18,16 +21,33 @@ public sealed class CoreLoopSmokeTests
         await using var app = await appHost.BuildAsync(cancellationToken);
         await app.StartAsync(cancellationToken);
 
+        await app.ResourceNotifications.WaitForResourceHealthyAsync("account-customer", cancellationToken);
         await app.ResourceNotifications.WaitForResourceHealthyAsync("usage-aggregation", cancellationToken);
         await app.ResourceNotifications.WaitForResourceHealthyAsync("billing", cancellationToken);
+
+        using var accountCustomerClient = app.CreateHttpClient("account-customer");
+
+        var meterId = $"SMOKE-TEST-METER-{Guid.NewGuid()}";
+
+        var createAccountResponse = await accountCustomerClient.PostAsJsonAsync(
+            "/accounts",
+            new { ContactWebhookUrl = "http://localhost:9999/webhook" },
+            cancellationToken);
+        createAccountResponse.EnsureSuccessStatusCode();
+        var account = await createAccountResponse.Content.ReadFromJsonAsync<AccountResponse>(cancellationToken)
+            ?? throw new InvalidOperationException("Account/Customer Service did not return an account.");
+
+        var registerMeterResponse = await accountCustomerClient.PostAsJsonAsync(
+            "/meters",
+            new { MeterId = meterId, AccountId = account.Id },
+            cancellationToken);
+        registerMeterResponse.EnsureSuccessStatusCode();
 
         var kafkaBootstrapServers = await app.GetConnectionStringAsync("kafka", cancellationToken)
             ?? throw new InvalidOperationException("Kafka connection string not available.");
         var schemaRegistryUrl = app.GetEndpoint("schema-registry", "http").ToString();
 
         using var schemaRegistry = new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = schemaRegistryUrl });
-
-        var meterId = $"SMOKE-TEST-METER-{Guid.NewGuid()}";
 
         using var producer = new ProducerBuilder<string, MeterReadingRaw>(new ProducerConfig { BootstrapServers = kafkaBootstrapServers })
             .SetValueSerializer(new AvroSerializer<MeterReadingRaw>(schemaRegistry).AsSyncOverAsync())
@@ -39,6 +59,7 @@ public sealed class CoreLoopSmokeTests
             Value = new MeterReadingRaw
             {
                 MeterId = meterId,
+                AccountId = account.Id.ToString(),
                 TimestampUnixMilliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 Kwh = 10.0,
                 ReadingId = Guid.NewGuid().ToString()
@@ -56,19 +77,20 @@ public sealed class CoreLoopSmokeTests
             .Build();
         consumer.Subscribe("billing.invoice.generated");
 
+        var accountId = account.Id.ToString();
         BillingInvoiceGenerated? invoice = null;
         var deadline = DateTime.UtcNow.AddSeconds(60);
         while (DateTime.UtcNow < deadline && invoice is null)
         {
             var result = consumer.Consume(TimeSpan.FromSeconds(1));
-            if (result is not null && result.Message.Value.MeterId == meterId)
+            if (result is not null && result.Message.Value.AccountId == accountId)
             {
                 invoice = result.Message.Value;
             }
         }
 
         Assert.NotNull(invoice);
-        Assert.Equal(meterId, invoice.MeterId);
+        Assert.Equal(accountId, invoice.AccountId);
         Assert.True(invoice.AmountDue > 0);
     }
 }
