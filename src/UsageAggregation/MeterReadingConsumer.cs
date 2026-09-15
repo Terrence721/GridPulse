@@ -31,6 +31,13 @@ public sealed class MeterReadingConsumer(
             }
 
             var raw = result.Message.Value;
+
+            if (string.IsNullOrEmpty(raw.AccountId))
+            {
+                logger.LogWarning("Skipping meter reading {ReadingId} from {MeterId} with no AccountId", raw.ReadingId, raw.MeterId);
+                continue;
+            }
+
             var request = new MeterReadingRequest(
                 raw.MeterId,
                 raw.AccountId,
