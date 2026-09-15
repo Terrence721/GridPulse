@@ -26,6 +26,18 @@ export async function runNotificationConsumer(config: Config): Promise<void> {
       }
 
       const invoice = (await schemaRegistry.decode(message.value)) as BillingInvoiceGenerated;
+
+      if (!invoice.accountId) {
+        // @kafkajs/confluent-schema-registry decodes strictly against the writer's
+        // registered schema, not a reader schema with defaults applied — an old
+        // message written before the AccountId re-keying has no accountId property
+        // at all, decoding to undefined here rather than the schema's "" default.
+        // Skip it rather than let the error propagate, which would otherwise retry
+        // the same offset forever and crash the consumer out of its group.
+        console.warn(`Skipping billing.invoice.generated message at offset ${message.offset}: missing accountId`);
+        return;
+      }
+
       const webhookUrl = await getAccountWebhookUrl(config.accountCustomerBaseUrl, invoice.accountId);
 
       await sendInvoiceNotification(webhookUrl, {
