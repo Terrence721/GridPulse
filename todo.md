@@ -32,7 +32,7 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 | Full Phase 1 test coverage | 36 xUnit tests across all three services (Meter Simulator, Usage Aggregation, Billing), all passing — [#9](https://github.com/Terrence721/GridPulse/issues/9)/[#16](https://github.com/Terrence721/GridPulse/issues/16)-[#18](https://github.com/Terrence721/GridPulse/issues/18) |
 | End-to-end Phase 1 smoke test | Automated integration test (`Aspire.Hosting.Testing`) spins up the real AppHost and walks a real reading through Usage Aggregation → Billing over live HTTP — passing in ~37s — [#10](https://github.com/Terrence721/GridPulse/issues/10) |
 
-**Phases 1, 2, and 3 are all complete.** Meter Simulator → Usage Aggregation → Billing → Notification Service now works end-to-end via real Kafka events through a real Confluent Schema Registry, with a genuine Account/Customer Service backing real `AccountId`-keyed usage and billing, and real webhook deliveries confirmed live. **Actually still open:** Phases 4-6 — see **Still to do** below.
+**Phases 1, 2, and 3 are all complete**, plus two features shipped ahead of Phase 4: Green Button/NAESB ESPI usage-data export and a real Stripe test-mode payment integration (see their own sections below). Meter Simulator → Usage Aggregation → Billing → Notification Service now works end-to-end via real Kafka events through a real Confluent Schema Registry, with a genuine Account/Customer Service backing real `AccountId`-keyed usage and billing, and real webhook deliveries confirmed live. **Actually still open:** Phases 4-6 — see **Still to do** below.
 
 ## ✅ Done
 
@@ -96,7 +96,7 @@ A phase-by-phase log of what's been done on this repo and what's still open. Thi
 
 **Where Meter Simulator actually stands:** scaffold, domain logic, configuration, validation, `AppHost` wiring, and the HTTP publish to Usage Aggregation are all done and verified live end-to-end. Nothing left open on this service for Phase 1.
 
-### Phase 1 — Usage Aggregation (in progress)
+### Phase 1 — Usage Aggregation (done and verified live end-to-end)
 
 | Date | What |
 | - | - |
@@ -253,7 +253,7 @@ The second of two features requested after Phase 3: real payment collection agai
 | 4 | Full Phase 1 unit test coverage — [#9](https://github.com/Terrence721/GridPulse/issues/9)/[#16](https://github.com/Terrence721/GridPulse/issues/16)/[#17](https://github.com/Terrence721/GridPulse/issues/17)/[#18](https://github.com/Terrence721/GridPulse/issues/18) | Done — 36 tests passing across Meter Simulator, Usage Aggregation, and Billing |
 | 5 | End-to-end Phase 1 smoke check | Done — automated `Aspire.Hosting.Testing` integration test, real AppHost, passing in ~37s — [#10](https://github.com/Terrence721/GridPulse/issues/10) |
 
-**Phases 3-6** — not yet broken into concrete tasks, tracked as one Backlog item each until their turn comes:
+**Phases 2-6** — not yet broken into concrete tasks, tracked as one Backlog item each until their turn comes:
 
 | # | Item | Status |
 | - | - | - |

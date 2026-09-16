@@ -269,7 +269,7 @@
 
 <div class="hero">
   <div class="wrap">
-    <p class="eyebrow">Portfolio Manifest — Updated September 15, 2026</p>
+    <p class="eyebrow">Portfolio Manifest — Updated September 16, 2026</p>
     <h1 class="name">Terrence&nbsp;Daniels</h1>
     <p class="role">Principal Full-Stack Engineer</p>
     <p class="thesis">
@@ -280,8 +280,9 @@
       observability, tracked in the open from before the first service existed. Phases 1 through 3 are
       complete and verified live end-to-end: the core Kafka-driven loop, a real Account/Customer Service
       backing genuine <code>AccountId</code>-keyed usage and billing, and a real Node.js/TypeScript
-      Notification Service delivering an actual webhook POST — 53 automated tests, five services, one
-      real distributed system.
+      Notification Service delivering an actual webhook POST. Two features shipped since: a real Green
+      Button/NAESB ESPI usage-data export and a real Stripe test-mode payment integration — 63 automated
+      tests, five services, one real distributed system.
     </p>
     <div class="hero-actions">
       <a class="btn primary" href="https://github.com/Terrence721/GridPulse">View the repository →</a>
@@ -291,7 +292,7 @@
   </div>
   <div class="stamp" aria-hidden="true">
     <div class="stamp-inner">
-      <span class="n">18</span>
+      <span class="n">21</span>
       <span class="l">REAL BUGS<br />FOUND</span>
     </div>
   </div>
@@ -300,12 +301,12 @@
 <div class="manifest">
   <div class="wrap">
     <div class="manifest-row">
-      <div class="manifest-cell"><span class="v">Phase 3</span><span class="k">Polyglot + accounts complete</span></div>
-      <div class="manifest-cell"><span class="v">174</span><span class="k">commits</span></div>
-      <div class="manifest-cell"><span class="v">24</span><span class="k">issues tracked</span></div>
-      <div class="manifest-cell"><span class="v">18</span><span class="k">real bugs found</span></div>
-      <div class="manifest-cell"><span class="v">13.5.3</span><span class="k">Aspire</span></div>
-      <div class="manifest-cell"><span class="v">53</span><span class="k">tests, all passing</span></div>
+      <div class="manifest-cell"><span class="v">Phase 3+</span><span class="k">ESPI &amp; Stripe complete</span></div>
+      <div class="manifest-cell"><span class="v">185</span><span class="k">commits</span></div>
+      <div class="manifest-cell"><span class="v">27</span><span class="k">issues tracked</span></div>
+      <div class="manifest-cell"><span class="v">21</span><span class="k">real bugs found</span></div>
+      <div class="manifest-cell"><span class="v">13.5.4</span><span class="k">Aspire CLI</span></div>
+      <div class="manifest-cell"><span class="v">63</span><span class="k">tests, all passing</span></div>
     </div>
   </div>
 </div>
@@ -344,9 +345,11 @@
       a real Confluent Schema Registry. Phase 3 added a genuine Account/Customer Service, re-keyed usage
       and billing from a placeholder <code>MeterId</code> to a real <code>AccountId</code>, and shipped
       this project's first polyglot service — a Node.js/TypeScript Notification Service delivering an
-      actual webhook POST. All three phases verified live end-to-end, 53 tests passing. A React/Redux
-      Toolkit dashboard, CI/CD, and full observability come next, scaffolded one file or folder at a step
-      with nothing batched ahead of review.
+      actual webhook POST. Two features shipped after Phase 3, ahead of the dashboard: a real Green
+      Button/NAESB ESPI usage-data export, and a real Stripe test-mode payment integration closing the
+      loop from usage to billing to actual payment collection. All of it verified live end-to-end, 63
+      tests passing. A React/Redux Toolkit dashboard, CI/CD, and full observability come next, scaffolded
+      one file or folder at a step with nothing batched ahead of review.
     </p>
     <div class="twocol">
       <div class="card">
@@ -365,7 +368,7 @@
   </section>
 
   <section>
-    <h2>18 real bugs, found by actually running the thing</h2>
+    <h2>21 real bugs, found by actually running the thing</h2>
     <p class="h2-sub">All logged in <a href="https://github.com/Terrence721/GridPulse/blob/main/todo.md">todo.md</a>, checkable against the commit history</p>
     <p class="lede">
       From CodeQL failing before any service existed, to a live DNS resolution bug caught only by running
@@ -662,6 +665,59 @@
           <div class="meta"><span class="tag">real finding · CodeQL self-check, not live</span></div>
         </div>
       </div>
+      <div class="item">
+        <div class="no">19</div>
+        <div>
+          <div class="file">src/notification-service/src/notificationConsumer.ts</div>
+          <div class="desc">
+            Live verification found the Notification Service's consumer crashing outright on any
+            account-lookup or webhook-delivery failure — an unhandled rejection inside
+            <code>eachMessage</code> that kafkajs doesn't catch on its own. Fixed by wrapping the
+            account lookup and webhook send in a <code>try</code>/<code>catch</code>, logging and
+            moving on rather than taking the whole consumer down over one account being unreachable.
+          </div>
+          <div class="meta"><span class="tag">real bug · unhandled rejection</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/25">issue #25</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">20</div>
+        <div>
+          <div class="file">src/UsageAggregation/MeterReadingConsumer.cs</div>
+          <div class="desc">
+            Building the ESPI export's <code>UsagePoint</code> collection endpoint surfaced a phantom
+            account entry with an empty id and self-link. Traced to 19,888 real
+            <code>ProcessedReadings</code> rows with <code>AccountId = ''</code>, left behind by a
+            long-forgotten orphaned <code>MeterSimulator</code> process running a
+            pre-account-enrichment build — confirmed, not assumed, since the current code physically
+            cannot produce an empty <code>AccountId</code>. Fixed three ways: the corrupted rows were
+            deleted (a fresh backup taken first), a guard was added to skip and log any future message
+            with no <code>AccountId</code>, and the ESPI collection query itself filters blank ids as
+            defense-in-depth.
+          </div>
+          <div class="meta"><span class="tag">real bug · legacy Kafka data</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/26">issue #26</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">21</div>
+        <div>
+          <div class="file">src/Billing/InvoicePaymentConsumer.cs</div>
+          <div class="desc">
+            Building the Stripe integration's payment-initiation consumer, a real invoice below
+            Stripe's actual $0.50 USD Checkout Session minimum (a real hourly-usage fraction of a
+            kWh, not a contrived edge case) threw an unhandled <code>StripeException</code> — and
+            because .NET's default <code>BackgroundServiceExceptionBehavior</code> is
+            <code>StopHost</code>, that one exception crashed Billing's entire process, taking the
+            pre-existing, Stripe-unrelated core invoice-generation consumer down with it. Caught by
+            the existing full-stack smoke test unexpectedly failing. Fixed with an explicit guard
+            skipping Stripe collection for invoices under $0.50, plus a try/catch around the whole
+            call so no future Stripe API failure can crash the host again.
+          </div>
+          <div class="meta"><span class="tag">real bug · unhandled exception, host crash</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/27">issue #27</a></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -670,12 +726,14 @@
     <p class="h2-sub">Early, and said so — not oversold</p>
     <div class="twocol">
       <div class="card">
-        <h3>Phases 1 through 3 are all done, verified live</h3>
+        <h3>Phases 1 through 3 are done, plus ESPI and Stripe, all verified live</h3>
         <p>Five services — Account/Customer Service, Meter Simulator, Usage Aggregation, Billing, and a
         polyglot Node.js Notification Service — all built, wired together through <code>AppHost</code>,
         and verified against a real running stack: real Kafka events through a real Confluent Schema
         Registry, real <code>AccountId</code>-keyed invoices with correct math, and a real webhook actually
-        received. Backed by 53 automated tests, including an end-to-end smoke test that spins up the whole
+        received. Usage Aggregation also exports real Green Button/NAESB ESPI usage data over HTTP, and
+        Billing collects real Stripe test-mode payments — a real card charged, a real webhook verified and
+        applied. Backed by 63 automated tests, including an end-to-end smoke test that spins up the whole
         stack and walks a reading all the way through to a delivered invoice.</p>
       </div>
       <div class="card">

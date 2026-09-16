@@ -6,7 +6,7 @@
 [![CodeQL](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml/badge.svg)](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml)
 
 <!-- markdownlint-disable-next-line MD036 -->
-**Status:** Phase 1 and Phase 2 both complete — Meter Simulator → Usage Aggregation → Billing all run end-to-end over real Kafka events through a real Confluent Schema Registry, replacing the direct REST calls Phase 1 started with. See [Build Phases](#-build-phases).
+**Status:** Phases 1 through 3 all complete, plus two post-Phase-3 features — Green Button/NAESB ESPI data export and a real Stripe payment integration, both live-verified. All five services (Account/Customer Service, Meter Simulator, Usage Aggregation, Billing, Notification Service) run end-to-end over real Kafka events through a real Confluent Schema Registry. See [Build Phases](#-build-phases).
 
 GridPulse is a self-contained, event-driven platform simulating a utility company's meter-reading, usage-aggregation, and billing pipeline. It's an original portfolio project (not a fork or a cloned tutorial) built to demonstrate principal-level system design: distributed systems, microservices decomposition, event streaming, resilient service-to-service communication, CI/CD, and production-grade observability. The domain is utility metering/billing, but the pipeline shape — high-volume telemetry in, aggregation, billing out — generalizes to IoT sensor networks, subscription usage billing, or order processing.
 
@@ -59,20 +59,20 @@ Billing Service (.NET)                  — applies rate plans (Strategy pattern
 Kafka: billing.invoice.generated
         │  consumes
         ▼
-Notification Service (Node.js)          — polyglot by design: email/webhook notifications
+Notification Service (Node.js)          — polyglot by design: real webhook notifications, built
 
-Account/Customer Service (.NET)         — owns customer & meter registration, REST API
+Account/Customer Service (.NET)         — owns customer & meter registration, REST API, built
         │
         ▼
-BFF / API Gateway (.NET Aspire)         — aggregates data for the UI, OIDC auth
+BFF / API Gateway (.NET Aspire)         — aggregates data for the UI, OIDC auth — Phase 4
         │
         ▼
-React + Redux Toolkit Dashboard          — live usage charts, invoice history, account mgmt
+React + Redux Toolkit Dashboard          — live usage charts, invoice history, account mgmt — Phase 4
 ```
 
-All services are orchestrated locally and in CI via **.NET Aspire**.
+All services are orchestrated locally and in CI via **.NET Aspire**. Beyond the core loop pictured above, Usage Aggregation also exports real Green Button/NAESB ESPI usage data over HTTP, and Billing collects real (test-mode) Stripe payments against generated invoices — see [`docs/architecture.md`](docs/architecture.md) for both.
 
-**Where things actually stand right now (Phase 2 complete):** the Kafka topics above are real — all three services produce and consume Avro-encoded events through a real Confluent Schema Registry, replacing the direct REST calls Phase 1 used first to get the domain logic right. The full three-service pipeline is verified live end-to-end, including a real `Invoice` row landing in Postgres from real Kafka traffic — see [Build Phases](#-build-phases).
+**Where things actually stand right now (Phase 3 complete, plus ESPI and Stripe):** the Kafka topics above are real — all five services produce and consume Avro-encoded events through a real Confluent Schema Registry, replacing the direct REST calls Phase 1 used first to get the domain logic right. The full five-service pipeline is verified live end-to-end, including a real `Invoice` row landing in Postgres from real Kafka traffic, a real webhook delivered by Notification Service, real ESPI usage data served over HTTP, and a real Stripe test-mode payment collected end to end — see [Build Phases](#-build-phases).
 
 ---
 
@@ -82,10 +82,12 @@ Tracked in detail in [`todo.md`](todo.md) (the source of truth) and the [project
 
 - [x] **Phase 1 — Core loop, no Kafka.** Meter Simulator → Usage Aggregation → Billing via direct REST calls, single Postgres DB.
 - [x] **Phase 2 — Introduce Kafka.** Replace REST calls between services with Kafka topics; add a schema registry.
-- [ ] **Phase 3 — Polyglot + accounts.** Add the Node.js Notification Service and the Account/Customer Service.
+- [x] **Phase 3 — Polyglot + accounts.** Add the Node.js Notification Service and the Account/Customer Service.
 - [ ] **Phase 4 — Dashboard.** Build the React/Redux Toolkit dashboard and BFF gateway.
 - [ ] **Phase 5 — CI/CD.** GitHub Actions build/test/containerize/deploy pipeline.
 - [ ] **Phase 6 — Observability & resiliency.** OpenTelemetry, dashboards, retries/circuit breakers, dead-letter queues, chaos testing.
+
+Two features shipped after Phase 3, ahead of Phase 4: Green Button/NAESB ESPI usage-data export (Usage Aggregation) and a real Stripe test-mode payment integration (Billing) — both live-verified. See [`todo.md`](todo.md) for the full write-up of each.
 
 ## Repository Layout
 
@@ -99,7 +101,7 @@ docs/           Design doc and any supplementary docs
 
 ## 🖥 Running Locally
 
-All three services — Meter Simulator, Usage Aggregation, and Billing — are wired in and boot together today, communicating entirely over real Kafka:
+All five services — Account/Customer Service, Meter Simulator, Usage Aggregation, Billing, and the Node.js Notification Service — are wired in and boot together today, communicating entirely over real Kafka:
 
 ```text
 dotnet run --project src/AppHost
@@ -114,9 +116,10 @@ Open [`GridPulse.code-workspace`](GridPulse.code-workspace) in VS Code for the c
 ### Prerequisites
 
 - .NET 10 SDK
-- [Aspire CLI](https://aspire.dev) 13.5.3 (`irm https://aspire.dev/install.ps1 | iex` on Windows, `curl -sSL https://aspire.dev/install.sh | bash` on Linux/macOS — pass `--version 13.5.3` to match this repo's `Aspire.Hosting.*` package version)
+- [Aspire CLI](https://aspire.dev) 13.5.4+ (`irm https://aspire.dev/install.ps1 | iex` on Windows, `curl -sSL https://aspire.dev/install.sh | bash` on Linux/macOS) — this repo's `Aspire.Hosting.*` NuGet packages are pinned to 13.5.3; the newer 13.5.4 CLI is confirmed compatible
 - Docker Desktop (for Postgres, Kafka, and the Confluent Schema Registry)
-- Node.js 20+ with [Corepack](https://nodejs.org/api/corepack.html) enabled (`corepack enable`) — resolves the pinned **Yarn 4.18.0** automatically for the Notification Service and React dashboard, Phase 3+
+- Node.js 20+ with [Corepack](https://nodejs.org/api/corepack.html) enabled (`corepack enable`) — resolves the pinned **Yarn 4.18.0** automatically for the Notification Service, added in Phase 3
+- [Stripe CLI](https://stripe.com/docs/stripe-cli) (optional, only for exercising the real payment flow locally) — `stripe listen --forward-to http://localhost:5102/webhooks/stripe` forwards real test-mode webhooks with no public tunnel needed; see `docs/architecture.md`'s Stripe entry for the full local-verification runbook
 
 ### Package management
 
