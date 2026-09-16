@@ -27,6 +27,8 @@ var buildingsPerSide = builder.AddParameter("meter-simulator-buildings-per-side"
 var city = builder.AddParameter("meter-simulator-city");
 var zipCode = builder.AddParameter("meter-simulator-zip-code");
 var notificationWebhookUrl = builder.AddParameter("notification-webhook-url");
+var stripeSecretKey = builder.AddParameter("stripe-secret-key", secret: true);
+var stripeWebhookSecret = builder.AddParameter("stripe-webhook-secret", secret: true);
 
 var accountCustomer = builder.AddProject<Projects.GridPulse_AccountCustomer>("account-customer")
     .WithReference(accountsDb)
@@ -52,7 +54,10 @@ builder.AddProject<Projects.GridPulse_Billing>("billing")
     .WithReference(kafka)
     .WaitFor(kafka)
     .WithReference(schemaRegistry.GetEndpoint("http"))
-    .WaitFor(schemaRegistry);
+    .WaitFor(schemaRegistry)
+    .WithHttpHealthCheck(path: "/health", endpointName: "http")
+    .WithEnvironment("Stripe__SecretKey", stripeSecretKey)
+    .WithEnvironment("Stripe__WebhookSigningSecret", stripeWebhookSecret);
 
 builder.AddProject<Projects.GridPulse_MeterSimulator>("meter-simulator")
     .WithReference(kafka)

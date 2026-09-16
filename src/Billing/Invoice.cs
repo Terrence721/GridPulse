@@ -11,4 +11,8 @@ public sealed class Invoice
     public required string RatePlanType { get; set; }
     public DateTimeOffset GeneratedAt { get; set; }
     public DateTimeOffset DueDate { get; set; }
+    public string Status { get; set; } = "Open";
+    public string? StripeCheckoutSessionId { get; set; }
+    public string? StripePaymentIntentId { get; set; }
+    public DateTimeOffset? PaidAt { get; set; }
 }

@@ -14,6 +14,7 @@
     <PackageReference Include="Confluent.SchemaRegistry.Serdes.Avro" Version="2.15.1" />
     <PackageReference Include="Apache.Avro" Version="1.12.2" />
     <PackageReference Include="Aspire.Confluent.Kafka" Version="13.5.3" />
+    <PackageReference Include="Stripe.net" Version="52.4.2" />
   </ItemGroup>
 
   <PropertyGroup>
