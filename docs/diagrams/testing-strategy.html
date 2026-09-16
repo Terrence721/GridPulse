@@ -1,0 +1,269 @@
+<title>Testing Strategy — GridPulse</title>
+<style>
+  :root {
+    --ink: #1c2333;
+    --ink-soft: #4b5567;
+    --paper: #ede9df;
+    --surface: #ffffff;
+    --line: #c7c0ac;
+    --unit: #8b5e3c;
+    --unit-bg: #f1e6da;
+    --integ: #2e5266;
+    --integ-bg: #dfe7ea;
+    --live: #6b4e8e;
+    --live-bg: #e9e3f1;
+    --shared: #3c4440;
+    --shared-bg: #eef1ef;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Consolas", "Liberation Mono", monospace;
+    --sans: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #e8e4d9;
+    --ink-soft: #a3aabb;
+    --paper: #14181f;
+    --surface: #1b212b;
+    --line: #303748;
+    --unit: #d99a63;
+    --unit-bg: #2c2119;
+    --integ: #7fb2cc;
+    --integ-bg: #172530;
+    --live: #b39ddb;
+    --live-bg: #241f2e;
+    --shared: #cdd3d0;
+    --shared-bg: #20262c;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #e8e4d9;
+      --ink-soft: #a3aabb;
+      --paper: #14181f;
+      --surface: #1b212b;
+      --line: #303748;
+      --unit: #d99a63;
+      --unit-bg: #2c2119;
+      --integ: #7fb2cc;
+      --integ-bg: #172530;
+      --live: #b39ddb;
+      --live-bg: #241f2e;
+      --shared: #cdd3d0;
+      --shared-bg: #20262c;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    padding: 2.5rem 1.5rem 4rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { max-width: 980px; margin: 0 auto; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 0.6rem;
+  }
+
+  h1 {
+    font-size: clamp(1.6rem, 2.6vw, 2.15rem);
+    line-height: 1.15;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .dek {
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    max-width: 68ch;
+    margin: 0 0 2.4rem;
+  }
+
+  .dek code { font-family: var(--mono); font-size: 0.9em; color: var(--ink); }
+
+  .layers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.1rem;
+    align-items: stretch;
+    margin-bottom: 1.6rem;
+  }
+
+  .layer {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    padding: 1.3rem 1.3rem 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .layer-tag {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.22rem 0.55rem;
+    border-radius: 4px;
+    font-weight: 600;
+    display: inline-block;
+    width: fit-content;
+  }
+
+  .layer--unit .layer-tag { color: var(--unit); background: var(--unit-bg); }
+  .layer--integ .layer-tag { color: var(--integ); background: var(--integ-bg); }
+  .layer--live .layer-tag { color: var(--live); background: var(--live-bg); }
+
+  .layer-title { font-size: 1.02rem; font-weight: 600; margin: 0; }
+  .layer-title span {
+    display: block;
+    font-family: var(--mono);
+    font-weight: 400;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    margin-top: 0.15rem;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 0.3rem; }
+
+  .field-label {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .field-body { font-size: 0.86rem; line-height: 1.48; }
+  .field-body code { font-family: var(--mono); font-size: 0.92em; }
+
+  .layer--unit .field--proves .field-body { border-left: 2px solid var(--unit); padding-left: 0.6rem; }
+  .layer--integ .field--proves .field-body { border-left: 2px solid var(--integ); padding-left: 0.6rem; }
+  .layer--live .field--proves .field-body { border-left: 2px solid var(--live); padding-left: 0.6rem; }
+
+  .field--blind .field-body {
+    border-left: 2px dashed var(--line);
+    padding-left: 0.6rem;
+    color: var(--ink-soft);
+  }
+
+  .example {
+    margin-top: auto;
+    padding-top: 0.8rem;
+    border-top: 1px dashed var(--line);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+
+  .example strong { color: var(--ink); font-weight: 600; }
+  .example code { font-family: var(--mono); font-size: 0.92em; }
+
+  .union {
+    border: 1px solid var(--shared);
+    background: var(--shared-bg);
+    border-radius: 10px;
+    padding: 1.1rem 1.4rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    margin-bottom: 2rem;
+  }
+
+  .union-mark { font-family: var(--mono); font-size: 0.95rem; color: var(--shared); font-weight: 600; flex: 0 0 auto; }
+  .union p { margin: 0; font-size: 0.9rem; line-height: 1.55; color: var(--ink); }
+  .union strong { font-weight: 600; }
+
+  footer {
+    margin-top: 2.6rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+  }
+
+  @media (max-width: 760px) {
+    .layers { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="page">
+  <p class="eyebrow">GridPulse — testing strategy</p>
+  <h1>Three layers, run every time — none of them substitute for the others.</h1>
+  <p class="dek">
+    A green test suite and a clean build have never once been treated as "done" in this repo. Every
+    feature gets verified against a real running stack before it's called finished — that habit is
+    what actually found 21 of this project's real bugs, not code review.
+  </p>
+
+  <div class="layers">
+    <div class="layer layer--unit">
+      <span class="layer-tag">xUnit · 63 tests</span>
+      <p class="layer-title">Unit tests<span>EF Core InMemory, hand-rolled fakes — no mocking library</span></p>
+      <div class="field field--proves">
+        <div class="field-label">Proves</div>
+        <div class="field-body">Idempotency and rollup math, rate-plan arithmetic (including exact tier-boundary and midnight-wraparound cases), ESPI's XML shape, and Stripe webhook signature verification — using <code>Stripe.net</code>'s own <code>EventUtility.GenerateSignatureHeader</code> rather than a live connection.</div>
+      </div>
+      <div class="field field--blind">
+        <div class="field-label">Blind to</div>
+        <div class="field-body">Real Kafka, real Postgres, real service wiring, and real external APIs — every dependency here is faked or in-memory by design.</div>
+      </div>
+      <div class="example">
+        <strong>Missed it:</strong> <code>FakeStripeCheckoutSessionCreator</code> always succeeds regardless of amount — no unit test could ever see Stripe's real $0.50 minimum reject a tiny invoice.
+      </div>
+    </div>
+
+    <div class="layer layer--integ">
+      <span class="layer-tag">Aspire.Hosting.Testing</span>
+      <p class="layer-title">One integration test<span>boots the real, full 10-resource distributed app</span></p>
+      <div class="field field--proves">
+        <div class="field-label">Proves</div>
+        <div class="field-body">A real reading actually flows through real Kafka and real Postgres, end to end, with every service — including the always-running Meter Simulator — genuinely wired together, not just individually buildable.</div>
+      </div>
+      <div class="field field--blind">
+        <div class="field-label">Blind to</div>
+        <div class="field-body">Anything requiring a human in a real browser — Stripe's hosted Checkout page needs an actual card form filled in, which no automated test here attempts.</div>
+      </div>
+      <div class="example">
+        <strong>Caught it:</strong> this exact test unexpectedly failed when a real, tiny invoice from the live Meter Simulator crashed Billing's entire host over Stripe's $0.50 minimum — a bug the unit-test layer structurally could not see.
+      </div>
+    </div>
+
+    <div class="layer layer--live">
+      <span class="layer-tag">curl · psql · a real Stripe account</span>
+      <p class="layer-title">Live manual verification<span>the real running app, every feature, every time</span></p>
+      <div class="field field--proves">
+        <div class="field-label">Proves</div>
+        <div class="field-body">The thing actually works for real: a real Checkout Session paid with Stripe's real test card, a real webhook signature verified, exact values cross-checked against real Postgres rows — not asserted from reading the code.</div>
+      </div>
+      <div class="field field--blind">
+        <div class="field-label">Blind to</div>
+        <div class="field-body">Nothing structurally — but it's manual, so it only covers what actually gets exercised by hand, and doesn't run automatically in CI.</div>
+      </div>
+      <div class="example">
+        <strong>Caught it:</strong> the phantom empty-<code>AccountId</code> account in ESPI's <code>UsagePoint</code> collection — 19,888 real rows left by a long-dead orphaned process, invisible to any test using clean synthetic data.
+      </div>
+    </div>
+  </div>
+
+  <div class="union">
+    <span class="union-mark">∴</span>
+    <p>All three run <strong>together</strong>, not as substitutes — a passing unit suite plus a passing integration test still hadn't proven a real card could actually be charged until someone opened the real Checkout URL and paid it.</p>
+  </div>
+
+  <footer>GridPulse · 63 xUnit tests · 1 full-stack Aspire.Hosting.Testing integration test · 21 real bugs found live, not by inspection</footer>
+</div>

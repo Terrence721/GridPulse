@@ -1,0 +1,227 @@
+<title>Rate Plan Strategy — GridPulse</title>
+<style>
+  :root {
+    --ink: #1c2333;
+    --ink-soft: #4b5567;
+    --paper: #ede9df;
+    --surface: #ffffff;
+    --line: #c7c0ac;
+    --accent: #2e5266;
+    --accent-bg: #dfe7ea;
+    --warn: #a13d2b;
+    --warn-bg: #f1e0da;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Consolas", "Liberation Mono", monospace;
+    --sans: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #e8e4d9;
+    --ink-soft: #a3aabb;
+    --paper: #14181f;
+    --surface: #1b212b;
+    --line: #303748;
+    --accent: #7fb2cc;
+    --accent-bg: #172530;
+    --warn: #dd7a4a;
+    --warn-bg: #2c1f19;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #e8e4d9;
+      --ink-soft: #a3aabb;
+      --paper: #14181f;
+      --surface: #1b212b;
+      --line: #303748;
+      --accent: #7fb2cc;
+      --accent-bg: #172530;
+      --warn: #dd7a4a;
+      --warn-bg: #2c1f19;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    padding: 2.5rem 1.5rem 4rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { max-width: 1080px; margin: 0 auto; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 0.6rem;
+  }
+
+  h1 {
+    font-size: clamp(1.6rem, 2.6vw, 2.15rem);
+    line-height: 1.15;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  h1 code { font-family: var(--mono); font-size: 0.7em; background: var(--accent-bg); padding: 0.1em 0.4em; border-radius: 4px; }
+
+  .dek {
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    max-width: 70ch;
+    margin: 0 0 2.2rem;
+  }
+
+  .dek code { font-family: var(--mono); font-size: 0.9em; color: var(--ink); }
+
+  .interface {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 2rem;
+    color: var(--accent);
+  }
+
+  .interface .kw { color: var(--ink-soft); }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    margin-bottom: 1.6rem;
+  }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.84rem; }
+
+  th, td {
+    text-align: left;
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  thead th {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    background: var(--paper);
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  .plan-name { font-weight: 600; white-space: nowrap; }
+
+  td code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--paper);
+    border-radius: 3px;
+    padding: 0.05rem 0.3rem;
+  }
+
+  .callout {
+    border: 1px solid var(--warn);
+    background: var(--warn-bg);
+    border-radius: 10px;
+    padding: 1rem 1.3rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    margin-bottom: 2rem;
+  }
+
+  .callout-mark { font-family: var(--mono); font-size: 0.95rem; color: var(--warn); font-weight: 600; flex: 0 0 auto; }
+  .callout p { margin: 0; font-size: 0.88rem; line-height: 1.55; color: var(--ink); }
+  .callout code { font-family: var(--mono); font-size: 0.92em; }
+  .callout strong { font-weight: 600; }
+
+  footer {
+    margin-top: 2.6rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+  }
+</style>
+
+<div class="page">
+  <p class="eyebrow">GridPulse — Billing</p>
+  <h1>One <code>IRatePlan</code> interface, three real pricing strategies.</h1>
+  <p class="dek">
+    <code>InvoiceGenerator</code> never branches on which plan applies — it calls
+    <code>CalculateCost(hourlyUsage)</code> on whichever <code>IRatePlan</code> implementation
+    <code>BillingOptions.DefaultRatePlanType</code> resolves to. A real Strategy pattern, not a
+    switch statement wearing an interface.
+  </p>
+
+  <div class="interface">
+    <span class="kw">public interface</span> IRatePlan {<br>
+    &nbsp;&nbsp;<span class="kw">decimal</span> CalculateCost(IReadOnlyList&lt;HourlyUsageSnapshot&gt; hourlyUsage);<br>
+    }
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Rate plan</th>
+          <th>Real config</th>
+          <th>How the cost is computed</th>
+          <th>Worth knowing</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="plan-name">Flat</td>
+          <td><code>FlatRatePerKwh</code> = <code>0.16</code></td>
+          <td>Sums every hour's <code>TotalKwh</code>, multiplies by one flat rate</td>
+          <td>The only plan that never needs to look at an individual hour's timing — total usage is all it needs</td>
+        </tr>
+        <tr>
+          <td class="plan-name">Tiered</td>
+          <td><code>Tiers</code>: 500 kWh @ <code>0.14</code>, next 500 @ <code>0.17</code>, remainder (to 100,000) @ <code>0.21</code></td>
+          <td>Walks tiers in order, consuming each bracket's remaining capacity before spilling into the next — the final bracket is open-ended</td>
+          <td>The exact tier-boundary case (usage landing precisely on a threshold) has its own dedicated test — the easiest place for an off-by-one to hide</td>
+        </tr>
+        <tr>
+          <td class="plan-name">Time of Use</td>
+          <td><code>PeakRatePerKwh</code>/<code>OffPeakRatePerKwh</code> = <code>0.22</code>/<code>0.10</code>, window <code>14:00</code>–<code>19:00</code></td>
+          <td>Classifies each <code>HourlyUsageSnapshot</code> individually by hour-of-day against the configured peak window</td>
+          <td>The only plan needing per-hour granularity at all — correctly handles a peak window that wraps past midnight, not just the daytime case that's easy to get right by accident</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <span class="callout-mark">i</span>
+    <p>
+      <strong>A real simplification, not an oversight:</strong> which plan applies is one
+      deployment-wide config value (<code>BillingOptions.DefaultRatePlanType</code>), not a
+      per-account choice — there's no <code>Account.RatePlanType</code> column anywhere. A real
+      billing system would let each customer be on a different plan; that's explicitly out of scope
+      here, the same honest-scope-decision pattern used for ESPI's OAuth skip — see
+      <a href="./espi-and-stripe-integrations.html">the ESPI + Stripe diagram</a>.
+    </p>
+  </div>
+
+  <footer>GridPulse · src/Billing/IRatePlan.cs · 16 rate-plan-specific xUnit tests</footer>
+</div>

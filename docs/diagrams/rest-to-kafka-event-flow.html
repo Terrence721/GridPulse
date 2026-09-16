@@ -1,0 +1,288 @@
+<title>REST → Kafka — Event Flow Migration</title>
+<style>
+  :root {
+    --ink: #1c2333;
+    --ink-soft: #4b5567;
+    --paper: #ede9df;
+    --surface: #ffffff;
+    --line: #c7c0ac;
+    --before: #a13d2b;
+    --before-bg: #f1e0da;
+    --after: #2e5266;
+    --after-bg: #dfe7ea;
+    --shared: #3c4440;
+    --shared-bg: #eef1ef;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Consolas", "Liberation Mono", monospace;
+    --sans: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #e8e4d9;
+    --ink-soft: #a3aabb;
+    --paper: #14181f;
+    --surface: #1b212b;
+    --line: #303748;
+    --before: #dd7a4a;
+    --before-bg: #2c1f19;
+    --after: #7fb2cc;
+    --after-bg: #172530;
+    --shared: #cdd3d0;
+    --shared-bg: #20262c;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #e8e4d9;
+      --ink-soft: #a3aabb;
+      --paper: #14181f;
+      --surface: #1b212b;
+      --line: #303748;
+      --before: #dd7a4a;
+      --before-bg: #2c1f19;
+      --after: #7fb2cc;
+      --after-bg: #172530;
+      --shared: #cdd3d0;
+      --shared-bg: #20262c;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    padding: 2.5rem 1.5rem 4rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { max-width: 880px; margin: 0 auto; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 0.6rem;
+  }
+
+  h1 {
+    font-size: clamp(1.6rem, 2.6vw, 2.15rem);
+    line-height: 1.15;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .dek {
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    max-width: 64ch;
+    margin: 0 0 2.4rem;
+  }
+
+  .dek code { font-family: var(--mono); font-size: 0.9em; color: var(--ink); }
+
+  .lane {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    padding: 1.4rem 1.5rem 1.6rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .lane-head { display: flex; align-items: baseline; gap: 0.6rem; margin-bottom: 1.1rem; }
+
+  .lane-tag {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.22rem 0.55rem;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .lane--before .lane-tag { color: var(--before); background: var(--before-bg); }
+  .lane--after .lane-tag { color: var(--after); background: var(--after-bg); }
+
+  .lane-title { font-size: 1.02rem; font-weight: 600; margin: 0; }
+
+  .flow { display: flex; align-items: stretch; gap: 0; overflow-x: auto; padding-bottom: 0.3rem; }
+
+  .node {
+    flex: 1 1 0;
+    min-width: 140px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--paper);
+    padding: 0.75rem 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .node-label { font-size: 0.82rem; font-weight: 600; line-height: 1.25; }
+  .node-sub { font-family: var(--mono); font-size: 0.7rem; color: var(--ink-soft); line-height: 1.4; word-break: break-word; }
+
+  .arrow {
+    flex: 0 0 auto;
+    width: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--line);
+    font-size: 1rem;
+    position: relative;
+    top: 1px;
+  }
+
+  .lane--before .node-label { color: var(--before); }
+  .lane--after .node-label { color: var(--after); }
+
+  .result {
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed var(--line);
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+
+  .result strong { color: var(--ink); font-weight: 600; }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1.8rem 0 2rem;
+  }
+
+  .fact { background: var(--surface); padding: 1rem 1.1rem; }
+  .fact-num { font-family: var(--mono); font-size: 1.3rem; font-weight: 600; color: var(--after); font-variant-numeric: tabular-nums; }
+  .fact-label { font-size: 0.78rem; color: var(--ink-soft); margin-top: 0.15rem; line-height: 1.35; }
+
+  .note { font-size: 0.88rem; line-height: 1.6; color: var(--ink-soft); max-width: 66ch; }
+  .note strong { color: var(--ink); }
+  .note code { font-family: var(--mono); font-size: 0.9em; }
+
+  footer {
+    margin-top: 2.6rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+  }
+
+  @media (max-width: 640px) {
+    .flow { flex-direction: column; }
+    .arrow { width: auto; height: 20px; transform: rotate(90deg); }
+    .facts { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="page">
+  <p class="eyebrow">GridPulse — architecture note</p>
+  <h1>Phase 1 proved the domain logic. Phase 2 replaced the transport underneath it.</h1>
+  <p class="dek">
+    Meter Simulator → Usage Aggregation → Billing shipped first over direct REST calls, deliberately —
+    get the idempotency and rollup logic right against a synchronous request/response before adding a
+    message broker's own failure modes on top. Phase 2 swapped the transport for real Kafka events
+    through a real Confluent Schema Registry, with no change to the domain logic itself.
+  </p>
+
+  <div class="lane lane--before">
+    <div class="lane-head">
+      <span class="lane-tag">Phase 1</span>
+      <p class="lane-title">Direct REST</p>
+    </div>
+    <div class="flow">
+      <div class="node">
+        <div class="node-label">Meter Simulator</div>
+        <div class="node-sub">HttpClient</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node">
+        <div class="node-label">POST /readings</div>
+        <div class="node-sub">Usage Aggregation, synchronous</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node">
+        <div class="node-label">GET /usage/{meterId}</div>
+        <div class="node-sub">Billing polls this to read the rollup</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node">
+        <div class="node-label">POST /invoices</div>
+        <div class="node-sub">caller picks the rate plan per call</div>
+      </div>
+    </div>
+    <div class="result">Coupling: <strong>Billing must know Usage Aggregation's address and poll it</strong> — no way to add a fourth consumer without another point-to-point call</div>
+  </div>
+
+  <div class="lane lane--after">
+    <div class="lane-head">
+      <span class="lane-tag">Phase 2+</span>
+      <p class="lane-title">Real Kafka events</p>
+    </div>
+    <div class="flow">
+      <div class="node">
+        <div class="node-label">Meter Simulator</div>
+        <div class="node-sub">Avro producer</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node">
+        <div class="node-label">meter.readings.raw</div>
+        <div class="node-sub">real Confluent Schema Registry</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node">
+        <div class="node-label">usage.aggregated</div>
+        <div class="node-sub">republishes continuously, like a KTable changelog</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node">
+        <div class="node-label">billing.invoice.generated</div>
+        <div class="node-sub">Notification Service subscribed later, untouched producer</div>
+      </div>
+    </div>
+    <div class="result">Coupling: <strong>zero</strong> — Billing has never once called Usage Aggregation's address, and Notification Service (Phase 3) and the Stripe payment consumer (post-Phase-3) both subscribed to an existing topic with no producer-side change at all</div>
+  </div>
+
+  <div class="facts">
+    <div class="fact">
+      <div class="fact-num">3</div>
+      <div class="fact-label">real Avro-schema'd Kafka topics, one per producing service</div>
+    </div>
+    <div class="fact">
+      <div class="fact-num">2</div>
+      <div class="fact-label">independent consumers added to <code>billing.invoice.generated</code> after the fact — Notification Service, then the Stripe payment initiator — with no producer change either time</div>
+    </div>
+    <div class="fact">
+      <div class="fact-num">0</div>
+      <div class="fact-label"><code>POST /readings</code>/<code>GET /usage/{meterId}</code> endpoints left in Usage Aggregation — removed entirely, not left dead</div>
+    </div>
+  </div>
+
+  <p class="note">
+    <strong>Why event-driven, not a bigger REST surface:</strong> independent scaling of ingestion vs.
+    billing, a natural audit trail of events, and — proven twice now, not just argued for — the ability
+    to add a new consumer of an existing topic without touching its producer. Notification Service and
+    the Stripe payment consumer are both real, live examples of that exact property, not a hypothetical
+    benefit from the design doc.
+  </p>
+
+  <footer>GridPulse · docs/architecture.md · todo.md's Phase 1/Phase 2 sections have the full migration log</footer>
+</div>

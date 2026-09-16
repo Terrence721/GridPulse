@@ -1,0 +1,312 @@
+<title>ESPI + Stripe — GridPulse</title>
+<style>
+  :root {
+    --ink: #1c2333;
+    --ink-soft: #4b5567;
+    --paper: #ede9df;
+    --surface: #ffffff;
+    --line: #c7c0ac;
+    --espi: #2e5266;
+    --espi-bg: #dfe7ea;
+    --stripe: #6b4e8e;
+    --stripe-bg: #e9e3f1;
+    --shared: #3c4440;
+    --shared-bg: #eef1ef;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Consolas", "Liberation Mono", monospace;
+    --sans: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #e8e4d9;
+    --ink-soft: #a3aabb;
+    --paper: #14181f;
+    --surface: #1b212b;
+    --line: #303748;
+    --espi: #7fb2cc;
+    --espi-bg: #172530;
+    --stripe: #b39ddb;
+    --stripe-bg: #241f2e;
+    --shared: #cdd3d0;
+    --shared-bg: #20262c;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #e8e4d9;
+      --ink-soft: #a3aabb;
+      --paper: #14181f;
+      --surface: #1b212b;
+      --line: #303748;
+      --espi: #7fb2cc;
+      --espi-bg: #172530;
+      --stripe: #b39ddb;
+      --stripe-bg: #241f2e;
+      --shared: #cdd3d0;
+      --shared-bg: #20262c;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    padding: 2.5rem 1.5rem 4rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { max-width: 1080px; margin: 0 auto; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 0.6rem;
+  }
+
+  h1 {
+    font-size: clamp(1.6rem, 2.6vw, 2.15rem);
+    line-height: 1.15;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .dek {
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    max-width: 72ch;
+    margin: 0 0 2.2rem;
+  }
+
+  .dek code { font-family: var(--mono); font-size: 0.9em; color: var(--ink); }
+
+  .shape {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4rem;
+    margin-bottom: 2.2rem;
+  }
+
+  .shape-col {
+    flex: 1 1 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    padding: 1rem;
+  }
+
+  .shape-node {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    background: var(--paper);
+  }
+
+  .shape-node--espi { background: var(--espi-bg); color: var(--espi); }
+  .shape-node--stripe { background: var(--stripe-bg); color: var(--stripe); }
+
+  .shape-arrow { font-family: var(--mono); color: var(--ink-soft); font-size: 0.9rem; }
+  .shape-sub { font-size: 0.76rem; color: var(--ink-soft); text-align: center; }
+
+  h2 {
+    font-size: 0.72rem;
+    font-family: var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 1rem;
+  }
+
+  .zoom {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    padding: 1.3rem 1.4rem 1.4rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .zoom-head { display: flex; align-items: baseline; gap: 0.6rem; margin-bottom: 0.9rem; }
+
+  .zoom-tag {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .zoom--espi .zoom-tag { color: var(--espi); background: var(--espi-bg); }
+  .zoom--stripe .zoom-tag { color: var(--stripe); background: var(--stripe-bg); }
+
+  .zoom-title { font-size: 0.98rem; font-weight: 600; margin: 0; }
+
+  .zoom p, .zoom ul {
+    font-size: 0.86rem;
+    line-height: 1.6;
+    color: var(--ink);
+    margin: 0 0 0.7rem;
+  }
+
+  .zoom ul { padding-left: 1.15rem; }
+  .zoom ul:last-child, .zoom p:last-child { margin-bottom: 0; }
+  .zoom code { font-family: var(--mono); font-size: 0.88em; background: var(--paper); border-radius: 3px; padding: 0.05rem 0.3rem; }
+  .zoom strong { color: var(--ink); }
+
+  .zoom-link { font-size: 0.8rem; margin-top: 0.6rem; }
+  .zoom-link a { color: var(--ink); }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1.8rem 0 2rem;
+  }
+
+  .fact { background: var(--surface); padding: 1rem 1.1rem; }
+  .fact-num { font-family: var(--mono); font-size: 1.3rem; font-weight: 600; color: var(--shared); font-variant-numeric: tabular-nums; }
+  .fact-label { font-size: 0.78rem; color: var(--ink-soft); margin-top: 0.15rem; line-height: 1.35; }
+
+  .callout {
+    border: 1px solid var(--shared);
+    background: var(--shared-bg);
+    border-radius: 10px;
+    padding: 1rem 1.3rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    margin-bottom: 2rem;
+  }
+
+  .callout-mark { font-family: var(--mono); font-size: 0.95rem; color: var(--shared); font-weight: 600; flex: 0 0 auto; }
+  .callout p { margin: 0; font-size: 0.88rem; line-height: 1.55; color: var(--ink); }
+  .callout code { font-family: var(--mono); font-size: 0.92em; }
+  .callout strong { font-weight: 600; }
+
+  footer {
+    margin-top: 2.6rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+  }
+
+  @media (max-width: 640px) {
+    .facts { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="page">
+  <p class="eyebrow">GridPulse — post-Phase-3 features</p>
+  <h1>Two Kafka-only services, each gaining real HTTP for the first time.</h1>
+  <p class="dek">
+    Usage Aggregation and Billing had shed their original REST endpoints back in Phase 2 — both were
+    pure Kafka consumer/producers until these two features. Neither reintroduced REST for its own
+    sake; each added exactly the HTTP surface its real-world standard actually requires.
+  </p>
+
+  <div class="shape">
+    <div class="shape-col">
+      <span class="shape-node shape-node--espi">Usage Aggregation</span>
+      <span class="shape-arrow">+ 5 real GET endpoints</span>
+      <span class="shape-sub">Green Button / NAESB ESPI usage-data export</span>
+    </div>
+    <div class="shape-col">
+      <span class="shape-node shape-node--stripe">Billing</span>
+      <span class="shape-arrow">+ 1 webhook receiver, + 1 new Kafka consumer</span>
+      <span class="shape-sub">Real Stripe test-mode payment collection</span>
+    </div>
+  </div>
+
+  <h2>Zoomed In</h2>
+
+  <div class="zoom zoom--espi">
+    <div class="zoom-head">
+      <span class="zoom-tag">Usage Aggregation</span>
+      <p class="zoom-title">Real NAESB ESPI resources, real enum codes, one deliberate omission</p>
+    </div>
+    <p>
+      Five endpoints under <code>/espi/1_1/resource/UsagePoint/...</code> serve real
+      <code>UsagePoint</code>/<code>MeterReading</code>/<code>ReadingType</code>/<code>IntervalBlock</code>
+      Atom XML feeds — real XSD element order, real enum codes (<code>uom=72</code> Wh, since ESPI has
+      no "kWh" unit at all). The OAuth2 third-party-authorization half of the real spec is deliberately
+      not implemented — this repo has no authentication system anywhere — documented with its honest
+      consequence: any caller can read any account's usage by <code>AccountId</code>, no access control.
+    </p>
+    <p>
+      <strong>A real bug this surfaced, not caused:</strong> the new collection endpoint exposed a
+      phantom account with an empty id — 19,888 rows left by a long-forgotten orphaned
+      <code>MeterSimulator</code> process from before account enrichment existed, traced with direct
+      evidence (the current code physically cannot produce this) rather than assumed, then fixed three
+      ways — <a href="https://github.com/Terrence721/GridPulse/issues/26">issue #26</a>.
+    </p>
+  </div>
+
+  <div class="zoom zoom--stripe">
+    <div class="zoom-head">
+      <span class="zoom-tag">Billing</span>
+      <p class="zoom-title">Real Stripe API constraints, discovered from the real SDK source, not assumed</p>
+    </div>
+    <ul>
+      <li>Checkout Session <code>metadata</code> doesn't propagate to the underlying <code>PaymentIntent</code> — set on both objects, or a failed payment silently vanishes</li>
+      <li>Every <code>HttpClient</code> here inherits a retry handler that could create a duplicate Checkout Session on a lost response — fixed with a real Stripe <code>IdempotencyKey</code></li>
+      <li><code>EventUtility.ConstructEvent</code> throws on a webhook API-version mismatch — made an explicit, checked precondition, not a silent landmine</li>
+    </ul>
+    <p>
+      <strong>A real bug this caused, found and fixed:</strong> a real invoice under Stripe's actual
+      $0.50 minimum crashed Billing's <em>entire</em> process — .NET's default
+      <code>BackgroundServiceExceptionBehavior</code> is <code>StopHost</code>, so one Stripe rejection
+      took the pre-existing, Stripe-unrelated invoice pipeline down with it. Caught by the full-stack
+      integration test, fixed with an explicit amount guard plus a try/catch —
+      <a href="https://github.com/Terrence721/GridPulse/issues/27">issue #27</a>.
+    </p>
+  </div>
+
+  <div class="facts">
+    <div class="fact">
+      <div class="fact-num">2 / 2</div>
+      <div class="fact-label">real bugs found via live verification, neither one catchable by a unit test using clean synthetic data</div>
+    </div>
+    <div class="fact">
+      <div class="fact-num">1</div>
+      <div class="fact-label">real Stripe test-mode account and CLI used for live verification — no public tunnel needed</div>
+    </div>
+    <div class="fact">
+      <div class="fact-num">0</div>
+      <div class="fact-label">new authentication systems built — both features extend a repo that has none, honestly, rather than bolting one on halfway</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <span class="callout-mark">i</span>
+    <p>
+      <strong>Both required updating a prior scope statement, not ignoring it:</strong> Stripe test-mode
+      payments contradicted README/SECURITY.md's original "no real payment processing" line — both were
+      revised to the honest, narrower distinction (real, but confined to test mode) rather than quietly
+      shipping past it. Full reasoning for every decision on this page lives in
+      <a href="https://github.com/Terrence721/GridPulse/blob/main/docs/architecture.md">docs/architecture.md</a>.
+    </p>
+  </div>
+
+  <footer>GridPulse · Green Button/NAESB ESPI (Usage Aggregation) · Stripe test-mode payments (Billing) · issues #26, #27</footer>
+</div>
