@@ -16,4 +16,4 @@ This is a solo-maintained project, so response times are best-effort rather than
 
 ## Scope
 
-No live, publicly-deployed instance of GridPulse currently exists — everything runs locally via `dotnet run --project src/AppHost`. Findings specific to the design doc's intentionally out-of-scope areas (real payment processing, regulatory compliance) aren't applicable here.
+No live, publicly-deployed instance of GridPulse currently exists — everything runs locally via `dotnet run --project src/AppHost`. Stripe integration is real but confined to test mode (no live card data, no real money movement — see [docs/architecture.md](docs/architecture.md)); regulatory compliance remains an intentionally out-of-scope area, per the design doc.

@@ -26,7 +26,7 @@ It's being built to demonstrate:
 - Domain modeling with proper OOP/SOLID design (rate plans as a Strategy pattern)
 - A system deployable end-to-end and demoable live, not just describable
 
-This is not a commercial-grade billing system (no real payment processing, no NERC/FERC compliance), not built for massive scale, and not a mobile app — web dashboard only.
+This is not a commercial-grade billing system (Stripe payment collection is real but confined to test mode — no live card data, no real money movement — and there's no NERC/FERC compliance), not built for massive scale, and not a mobile app — web dashboard only.
 
 ---
 
