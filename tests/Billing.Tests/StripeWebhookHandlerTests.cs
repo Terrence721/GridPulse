@@ -99,10 +99,10 @@ public sealed class StripeWebhookHandlerTests
         var json = CheckoutSessionCompletedPayload(invoice.Id);
         var signature = EventUtility.GenerateSignatureHeader(json, WebhookSecret);
 
-        var result = await handler.HandleAsync(json, signature, CancellationToken.None);
+        var result = await handler.HandleAsync(json, signature, TestContext.Current.CancellationToken);
 
         Assert.True(result);
-        var updated = await dbContext.Invoices.FindAsync(invoice.Id);
+        var updated = await dbContext.Invoices.FindAsync([invoice.Id], TestContext.Current.CancellationToken);
         Assert.Equal("Paid", updated!.Status);
         Assert.Equal("pi_test_1", updated.StripePaymentIntentId);
         Assert.NotNull(updated.PaidAt);
@@ -117,10 +117,10 @@ public sealed class StripeWebhookHandlerTests
         var json = PaymentFailedPayload(invoice.Id);
         var signature = EventUtility.GenerateSignatureHeader(json, WebhookSecret);
 
-        var result = await handler.HandleAsync(json, signature, CancellationToken.None);
+        var result = await handler.HandleAsync(json, signature, TestContext.Current.CancellationToken);
 
         Assert.True(result);
-        var updated = await dbContext.Invoices.FindAsync(invoice.Id);
+        var updated = await dbContext.Invoices.FindAsync([invoice.Id], TestContext.Current.CancellationToken);
         Assert.Equal("PaymentFailed", updated!.Status);
     }
 
@@ -132,10 +132,10 @@ public sealed class StripeWebhookHandlerTests
         var handler = CreateHandler(dbContext);
         var json = CheckoutSessionCompletedPayload(invoice.Id);
 
-        var result = await handler.HandleAsync(json, "t=1,v1=deadbeef", CancellationToken.None);
+        var result = await handler.HandleAsync(json, "t=1,v1=deadbeef", TestContext.Current.CancellationToken);
 
         Assert.False(result);
-        var updated = await dbContext.Invoices.FindAsync(invoice.Id);
+        var updated = await dbContext.Invoices.FindAsync([invoice.Id], TestContext.Current.CancellationToken);
         Assert.Equal("Open", updated!.Status);
     }
 
@@ -148,10 +148,10 @@ public sealed class StripeWebhookHandlerTests
         var json = PaymentFailedPayload(invoice.Id);
         var signature = EventUtility.GenerateSignatureHeader(json, WebhookSecret);
 
-        var result = await handler.HandleAsync(json, signature, CancellationToken.None);
+        var result = await handler.HandleAsync(json, signature, TestContext.Current.CancellationToken);
 
         Assert.True(result);
-        var updated = await dbContext.Invoices.FindAsync(invoice.Id);
+        var updated = await dbContext.Invoices.FindAsync([invoice.Id], TestContext.Current.CancellationToken);
         Assert.Equal("Paid", updated!.Status);
     }
 
@@ -163,7 +163,7 @@ public sealed class StripeWebhookHandlerTests
         var json = CheckoutSessionCompletedPayload(Guid.NewGuid());
         var signature = EventUtility.GenerateSignatureHeader(json, WebhookSecret);
 
-        var result = await handler.HandleAsync(json, signature, CancellationToken.None);
+        var result = await handler.HandleAsync(json, signature, TestContext.Current.CancellationToken);
 
         Assert.True(result);
     }

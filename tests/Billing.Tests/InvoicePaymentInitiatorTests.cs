@@ -44,9 +44,9 @@ public sealed class InvoicePaymentInitiatorTests
         var invoice = SeedInvoice(dbContext);
         var initiator = CreateInitiator(dbContext);
 
-        await initiator.InitiateAsync(invoice.Id, CancellationToken.None);
+        await initiator.InitiateAsync(invoice.Id, TestContext.Current.CancellationToken);
 
-        var updated = await dbContext.Invoices.FindAsync(invoice.Id);
+        var updated = await dbContext.Invoices.FindAsync([invoice.Id], TestContext.Current.CancellationToken);
         Assert.Equal($"cs_test_{invoice.Id}", updated!.StripeCheckoutSessionId);
     }
 
@@ -57,9 +57,9 @@ public sealed class InvoicePaymentInitiatorTests
         var invoice = SeedInvoice(dbContext, existingSessionId: "cs_existing");
         var initiator = CreateInitiator(dbContext);
 
-        await initiator.InitiateAsync(invoice.Id, CancellationToken.None);
+        await initiator.InitiateAsync(invoice.Id, TestContext.Current.CancellationToken);
 
-        var updated = await dbContext.Invoices.FindAsync(invoice.Id);
+        var updated = await dbContext.Invoices.FindAsync([invoice.Id], TestContext.Current.CancellationToken);
         Assert.Equal("cs_existing", updated!.StripeCheckoutSessionId);
     }
 
@@ -69,6 +69,6 @@ public sealed class InvoicePaymentInitiatorTests
         await using var dbContext = CreateDbContext();
         var initiator = CreateInitiator(dbContext);
 
-        await initiator.InitiateAsync(Guid.NewGuid(), CancellationToken.None);
+        await initiator.InitiateAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
     }
 }
