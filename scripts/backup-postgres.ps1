@@ -1,8 +1,9 @@
-# Backs up GridPulse's live Postgres data (gridpulsedb/accountsdb - the real
-# operational data, not the static UCI reference dataset, which already has
-# its own separate refresh mechanism). Runs from run-app.ps1 as a background
-# job at the start of each dev session, capturing the previous session's
-# ending state before this session's writes begin - see todo.md for why
+# Backs up GridPulse's live Postgres data (every real database in the
+# cluster, discovered dynamically below - not the static UCI reference
+# dataset, which already has its own separate refresh mechanism). Runs
+# from run-app.ps1 as a background job at the start of each dev session,
+# capturing the previous session's ending state before this session's
+# writes begin - see todo.md for why
 # startup, not shutdown. Also safe to run manually at any time.
 #
 # Best-effort by design: a missed backup must never break the dev loop, so
