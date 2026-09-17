@@ -236,13 +236,15 @@
 
 <div class="page">
   <p class="eyebrow">GridPulse — system architecture</p>
-  <h1>One event pipeline, two real add-ons riding on top of it.</h1>
+  <h1>One event pipeline, three real add-ons riding on top of it.</h1>
   <p class="dek">
     A meter reading travels through three Kafka topics and three .NET services before a webhook
     ever fires. Account/Customer Service sits to the side as a plain REST dependency the pipeline
-    calls into, not a step in the flow. The two most recent features — Green Button/NAESB ESPI
-    export and Stripe payment collection — attach real HTTP surface onto services that used to be
-    Kafka-only.
+    calls into, not a step in the flow. A fourth topic, <code>usage.anomaly.detected</code>,
+    branches off Usage Aggregation into a fourth service, Grid Operations, correlating meters
+    that stop transmitting into real outages and work orders. Two more recent features — Green
+    Button/NAESB ESPI export and Stripe payment collection — attach real HTTP surface onto
+    services that used to be Kafka-only.
   </p>
 
   <h2>System Diagram</h2>
@@ -262,6 +264,10 @@
       <div class="branch">
         <span class="node node--rest">Account/Customer Service</span>
         <span class="branch-arrow">REST — resolves meter→account at Meter Simulator startup, and webhook URLs for Notification Service</span>
+      </div>
+      <div class="branch">
+        <span class="node node--event">Grid Operations</span>
+        <span class="branch-arrow">Kafka consumer of <code>usage.anomaly.detected</code> — correlates meters that stop transmitting into outages, tracks tech-filed &amp; auto-detected work orders</span>
       </div>
       <div class="branch">
         <span class="node node--rest">GET /espi/1_1/resource/...</span>
@@ -296,6 +302,7 @@
       <ul>
         <li>Idempotent hourly rollup, keyed by <code>ReadingId</code></li>
         <li>Real HTTP now too: 5 Green Button/NAESB ESPI <code>GET</code> endpoints</li>
+        <li>Also detects meters that stop transmitting, publishing <code>usage.anomaly.detected</code></li>
       </ul>
       <div class="card-link"><a href="./espi-and-stripe-integrations.html">→ ESPI + Stripe diagram</a></div>
     </div>
@@ -308,6 +315,15 @@
         <li>Real HTTP now too: a Stripe webhook receiver, plus a second Kafka consumer that initiates payment</li>
       </ul>
       <div class="card-link"><a href="./rate-plan-strategy.html">→ Rate plan Strategy diagram</a></div>
+    </div>
+
+    <div class="card card--event">
+      <span class="card-tag">Kafka consumer · REST</span>
+      <p class="card-title">Grid Operations</p>
+      <ul>
+        <li>Consumes <code>usage.anomaly.detected</code>, correlates quiet meters into outages by street-number proximity</li>
+        <li>Real HTTP too: a tech-fillable work-order form, plus status/outage lookups</li>
+      </ul>
     </div>
 
     <div class="card card--event">
@@ -332,7 +348,7 @@
       <span class="card-tag">Shared infra</span>
       <p class="card-title">Kafka + Confluent Schema Registry</p>
       <ul>
-        <li>3 real Avro-schema'd topics, one per producing service</li>
+        <li>4 real Avro-schema'd topics, one per producing service</li>
         <li>Real schema evolution handled live — see the event-flow diagram</li>
       </ul>
       <div class="card-link"><a href="./rest-to-kafka-event-flow.html">→ REST → Kafka diagram</a></div>
@@ -349,5 +365,5 @@
     </p>
   </div>
 
-  <footer>GridPulse · 5 services · 3 Kafka topics · 2 real external APIs (Census, Stripe) · .NET Aspire orchestrated</footer>
+  <footer>GridPulse · 6 services · 4 Kafka topics · 2 real external APIs (Census, Stripe) · .NET Aspire orchestrated</footer>
 </div>
