@@ -37,7 +37,7 @@ public sealed class UsageAnomalyProcessorTests
     {
         await using var dbContext = CreateDbContext();
         dbContext.ProcessedReadings.Add(CreateReading("MTR-100-Elm St", "ACC-1", DateTimeOffset.UtcNow.AddSeconds(-40)));
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(CancellationToken.None);
 
         var publisher = new FakeUsageAnomalyPublisher();
         var processor = new UsageAnomalyProcessor(dbContext, publisher, CreateOptions());
@@ -53,7 +53,7 @@ public sealed class UsageAnomalyProcessorTests
     {
         await using var dbContext = CreateDbContext();
         dbContext.ProcessedReadings.Add(CreateReading("MTR-100-Elm St", "ACC-1", DateTimeOffset.UtcNow.AddSeconds(-5)));
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(CancellationToken.None);
 
         var publisher = new FakeUsageAnomalyPublisher();
         var processor = new UsageAnomalyProcessor(dbContext, publisher, CreateOptions());
@@ -69,7 +69,7 @@ public sealed class UsageAnomalyProcessorTests
         await using var dbContext = CreateDbContext();
         dbContext.ProcessedReadings.Add(CreateReading("MTR-100-Elm St", "ACC-1", DateTimeOffset.UtcNow.AddMinutes(-5)));
         dbContext.ProcessedReadings.Add(CreateReading("MTR-100-Elm St", "ACC-1", DateTimeOffset.UtcNow.AddSeconds(-2)));
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(CancellationToken.None);
 
         var publisher = new FakeUsageAnomalyPublisher();
         var processor = new UsageAnomalyProcessor(dbContext, publisher, CreateOptions());
@@ -85,7 +85,7 @@ public sealed class UsageAnomalyProcessorTests
         await using var dbContext = CreateDbContext();
         dbContext.ProcessedReadings.Add(CreateReading("MTR-100-Elm St", "ACC-1", DateTimeOffset.UtcNow.AddSeconds(-40)));
         dbContext.ProcessedReadings.Add(CreateReading("MTR-200-Elm St", "ACC-2", DateTimeOffset.UtcNow.AddSeconds(-2)));
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(CancellationToken.None);
 
         var publisher = new FakeUsageAnomalyPublisher();
         var processor = new UsageAnomalyProcessor(dbContext, publisher, CreateOptions());

@@ -13,14 +13,16 @@ public sealed class UsageAnomalyProcessor(
         var staleSince = DateTimeOffset.UtcNow.AddSeconds(
             -(options.Value.ExpectedReadingIntervalSeconds * options.Value.MissedIntervalMultiplier));
 
-        var staleReadings = await dbContext.ProcessedReadings
+        var staleMeters = await dbContext.ProcessedReadings
             .GroupBy(r => r.MeterId)
-            .Select(g => g.OrderByDescending(r => r.Timestamp).First())
-            .Where(r => r.Timestamp < staleSince)
+            .Select(g => new { MeterId = g.Key, LastSeenAt = g.Max(r => r.Timestamp) })
+            .Where(g => g.LastSeenAt < staleSince)
             .ToListAsync(cancellationToken);
 
-        foreach (var reading in staleReadings)
+        foreach (var stale in staleMeters)
         {
+            var reading = await dbContext.ProcessedReadings
+                .FirstAsync(r => r.MeterId == stale.MeterId && r.Timestamp == stale.LastSeenAt, cancellationToken);
             await publisher.PublishAsync(reading, cancellationToken);
         }
     }
