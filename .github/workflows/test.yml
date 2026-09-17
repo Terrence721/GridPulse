@@ -33,7 +33,7 @@ jobs:
         # --ignore-exit-code 8 is required because AppHost.Tests matches zero
         # tests under this filter, which the new Microsoft.Testing.Platform
         # runner otherwise reports as a failure even though every real test
-        # (all 46) passed.
+        # passed.
         run: dotnet test GridPulse.slnx --filter "FullyQualifiedName!~AppHost.Tests" --ignore-exit-code 8
 
   notification-service-tests:
