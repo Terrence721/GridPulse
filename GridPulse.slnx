@@ -9,6 +9,9 @@
   <Folder Name="/src/Billing/">
     <Project Path="src/Billing/GridPulse.Billing.csproj" />
   </Folder>
+  <Folder Name="/src/GridOperations/">
+    <Project Path="src/GridOperations/GridPulse.GridOperations.csproj" />
+  </Folder>
   <Folder Name="/src/MeterSimulator/">
     <Project Path="src/MeterSimulator/GridPulse.MeterSimulator.csproj" />
   </Folder>
@@ -30,6 +33,9 @@
   </Folder>
   <Folder Name="/tests/Billing.Tests/">
     <Project Path="tests/Billing.Tests/GridPulse.Billing.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/GridOperations.Tests/">
+    <Project Path="tests/GridOperations.Tests/GridPulse.GridOperations.Tests.csproj" />
   </Folder>
   <Folder Name="/tests/MeterSimulator.Tests/">
     <Project Path="tests/MeterSimulator.Tests/GridPulse.MeterSimulator.Tests.csproj" />

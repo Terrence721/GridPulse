@@ -9,6 +9,7 @@ var postgres = builder.AddPostgres("postgres")
 
 var gridpulseDb = postgres.AddDatabase("gridpulsedb");
 var accountsDb = postgres.AddDatabase("accountsdb");
+var gridOperationsDb = postgres.AddDatabase("gridoperationsdb");
 
 var kafka = builder.AddKafka("kafka")
     .WithDataVolume()
@@ -58,6 +59,17 @@ builder.AddProject<Projects.GridPulse_Billing>("billing")
     .WithHttpHealthCheck(path: "/health", endpointName: "http")
     .WithEnvironment("Stripe__SecretKey", stripeSecretKey)
     .WithEnvironment("Stripe__WebhookSigningSecret", stripeWebhookSecret);
+
+builder.AddProject<Projects.GridPulse_GridOperations>("grid-operations")
+    .WithReference(gridOperationsDb)
+    .WaitFor(gridOperationsDb)
+    .WithReference(kafka)
+    .WaitFor(kafka)
+    .WithReference(schemaRegistry.GetEndpoint("http"))
+    .WaitFor(schemaRegistry)
+    .WithReference(accountCustomer)
+    .WaitFor(accountCustomer)
+    .WithHttpHealthCheck(path: "/health", endpointName: "http");
 
 builder.AddProject<Projects.GridPulse_MeterSimulator>("meter-simulator")
     .WithReference(kafka)
