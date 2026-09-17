@@ -6,7 +6,7 @@
 [![CodeQL](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml/badge.svg)](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml)
 
 <!-- markdownlint-disable-next-line MD036 -->
-**Status:** Phases 1 through 3 all complete, plus two post-Phase-3 features — Green Button/NAESB ESPI data export and a real Stripe payment integration, both live-verified. All five services (Account/Customer Service, Meter Simulator, Usage Aggregation, Billing, Notification Service) run end-to-end over real Kafka events through a real Confluent Schema Registry. See [Build Phases](#-build-phases).
+**Status:** Phases 1 through 3 all complete, plus three post-Phase-3 features — Green Button/NAESB ESPI data export, a real Stripe payment integration, and Grid Operations (outage detection & work orders), all live-verified. All six services (Account/Customer Service, Meter Simulator, Usage Aggregation, Billing, Grid Operations, Notification Service) run end-to-end over real Kafka events through a real Confluent Schema Registry. See [Build Phases](#-build-phases).
 
 GridPulse is a self-contained, event-driven platform simulating a utility company's meter-reading, usage-aggregation, and billing pipeline. It's an original portfolio project (not a fork or a cloned tutorial) built to demonstrate principal-level system design: distributed systems, microservices decomposition, event streaming, resilient service-to-service communication, CI/CD, and production-grade observability. The domain is utility metering/billing, but the pipeline shape — high-volume telemetry in, aggregation, billing out — generalizes to IoT sensor networks, subscription usage billing, or order processing.
 
@@ -48,7 +48,8 @@ Kafka: meter.readings.raw
         │  consumes
         ▼
 Usage Aggregation Service (.NET)        — validates/normalizes readings, rolls up into
-        │  produces                       hourly/daily usage, writes to TimescaleDB
+        │  produces                       hourly/daily usage, writes to TimescaleDB;
+        │                                 also detects meters that stop transmitting
         ▼
 Kafka: usage.aggregated
         │  consumes
@@ -61,6 +62,12 @@ Kafka: billing.invoice.generated
         ▼
 Notification Service (Node.js)          — polyglot by design: real webhook notifications, built
 
+Kafka: usage.anomaly.detected            — published by Usage Aggregation when a meter
+        │  consumes                        stops transmitting readings
+        ▼
+Grid Operations Service (.NET)          — correlates quiet meters into outages, tracks
+                                           tech-filed & auto-detected work orders
+
 Account/Customer Service (.NET)         — owns customer & meter registration, REST API, built
         │
         ▼
@@ -70,9 +77,9 @@ BFF / API Gateway (.NET Aspire)         — aggregates data for the UI, OIDC aut
 React + Redux Toolkit Dashboard          — live usage charts, invoice history, account mgmt — Phase 4
 ```
 
-All services are orchestrated locally and in CI via **.NET Aspire**. Beyond the core loop pictured above, Usage Aggregation also exports real Green Button/NAESB ESPI usage data over HTTP, and Billing collects real (test-mode) Stripe payments against generated invoices — see [`docs/architecture.md`](docs/architecture.md) for both.
+All services are orchestrated locally and in CI via **.NET Aspire**. Beyond the core loop pictured above, Usage Aggregation also exports real Green Button/NAESB ESPI usage data over HTTP, Billing collects real (test-mode) Stripe payments against generated invoices, and Grid Operations tracks real outages and work orders correlated from meters that stop transmitting — see [`docs/architecture.md`](docs/architecture.md) for all three.
 
-**Where things actually stand right now (Phase 3 complete, plus ESPI and Stripe):** the Kafka topics above are real — all five services produce and consume Avro-encoded events through a real Confluent Schema Registry, replacing the direct REST calls Phase 1 used first to get the domain logic right. The full five-service pipeline is verified live end-to-end, including a real `Invoice` row landing in Postgres from real Kafka traffic, a real webhook delivered by Notification Service, real ESPI usage data served over HTTP, and a real Stripe test-mode payment collected end to end — see [Build Phases](#-build-phases).
+**Where things actually stand right now (Phase 3 complete, plus ESPI, Stripe, and Grid Operations):** the Kafka topics above are real — all six services produce and consume Avro-encoded events through a real Confluent Schema Registry, replacing the direct REST calls Phase 1 used first to get the domain logic right. The full six-service pipeline is verified live end-to-end, including a real `Invoice` row landing in Postgres from real Kafka traffic, a real webhook delivered by Notification Service, real ESPI usage data served over HTTP, a real Stripe test-mode payment collected end to end, and real outages/work orders correlated from meters that stopped transmitting — see [Build Phases](#-build-phases).
 
 ---
 
@@ -87,7 +94,7 @@ Tracked in detail in [`todo.md`](todo.md) (the source of truth) and the [project
 - [ ] **Phase 5 — CI/CD.** GitHub Actions build/test/containerize/deploy pipeline.
 - [ ] **Phase 6 — Observability & resiliency.** OpenTelemetry, dashboards, retries/circuit breakers, dead-letter queues, chaos testing.
 
-Two features shipped after Phase 3, ahead of Phase 4: Green Button/NAESB ESPI usage-data export (Usage Aggregation) and a real Stripe test-mode payment integration (Billing) — both live-verified. See [`todo.md`](todo.md) for the full write-up of each.
+Three features shipped after Phase 3, ahead of Phase 4: Green Button/NAESB ESPI usage-data export (Usage Aggregation), a real Stripe test-mode payment integration (Billing), and Grid Operations (outage detection & work orders, a new sixth service) — all live-verified. See [`todo.md`](todo.md) for the full write-up of each.
 
 ## Repository Layout
 
@@ -101,7 +108,7 @@ docs/           Design doc and any supplementary docs
 
 ## 🖥 Running Locally
 
-All five services — Account/Customer Service, Meter Simulator, Usage Aggregation, Billing, and the Node.js Notification Service — are wired in and boot together today, communicating entirely over real Kafka:
+All six services — Account/Customer Service, Meter Simulator, Usage Aggregation, Billing, Grid Operations, and the Node.js Notification Service — are wired in and boot together today, communicating entirely over real Kafka:
 
 ```text
 dotnet run --project src/AppHost
