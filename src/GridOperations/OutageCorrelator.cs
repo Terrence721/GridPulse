@@ -6,10 +6,14 @@ public enum CorrelationOutcome
 {
     AlreadyCovered,
     CreateDraft,
-    MergeIntoExistingDraft
+    CreateOutage,
+    ExtendOutage
 }
 
-public sealed record CorrelationResult(CorrelationOutcome Outcome, WorkOrder? ExistingDraft = null);
+public sealed record CorrelationResult(
+    CorrelationOutcome Outcome,
+    Outage? Outage = null,
+    IReadOnlyList<WorkOrder>? NearbyDrafts = null);
 
 public sealed class OutageCorrelator(IOptions<GridOperationsOptions> options)
 {
@@ -31,14 +35,28 @@ public sealed class OutageCorrelator(IOptions<GridOperationsOptions> options)
             return new CorrelationResult(CorrelationOutcome.AlreadyCovered);
         }
 
-        var nearbyDraft = openDraftWorkOrders.FirstOrDefault(w =>
+        var addressWindow = options.Value.CorrelationAddressWindow;
+        var timeWindowSeconds = options.Value.CorrelationTimeWindowSeconds;
+
+        var nearbyOutage = openOutages.FirstOrDefault(o =>
+            o.StreetName == anomaly.StreetName &&
+            anomaly.StreetNumber >= o.StreetNumberRangeStart - addressWindow &&
+            anomaly.StreetNumber <= o.StreetNumberRangeEnd + addressWindow);
+
+        var nearbyDrafts = openDraftWorkOrders.Where(w =>
             w.StreetName == anomaly.StreetName &&
             w.StreetNumber is not null &&
-            Math.Abs(w.StreetNumber.Value - anomaly.StreetNumber) <= options.Value.CorrelationAddressWindow &&
-            Math.Abs((w.CreatedAt - anomaly.LastSeenAt).TotalSeconds) <= options.Value.CorrelationTimeWindowSeconds);
+            Math.Abs(w.StreetNumber.Value - anomaly.StreetNumber) <= addressWindow &&
+            Math.Abs((w.CreatedAt - anomaly.LastSeenAt).TotalSeconds) <= timeWindowSeconds)
+            .ToList();
 
-        return nearbyDraft is not null
-            ? new CorrelationResult(CorrelationOutcome.MergeIntoExistingDraft, nearbyDraft)
+        if (nearbyOutage is not null)
+        {
+            return new CorrelationResult(CorrelationOutcome.ExtendOutage, nearbyOutage, nearbyDrafts);
+        }
+
+        return nearbyDrafts.Count > 0
+            ? new CorrelationResult(CorrelationOutcome.CreateOutage, NearbyDrafts: nearbyDrafts)
             : new CorrelationResult(CorrelationOutcome.CreateDraft);
     }
 }

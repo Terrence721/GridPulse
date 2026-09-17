@@ -13,8 +13,11 @@ public sealed class WorkOrderCorrelationProcessor(
             .Where(o => o.Status != "Restored")
             .ToListAsync(cancellationToken);
 
+        // Only auto-detected drafts are ever candidates here - a tech-filed work
+        // order (any other HazardType) must never be silently merged or deleted
+        // by this background process.
         var openDrafts = (await dbContext.WorkOrders
-                .Where(w => w.OutageId == null)
+                .Where(w => w.OutageId == null && w.HazardType == WorkOrderHazardTypes.SuspectedOutage)
                 .ToListAsync(cancellationToken))
             .Where(w => !transitioner.IsTerminal(w.Status))
             .ToList();
@@ -42,22 +45,53 @@ public sealed class WorkOrderCorrelationProcessor(
                 });
                 break;
 
-            case CorrelationOutcome.MergeIntoExistingDraft:
-                var existingDraft = result.ExistingDraft!;
+            case CorrelationOutcome.CreateOutage:
+            {
+                var nearbyDrafts = result.NearbyDrafts!;
+                var minNumber = Math.Min(anomaly.StreetNumber, nearbyDrafts.Min(d => d.StreetNumber!.Value));
+                var maxNumber = Math.Max(anomaly.StreetNumber, nearbyDrafts.Max(d => d.StreetNumber!.Value));
+
                 var outage = new Outage
                 {
                     Id = Guid.NewGuid(),
                     StreetName = anomaly.StreetName,
-                    StreetNumberRangeStart = Math.Min(existingDraft.StreetNumber!.Value, anomaly.StreetNumber),
-                    StreetNumberRangeEnd = Math.Max(existingDraft.StreetNumber!.Value, anomaly.StreetNumber),
+                    StreetNumberRangeStart = minNumber,
+                    StreetNumberRangeEnd = maxNumber,
                     DetectedAt = DateTimeOffset.UtcNow,
                     Status = "Suspected"
                 };
                 dbContext.Outages.Add(outage);
 
-                existingDraft.OutageId = outage.Id;
-                existingDraft.UpdatedAt = DateTimeOffset.UtcNow;
+                // Exactly one WorkOrder survives per Outage - keep the earliest
+                // draft (first detected) and remove the rest as redundant, rather
+                // than flooding a tech with duplicate line items for one incident.
+                var keptDraft = nearbyDrafts.OrderBy(d => d.CreatedAt).First();
+                keptDraft.OutageId = outage.Id;
+                keptDraft.UpdatedAt = DateTimeOffset.UtcNow;
+
+                foreach (var redundant in nearbyDrafts.Where(d => d != keptDraft))
+                {
+                    dbContext.WorkOrders.Remove(redundant);
+                }
+
                 break;
+            }
+
+            case CorrelationOutcome.ExtendOutage:
+            {
+                var outage = result.Outage!;
+                outage.StreetNumberRangeStart = Math.Min(outage.StreetNumberRangeStart, anomaly.StreetNumber);
+                outage.StreetNumberRangeEnd = Math.Max(outage.StreetNumberRangeEnd, anomaly.StreetNumber);
+
+                // Any orphaned draft now inside the widened range is already
+                // represented by this Outage's one surviving WorkOrder.
+                foreach (var absorbed in result.NearbyDrafts!)
+                {
+                    dbContext.WorkOrders.Remove(absorbed);
+                }
+
+                break;
+            }
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

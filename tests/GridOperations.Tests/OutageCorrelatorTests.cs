@@ -69,7 +69,7 @@ public sealed class OutageCorrelatorTests
     }
 
     [Fact]
-    public void Correlate_NearbyDraftWithinWindow_ReturnsMergeIntoExistingDraft()
+    public void Correlate_NearbyDraftWithinWindow_ReturnsCreateOutage()
     {
         var correlator = CreateCorrelator(addressWindow: 10, timeWindowSeconds: 60);
         var now = DateTimeOffset.UtcNow;
@@ -78,8 +78,52 @@ public sealed class OutageCorrelatorTests
 
         var result = correlator.Correlate(anomaly, [], [existingDraft]);
 
-        Assert.Equal(CorrelationOutcome.MergeIntoExistingDraft, result.Outcome);
-        Assert.Same(existingDraft, result.ExistingDraft);
+        Assert.Equal(CorrelationOutcome.CreateOutage, result.Outcome);
+        Assert.Contains(existingDraft, result.NearbyDrafts!);
+    }
+
+    [Fact]
+    public void Correlate_NearbyOutageWithinWindow_ReturnsExtendOutage()
+    {
+        var correlator = CreateCorrelator(addressWindow: 10, timeWindowSeconds: 60);
+        var outage = new Outage
+        {
+            Id = Guid.NewGuid(),
+            StreetName = "Elm St",
+            StreetNumberRangeStart = 100,
+            StreetNumberRangeEnd = 104,
+            DetectedAt = DateTimeOffset.UtcNow,
+            Status = "Suspected"
+        };
+        var anomaly = CreateAnomaly(meterId: "MTR-108-Elm St", streetNumber: 108);
+
+        var result = correlator.Correlate(anomaly, [outage], []);
+
+        Assert.Equal(CorrelationOutcome.ExtendOutage, result.Outcome);
+        Assert.Same(outage, result.Outage);
+    }
+
+    [Fact]
+    public void Correlate_NearbyOutageWithOrphanedDraftInWidenedRange_AbsorbsTheOrphan()
+    {
+        var correlator = CreateCorrelator(addressWindow: 10, timeWindowSeconds: 60);
+        var now = DateTimeOffset.UtcNow;
+        var outage = new Outage
+        {
+            Id = Guid.NewGuid(),
+            StreetName = "Elm St",
+            StreetNumberRangeStart = 100,
+            StreetNumberRangeEnd = 108,
+            DetectedAt = now,
+            Status = "Suspected"
+        };
+        var orphanedDraft = CreateDraft("MTR-104-Elm St", "Elm St", 104, now);
+        var anomaly = CreateAnomaly(meterId: "MTR-112-Elm St", streetNumber: 112, lastSeenAt: now);
+
+        var result = correlator.Correlate(anomaly, [outage], [orphanedDraft]);
+
+        Assert.Equal(CorrelationOutcome.ExtendOutage, result.Outcome);
+        Assert.Contains(orphanedDraft, result.NearbyDrafts!);
     }
 
     [Fact]
