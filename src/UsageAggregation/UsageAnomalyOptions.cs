@@ -12,6 +12,9 @@ public sealed class UsageAnomalyOptions
     [Range(1, int.MaxValue, ErrorMessage = "MissedIntervalMultiplier must be set to a positive number of missed intervals before an anomaly is declared.")]
     public int MissedIntervalMultiplier { get; set; }
 
+    [Range(1, int.MaxValue, ErrorMessage = "MaxAnomalyLookbackSeconds must be set to the maximum age of a reading that can still signal a new anomaly.")]
+    public int MaxAnomalyLookbackSeconds { get; set; }
+
     [Range(1, int.MaxValue, ErrorMessage = "SweepIntervalSeconds must be set to how often the detector checks for stale meters.")]
     public int SweepIntervalSeconds { get; set; }
 }
