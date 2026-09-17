@@ -66,7 +66,13 @@ Kafka: usage.anomaly.detected            — published by Usage Aggregation when
         │  consumes                        stops transmitting readings
         ▼
 Grid Operations Service (.NET)          — correlates quiet meters into outages, tracks
-                                           tech-filed & auto-detected work orders
+        │                                 tech-filed & auto-detected work orders
+        ▼
+Grid Operations BFF / API Gateway       — separate from the customer-facing gateway below — Phase 4
+        │
+        ▼
+Outage & Work Order Dashboard           — its own frontend for field crews/dispatchers:
+(React + Redux Toolkit)                   outage map, work-order queue — Phase 4
 
 Account/Customer Service (.NET)         — owns customer & meter registration, REST API, built
         │
