@@ -14,11 +14,7 @@ builder.AddNpgsqlDbContext<UsageAggregationDbContext>("gridpulsedb");
 builder.Services.AddScoped<ReadingProcessor>();
 builder.Services.AddScoped<UsageAnomalyProcessor>();
 
-builder.Services.Configure<UsageAnomalyOptions>(
-    builder.Configuration.GetSection(UsageAnomalyOptions.SectionName));
-builder.Services.AddOptions<UsageAnomalyOptions>()
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
+builder.AddValidatedOptions<UsageAnomalyOptions>(UsageAnomalyOptions.SectionName);
 
 builder.Services.AddSingleton<ISchemaRegistryClient>(_ =>
 {
@@ -56,6 +52,11 @@ builder.Services.AddHostedService<UsageAnomalyDetector>();
 
 var app = builder.Build();
 app.MapDefaultEndpoints();
+
+if (!app.Services.TryValidateStartupOptions<UsageAnomalyOptions>())
+{
+    return 1;
+}
 
 using (var scope = app.Services.CreateScope())
 {
@@ -126,3 +127,4 @@ app.MapGet(EspiConstants.RoutePrefix + "/UsagePoint/{accountId}/MeterReading/{me
 });
 
 app.Run();
+return 0;
