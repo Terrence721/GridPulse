@@ -16,13 +16,12 @@ public static class OptionsValidationExtensions
         return builder;
     }
 
-    public static bool TryValidateStartupOptions<TOptions>(this IServiceProvider services)
+    public static TOptions? TryGetValidatedStartupOptions<TOptions>(this IServiceProvider services)
         where TOptions : class
     {
         try
         {
-            _ = services.GetRequiredService<IOptions<TOptions>>().Value;
-            return true;
+            return services.GetRequiredService<IOptions<TOptions>>().Value;
         }
         catch (OptionsValidationException ex)
         {
@@ -31,7 +30,11 @@ public static class OptionsValidationExtensions
                 Console.Error.WriteLine(failure);
             }
 
-            return false;
+            return null;
         }
     }
+
+    public static bool TryValidateStartupOptions<TOptions>(this IServiceProvider services)
+        where TOptions : class =>
+        services.TryGetValidatedStartupOptions<TOptions>() is not null;
 }
