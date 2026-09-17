@@ -1,7 +1,7 @@
 <!-- markdownlint-disable-next-line MD041 -->
 **[→ Read the one-page portfolio](https://terrence721.github.io/GridPulse/portfolio.html)** — the 60-second version, with links back into this repo for anyone who wants to go deeper.
 
-# ⚡ GridPulse — Real-Time Event-Driven Utility Monitoring & Billing Platform
+# ⚡ GridPulse — Real-Time Event-Driven Utility Operations Platform
 
 [![CodeQL](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml/badge.svg)](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml)
 
