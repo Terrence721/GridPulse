@@ -12,11 +12,12 @@ public sealed class UsageAnomalyProcessor(
     {
         var staleSince = DateTimeOffset.UtcNow.AddSeconds(
             -(options.Value.ExpectedReadingIntervalSeconds * options.Value.MissedIntervalMultiplier));
+        var lookbackSince = DateTimeOffset.UtcNow.AddSeconds(-options.Value.MaxAnomalyLookbackSeconds);
 
         var staleMeters = await dbContext.ProcessedReadings
             .GroupBy(r => r.MeterId)
             .Select(g => new { MeterId = g.Key, LastSeenAt = g.Max(r => r.Timestamp) })
-            .Where(g => g.LastSeenAt < staleSince)
+            .Where(g => g.LastSeenAt < staleSince && g.LastSeenAt > lookbackSince)
             .ToListAsync(cancellationToken);
 
         foreach (var stale in staleMeters)
