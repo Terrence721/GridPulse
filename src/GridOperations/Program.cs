@@ -5,17 +5,12 @@ using Confluent.SchemaRegistry.Serdes;
 using GridPulse.GridOperations;
 using GridPulse.GridOperations.Avro;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.AddNpgsqlDbContext<GridOperationsDbContext>("gridoperationsdb");
 
-builder.Services.Configure<GridOperationsOptions>(
-    builder.Configuration.GetSection(GridOperationsOptions.SectionName));
-builder.Services.AddOptions<GridOperationsOptions>()
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
+builder.AddValidatedOptions<GridOperationsOptions>(GridOperationsOptions.SectionName);
 
 builder.Services.AddSingleton<WorkOrderStatusTransitioner>();
 builder.Services.AddSingleton<OutageCorrelator>();
@@ -52,17 +47,8 @@ builder.Services.AddHostedService<UsageAnomalyConsumer>();
 var app = builder.Build();
 app.MapDefaultEndpoints();
 
-try
+if (!app.Services.TryValidateStartupOptions<GridOperationsOptions>())
 {
-    _ = app.Services.GetRequiredService<IOptions<GridOperationsOptions>>().Value;
-}
-catch (OptionsValidationException ex)
-{
-    foreach (var failure in ex.Failures)
-    {
-        Console.Error.WriteLine(failure);
-    }
-
     return 1;
 }
 
