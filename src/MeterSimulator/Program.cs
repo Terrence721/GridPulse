@@ -2,18 +2,13 @@ using Confluent.Kafka;
 using Confluent.Kafka.SyncOverAsync;
 using Confluent.SchemaRegistry;
 using Confluent.SchemaRegistry.Serdes;
-using Microsoft.Extensions.Options;
 using GridPulse.MeterSimulator;
 using GridPulse.MeterSimulator.Avro;
 using GridPulse.Shared;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.AddServiceDefaults();
-builder.Services.Configure<MeterSimulatorOptions>(
-    builder.Configuration.GetSection(MeterSimulatorOptions.SectionName));
-builder.Services.AddOptions<MeterSimulatorOptions>()
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
+builder.AddValidatedOptions<MeterSimulatorOptions>(MeterSimulatorOptions.SectionName);
 builder.Services.AddSingleton<MeterReadingGenerator>();
 builder.Services.AddSingleton<CityBlockMeterIdFactory>();
 builder.Services.AddSingleton<CensusAddressValidator>();
@@ -43,22 +38,9 @@ builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();
 
-MeterSimulatorOptions options;
-
-try
+var options = host.Services.TryGetValidatedStartupOptions<MeterSimulatorOptions>();
+if (options is null)
 {
-    // Trigger validation here, before host.Run() starts the hosting pipeline —
-    // resolving it inside host.Run() means the Generic Host's own StartAsync()
-    // logs the exception (with a full stack trace) before this catch ever runs.
-    options = host.Services.GetRequiredService<IOptions<MeterSimulatorOptions>>().Value;
-}
-catch (OptionsValidationException ex)
-{
-    foreach (var failure in ex.Failures)
-    {
-        Console.Error.WriteLine(failure);
-    }
-
     return 1;
 }
 
