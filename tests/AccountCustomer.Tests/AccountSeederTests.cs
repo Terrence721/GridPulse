@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using GridPulse.Shared;
 
 namespace GridPulse.AccountCustomer.Tests;
 

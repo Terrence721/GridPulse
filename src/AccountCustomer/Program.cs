@@ -1,4 +1,5 @@
 using GridPulse.AccountCustomer;
+using GridPulse.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -90,7 +91,7 @@ app.MapPost("/meters", async (RegisterMeterRequest request, AccountCustomerDbCon
         return Results.BadRequest($"No account with id '{request.AccountId}' exists.");
     }
 
-    var meter = new Meter { MeterId = request.MeterId, AccountId = request.AccountId };
+    var meter = new Meter { MeterId = request.MeterId, AccountId = request.AccountId, StreetName = request.StreetName, StreetNumber = request.StreetNumber };
     db.Meters.Add(meter);
     await db.SaveChangesAsync(cancellationToken);
     return Results.Created($"/meters/{meter.MeterId}", meter);

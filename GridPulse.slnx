@@ -15,6 +15,9 @@
   <Folder Name="/src/ServiceDefaults/">
     <Project Path="src/ServiceDefaults/GridPulse.ServiceDefaults.csproj" />
   </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="src/Shared/GridPulse.Shared.csproj" />
+  </Folder>
   <Folder Name="/src/UsageAggregation/">
     <Project Path="src/UsageAggregation/GridPulse.UsageAggregation.csproj" />
   </Folder>
@@ -30,6 +33,9 @@
   </Folder>
   <Folder Name="/tests/MeterSimulator.Tests/">
     <Project Path="tests/MeterSimulator.Tests/GridPulse.MeterSimulator.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Shared.Tests/">
+    <Project Path="tests/Shared.Tests/GridPulse.Shared.Tests.csproj" />
   </Folder>
   <Folder Name="/tests/UsageAggregation.Tests/">
     <Project Path="tests/UsageAggregation.Tests/GridPulse.UsageAggregation.Tests.csproj" />

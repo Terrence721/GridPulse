@@ -3,6 +3,7 @@ using System;
 using GridPulse.AccountCustomer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GridPulse.AccountCustomer.Migrations
 {
     [DbContext(typeof(AccountCustomerDbContext))]
-    partial class AccountCustomerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260917134423_AddMeterAddress")]
+    partial class AddMeterAddress
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

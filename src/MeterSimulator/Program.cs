@@ -5,6 +5,7 @@ using Confluent.SchemaRegistry.Serdes;
 using Microsoft.Extensions.Options;
 using GridPulse.MeterSimulator;
 using GridPulse.MeterSimulator.Avro;
+using GridPulse.Shared;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.AddServiceDefaults();
@@ -82,7 +83,7 @@ if (!isRealAddress)
 }
 
 var meterIdFactory = host.Services.GetRequiredService<CityBlockMeterIdFactory>();
-var meterIds = meterIdFactory.Create(options);
+var meterIds = meterIdFactory.Create(options.StreetName, options.StartingAddress, options.BuildingsPerSide).Select(m => m.MeterId).ToList();
 var accountResolver = host.Services.GetRequiredService<AccountResolver>();
 
 try

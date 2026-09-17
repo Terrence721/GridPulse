@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ServiceDefaults\GridPulse.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Shared\GridPulse.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

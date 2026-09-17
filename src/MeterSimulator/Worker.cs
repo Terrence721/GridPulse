@@ -1,6 +1,7 @@
 using Confluent.Kafka;
 using Microsoft.Extensions.Options;
 using GridPulse.MeterSimulator.Avro;
+using GridPulse.Shared;
 
 namespace GridPulse.MeterSimulator;
 
@@ -31,7 +32,7 @@ public sealed class Worker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var meterIds = _meterIdFactory.Create(_options);
+        var meterIds = _meterIdFactory.Create(_options.StreetName, _options.StartingAddress, _options.BuildingsPerSide).Select(m => m.MeterId).ToList();
         var interval = TimeSpan.FromSeconds(_options.IntervalSeconds);
 
         while (!stoppingToken.IsCancellationRequested)
