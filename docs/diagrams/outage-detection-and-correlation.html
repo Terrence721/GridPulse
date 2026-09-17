@@ -1,0 +1,308 @@
+<title>Outage Detection &amp; Correlation — GridPulse</title>
+<style>
+  :root {
+    --ink: #1c2333;
+    --ink-soft: #4b5567;
+    --paper: #ede9df;
+    --surface: #ffffff;
+    --line: #c7c0ac;
+    --detect: #a13d2b;
+    --detect-bg: #f1e0da;
+    --correlate: #2e5266;
+    --correlate-bg: #dfe7ea;
+    --lifecycle: #6b4e8e;
+    --lifecycle-bg: #e9e3f1;
+    --shared: #3c4440;
+    --shared-bg: #eef1ef;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Consolas", "Liberation Mono", monospace;
+    --sans: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #e8e4d9;
+    --ink-soft: #a3aabb;
+    --paper: #14181f;
+    --surface: #1b212b;
+    --line: #303748;
+    --detect: #dd7a4a;
+    --detect-bg: #2c1f19;
+    --correlate: #7fb2cc;
+    --correlate-bg: #172530;
+    --lifecycle: #b39ddb;
+    --lifecycle-bg: #241f2e;
+    --shared: #cdd3d0;
+    --shared-bg: #20262c;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #e8e4d9;
+      --ink-soft: #a3aabb;
+      --paper: #14181f;
+      --surface: #1b212b;
+      --line: #303748;
+      --detect: #dd7a4a;
+      --detect-bg: #2c1f19;
+      --correlate: #7fb2cc;
+      --correlate-bg: #172530;
+      --lifecycle: #b39ddb;
+      --lifecycle-bg: #241f2e;
+      --shared: #cdd3d0;
+      --shared-bg: #20262c;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    padding: 2.5rem 1.5rem 4rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { max-width: 1080px; margin: 0 auto; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 0.6rem;
+  }
+
+  h1 {
+    font-size: clamp(1.6rem, 2.6vw, 2.15rem);
+    line-height: 1.15;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .dek {
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    max-width: 70ch;
+    margin: 0 0 2.2rem;
+  }
+
+  .dek code { font-family: var(--mono); font-size: 0.9em; color: var(--ink); }
+
+  h2 {
+    font-size: 0.72rem;
+    font-family: var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 1rem;
+  }
+
+  .pipeline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 2.2rem;
+  }
+
+  .step {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.5rem 0.95rem;
+    white-space: nowrap;
+  }
+
+  .step--zoomed { border-width: 2px; font-weight: 600; }
+  .step--zoomed.z-detect { border-color: var(--detect); color: var(--detect); }
+  .step--zoomed.z-correlate { border-color: var(--correlate); color: var(--correlate); }
+  .step--zoomed.z-lifecycle { border-color: var(--lifecycle); color: var(--lifecycle); }
+
+  .arrow { color: var(--ink-soft); font-size: 0.9rem; }
+
+  .zoom {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    padding: 1.3rem 1.4rem 1.4rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .zoom-head { display: flex; align-items: baseline; gap: 0.6rem; margin-bottom: 0.9rem; }
+
+  .zoom-tag {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .zoom--detect .zoom-tag { color: var(--detect); background: var(--detect-bg); }
+  .zoom--correlate .zoom-tag { color: var(--correlate); background: var(--correlate-bg); }
+  .zoom--lifecycle .zoom-tag { color: var(--lifecycle); background: var(--lifecycle-bg); }
+
+  .zoom-title { font-size: 0.98rem; font-weight: 600; margin: 0; }
+
+  .zoom p, .zoom ul {
+    font-size: 0.86rem;
+    line-height: 1.6;
+    color: var(--ink);
+    margin: 0 0 0.7rem;
+  }
+
+  .zoom ul { padding-left: 1.15rem; }
+  .zoom ul:last-child, .zoom p:last-child { margin-bottom: 0; }
+  .zoom code { font-family: var(--mono); font-size: 0.88em; background: var(--paper); border-radius: 3px; padding: 0.05rem 0.3rem; }
+
+  .zoom-link { font-size: 0.8rem; margin-top: 0.6rem; }
+  .zoom-link a { color: var(--ink); }
+
+  .callout {
+    border: 1px solid var(--shared);
+    background: var(--shared-bg);
+    border-radius: 10px;
+    padding: 1rem 1.3rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    margin: 1.4rem 0 2rem;
+  }
+
+  .callout-mark { font-family: var(--mono); font-size: 0.95rem; color: var(--shared); font-weight: 600; flex: 0 0 auto; }
+  .callout p { margin: 0; font-size: 0.88rem; line-height: 1.55; color: var(--ink); }
+  .callout code { font-family: var(--mono); font-size: 0.92em; }
+
+  footer {
+    margin-top: 2.6rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+  }
+</style>
+
+<div class="page">
+  <p class="eyebrow">GridPulse — outage detection &amp; correlation</p>
+  <h1>From a quiet meter to a real work order, in seven steps.</h1>
+  <p class="dek">
+    Grid Operations' auto-detection path, end to end — a tech filing a work order directly through
+    <code>POST /work-orders</code> skips straight to the last step. Three steps — the detection signal
+    itself, the correlation decision, and the status lifecycle — are zoomed into below, since each
+    involves a real design decision (and, for two of them, a real bug found via live verification).
+  </p>
+
+  <div class="pipeline">
+    <span class="step">Meter Stops Transmitting</span><span class="arrow">→</span>
+    <span class="step step--zoomed z-detect">Detect Anomaly</span><span class="arrow">→</span>
+    <span class="step">Produce <code>usage.anomaly.detected</code></span><span class="arrow">→</span>
+    <span class="step">Resolve Street Address</span><span class="arrow">→</span>
+    <span class="step step--zoomed z-correlate">Correlate Into Outage</span><span class="arrow">→</span>
+    <span class="step">Create/Extend Outage + Work Order</span><span class="arrow">→</span>
+    <span class="step step--zoomed z-lifecycle">Status Lifecycle &amp; Dispatch</span>
+  </div>
+
+  <h2>Zoomed In</h2>
+
+  <div class="zoom zoom--detect">
+    <div class="zoom-head">
+      <span class="zoom-tag">Usage Aggregation</span>
+      <p class="zoom-title">The signal is "stopped transmitting," not "usage dropped"</p>
+    </div>
+    <p>
+      <code>UsageAnomalyDetector</code>, a <code>PeriodicTimer</code>-driven <code>BackgroundService</code>,
+      checks every <code>SweepIntervalSeconds</code> for any meter whose most recent reading is older
+      than <code>ExpectedReadingIntervalSeconds × MissedIntervalMultiplier</code>. A value-based
+      threshold ("usage near zero") was considered and rejected — the real UCI household dataset this
+      repo replays legitimately produces near-zero readings for every meter overnight, which would
+      false-positive constantly on entirely normal data.
+    </p>
+    <p>
+      <strong>A real bug found via live verification:</strong> on a fresh AppHost start, leftover
+      <code>ProcessedReadings</code> from a previous dev session — already older than the threshold —
+      got flagged as brand-new anomalies immediately, including the already-known
+      <code>SMOKE-TEST-METER-*</code> rows from issue #28. Fixed with
+      <code>UsageAnomalyOptions.MaxAnomalyLookbackSeconds</code>: a reading only signals a <em>new</em>
+      anomaly if it's recent enough to mean the meter just went quiet, not simply old data —
+      <a href="https://github.com/Terrence721/GridPulse/issues/30">issue #30</a>.
+    </p>
+  </div>
+
+  <div class="zoom zoom--correlate">
+    <div class="zoom-head">
+      <span class="zoom-tag">Grid Operations</span>
+      <p class="zoom-title">One shared outage, not one work order per affected meter</p>
+    </div>
+    <p>
+      <code>UsageAnomalyConsumer</code> resolves the real street address via a live HTTP call to
+      Account/Customer Service, builds a <code>DetectedAnomaly</code>, and hands it to
+      <code>OutageCorrelator</code> — pure decision logic, no DB access, directly unit-testable —
+      which returns one of four outcomes: <code>AlreadyCovered</code> (this meter's street number
+      already falls inside an open outage, or it already has its own draft), <code>CreateDraft</code>
+      (nothing nearby), <code>CreateOutage</code> (a cluster of nearby drafts merges into one new
+      outage), or <code>ExtendOutage</code> (an existing outage's range grows to absorb this anomaly,
+      and any other now-in-range orphaned drafts). Proximity is a configurable window
+      (<code>GridOperationsOptions.CorrelationAddressWindow</code>/<code>CorrelationTimeWindowSeconds</code>)
+      keyed on each anomaly's own <code>LastSeenAt</code>. <code>WorkOrderCorrelationProcessor</code>
+      then applies whichever decision comes back, writing the real <code>WorkOrder</code>/<code>Outage</code>
+      rows.
+    </p>
+    <p>
+      <strong>A real bug found by stopping 20 real meters at once:</strong> the first version only ever
+      paired a new anomaly with the single nearest existing draft, never re-checking whether other
+      drafts now fell inside a growing outage's range. Live-verified result: 5 separate 2-meter outages
+      plus several orphaned standalone drafts sitting <em>inside</em> those outages' ranges, instead of
+      one shared work order. Fixed by adding the <code>ExtendOutage</code>/<code>CreateOutage</code>
+      split above, keeping exactly one surviving <code>WorkOrder</code> either way, deleting the
+      redundant ones — <a href="https://github.com/Terrence721/GridPulse/issues/29">issue #29</a>.
+    </p>
+  </div>
+
+  <div class="zoom zoom--lifecycle">
+    <div class="zoom-head">
+      <span class="zoom-tag">WorkOrder</span>
+      <p class="zoom-title">A tech can file one directly too — auto-detection isn't the only path in</p>
+    </div>
+    <p>
+      <code>POST /work-orders</code> is a genuinely fillable form, not just a ticket stub: a real
+      <code>HazardType</code> (<code>DownedWire</code>, <code>BlownTransformer</code>,
+      <code>BrokenPole</code>, <code>VegetationContact</code>, <code>EquipmentFailure</code>,
+      <code>VehicleAccident</code>, <code>WeatherDamage</code>, <code>AnimalContact</code>, or
+      <code>SuspectedOutage</code> for an unconfirmed auto-detected draft), an optional
+      <code>MeterId</code>/address, a description, and an assigned crew. Status moves
+      <code>Reported → Dispatched → EnRoute → OnSite → Repaired → Restored → Closed</code>, plus
+      <code>Ignored</code> from <code>Reported</code> only (a false-positive auto-detected draft).
+    </p>
+    <p>
+      Validation lives in a plain <code>WorkOrderStatusTransitioner</code>/<code>WorkOrderStatusUpdater</code>
+      pair, never on the entity itself — matching this repo's existing anemic-POCO-plus-processor-class
+      shape (<code>InvoiceGenerator</code>, <code>ReadingProcessor</code>). The background correlator is
+      explicitly scoped to <code>HazardType == SuspectedOutage</code> drafts only, so a tech-filed work
+      order can never be silently merged or deleted by it.
+    </p>
+  </div>
+
+  <div class="callout">
+    <span class="callout-mark">i</span>
+    <p>
+      Correlation is street-number-proximity only — every deployment here is one single configured
+      street, so there's no multi-street topology to reason about. A real, present limitation, not a
+      completeness gap glossed over. See the
+      <a href="./system-architecture.html">System Architecture diagram</a> for where Grid Operations
+      sits relative to the rest of the pipeline, and <a href="https://github.com/Terrence721/GridPulse/blob/main/docs/architecture.md">docs/architecture.md</a>
+      for the full design reasoning.
+    </p>
+  </div>
+
+  <footer>GridPulse · 7-step pipeline · 2 real bugs found and fixed (#29, #30) · street-number correlation, not multi-street topology</footer>
+</div>
