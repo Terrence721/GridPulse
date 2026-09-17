@@ -112,6 +112,7 @@
   .lane-title { font-size: 1.02rem; font-weight: 600; margin: 0; }
 
   .flow { display: flex; align-items: stretch; gap: 0; overflow-x: auto; padding-bottom: 0.3rem; }
+  .flow + .flow { margin-top: 0.8rem; }
 
   .node {
     flex: 1 1 0;
@@ -258,12 +259,28 @@
         <div class="node-sub">Notification Service subscribed later, untouched producer</div>
       </div>
     </div>
+    <div class="flow">
+      <div class="node">
+        <div class="node-label">Usage Aggregation</div>
+        <div class="node-sub">also detects meters that stop transmitting</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node">
+        <div class="node-label">usage.anomaly.detected</div>
+        <div class="node-sub">added post-Phase-3, for Grid Operations</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node">
+        <div class="node-label">Grid Operations</div>
+        <div class="node-sub">correlates quiet meters into outages</div>
+      </div>
+    </div>
     <div class="result">Coupling: <strong>zero</strong> — Billing has never once called Usage Aggregation's address, and Notification Service (Phase 3) and the Stripe payment consumer (post-Phase-3) both subscribed to an existing topic with no producer-side change at all</div>
   </div>
 
   <div class="facts">
     <div class="fact">
-      <div class="fact-num">3</div>
+      <div class="fact-num">4</div>
       <div class="fact-label">real Avro-schema'd Kafka topics, one per producing service</div>
     </div>
     <div class="fact">
