@@ -13,16 +13,8 @@ builder.AddServiceDefaults();
 builder.AddNpgsqlDbContext<BillingDbContext>("gridpulsedb");
 builder.Services.Configure<RatePlanOptions>(
     builder.Configuration.GetSection(RatePlanOptions.SectionName));
-builder.Services.Configure<BillingOptions>(
-    builder.Configuration.GetSection(BillingOptions.SectionName));
-builder.Services.AddOptions<BillingOptions>()
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
-builder.Services.Configure<StripeOptions>(
-    builder.Configuration.GetSection(StripeOptions.SectionName));
-builder.Services.AddOptions<StripeOptions>()
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
+builder.AddValidatedOptions<BillingOptions>(BillingOptions.SectionName);
+builder.AddValidatedOptions<StripeOptions>(StripeOptions.SectionName);
 builder.Services.AddScoped<InvoiceGenerator>();
 
 builder.Services.AddSingleton<ISchemaRegistryClient>(_ =>
@@ -85,23 +77,13 @@ builder.Services.AddScoped<StripeWebhookHandler>();
 var app = builder.Build();
 app.MapDefaultEndpoints();
 
-try
+if (!app.Services.TryValidateStartupOptions<BillingOptions>())
 {
-    // Trigger validation here, before app.Run() starts the hosting pipeline — resolving it
-    // inside app.Run() means the Generic Host's own StartAsync() logs the exception (with a
-    // full stack trace) before this catch ever runs. BillingOptions was bound with
-    // ValidateOnStart() but never actually resolved this way despite that - retrofitted here
-    // alongside StripeOptions rather than left as a second, inconsistent validation path.
-    _ = app.Services.GetRequiredService<IOptions<BillingOptions>>().Value;
-    _ = app.Services.GetRequiredService<IOptions<StripeOptions>>().Value;
+    return 1;
 }
-catch (OptionsValidationException ex)
-{
-    foreach (var failure in ex.Failures)
-    {
-        Console.Error.WriteLine(failure);
-    }
 
+if (!app.Services.TryValidateStartupOptions<StripeOptions>())
+{
     return 1;
 }
 
