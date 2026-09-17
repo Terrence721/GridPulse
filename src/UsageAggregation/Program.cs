@@ -12,6 +12,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.AddNpgsqlDbContext<UsageAggregationDbContext>("gridpulsedb");
 builder.Services.AddScoped<ReadingProcessor>();
+builder.Services.AddScoped<UsageAnomalyProcessor>();
+
+builder.Services.Configure<UsageAnomalyOptions>(
+    builder.Configuration.GetSection(UsageAnomalyOptions.SectionName));
+builder.Services.AddOptions<UsageAnomalyOptions>()
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 builder.Services.AddSingleton<ISchemaRegistryClient>(_ =>
 {
@@ -37,7 +44,15 @@ builder.AddKafkaProducer<string, UsageAggregated>("kafka", (sp, producerBuilder)
 });
 builder.Services.AddSingleton<IUsageAggregatedPublisher, UsageAggregatedPublisher>();
 
+builder.AddKafkaProducer<string, UsageAnomalyDetected>("kafka", (sp, producerBuilder) =>
+{
+    var schemaRegistry = sp.GetRequiredService<ISchemaRegistryClient>();
+    producerBuilder.SetValueSerializer(new AvroSerializer<UsageAnomalyDetected>(schemaRegistry).AsSyncOverAsync());
+});
+builder.Services.AddSingleton<IUsageAnomalyPublisher, UsageAnomalyPublisher>();
+
 builder.Services.AddHostedService<MeterReadingConsumer>();
+builder.Services.AddHostedService<UsageAnomalyDetector>();
 
 var app = builder.Build();
 app.MapDefaultEndpoints();

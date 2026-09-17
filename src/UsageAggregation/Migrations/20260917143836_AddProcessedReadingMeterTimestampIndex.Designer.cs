@@ -3,6 +3,7 @@ using System;
 using GridPulse.UsageAggregation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GridPulse.UsageAggregation.Migrations
 {
     [DbContext(typeof(UsageAggregationDbContext))]
-    partial class UsageAggregationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260917143836_AddProcessedReadingMeterTimestampIndex")]
+    partial class AddProcessedReadingMeterTimestampIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
