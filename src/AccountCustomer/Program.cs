@@ -1,36 +1,19 @@
 using GridPulse.AccountCustomer;
 using GridPulse.Shared;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.AddNpgsqlDbContext<AccountCustomerDbContext>("accountsdb");
-builder.Services.Configure<AccountSeedOptions>(
-    builder.Configuration.GetSection(AccountSeedOptions.SectionName));
-builder.Services.AddOptions<AccountSeedOptions>()
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
+builder.AddValidatedOptions<AccountSeedOptions>(AccountSeedOptions.SectionName);
 builder.Services.AddSingleton<CityBlockMeterIdFactory>();
 builder.Services.AddScoped<AccountSeeder>();
 
 var app = builder.Build();
 app.MapDefaultEndpoints();
 
-try
+if (!app.Services.TryValidateStartupOptions<AccountSeedOptions>())
 {
-    // Trigger validation here, before app.Run() starts the hosting pipeline —
-    // resolving it inside app.Run() means the Generic Host's own StartAsync()
-    // logs the exception (with a full stack trace) before this catch ever runs.
-    _ = app.Services.GetRequiredService<IOptions<AccountSeedOptions>>().Value;
-}
-catch (OptionsValidationException ex)
-{
-    foreach (var failure in ex.Failures)
-    {
-        Console.Error.WriteLine(failure);
-    }
-
     return 1;
 }
 
