@@ -1,6 +1,7 @@
-# Restores GridPulse's live Postgres data (gridpulsedb/accountsdb) from a
-# backup produced by scripts/backup-postgres.ps1. Irreversibly discards
-# whatever is currently in those databases - requires -Force. Failures here
+# Restores GridPulse's live Postgres data (every real database in the
+# cluster, discovered dynamically - see below) from a backup produced by
+# scripts/backup-postgres.ps1. Irreversibly discards whatever is currently
+# in those databases - requires -Force. Failures here
 # are loud (nonzero exit), unlike the backup script's best-effort silence:
 # this is a foreground, user-watched, destructive action.
 #
@@ -104,12 +105,6 @@ else {
 
 Write-Host "Selected backup: $resolvedFile" -ForegroundColor Cyan
 
-# --- Destructive-action gate ---
-if (-not $Force) {
-    Write-Host "This will DROP and recreate gridpulsedb and accountsdb from '$resolvedFile', discarding all current data. Re-run with -Force to proceed." -ForegroundColor Yellow
-    exit 1
-}
-
 # --- Find the running container (no polling - assumes the app is already up) ---
 $containerId = Get-RunningGridPulsePostgresContainer
 if (-not $containerId) {
@@ -128,9 +123,26 @@ if (-not $pgUser -or -not $pgPassword) {
     exit 1
 }
 
+# --- List real databases dynamically (same query backup-postgres.ps1 uses) - never
+# hardcode names here, so a newly-added database (like gridoperationsdb was) is
+# automatically included in both the warning and the connection-termination step. ---
+$dbListResult = Invoke-DockerWithTimeout -ArgumentList @("exec", "-e", "PGPASSWORD=$pgPassword", $containerId, "psql", "-U", $pgUser, "-d", "postgres", "-t", "-A", "-c", "SELECT datname FROM pg_database WHERE datistemplate = false AND datname <> 'postgres';")
+if ($dbListResult.ExitCode -ne 0 -or -not $dbListResult.Output) {
+    Write-Host "Could not list databases to restore." -ForegroundColor Red
+    exit 1
+}
+$databases = $dbListResult.Output | Where-Object { $_ -and $_.Trim() } | ForEach-Object { $_.Trim() }
+
+# --- Destructive-action gate ---
+if (-not $Force) {
+    Write-Host "This will DROP and recreate $($databases -join ', ') from '$resolvedFile', discarding all current data. Re-run with -Force to proceed." -ForegroundColor Yellow
+    exit 1
+}
+
 # --- Terminate other backends holding connections (EF pools) before dropping ---
-Write-Host "Terminating other connections to gridpulsedb/accountsdb..." -ForegroundColor Cyan
-Invoke-DockerWithTimeout -ArgumentList @("exec", "-e", "PGPASSWORD=$pgPassword", $containerId, "psql", "-U", $pgUser, "-d", "postgres", "-c", "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname IN ('gridpulsedb','accountsdb') AND pid <> pg_backend_pid();") | Out-Null
+Write-Host "Terminating other connections to $($databases -join ', ')..." -ForegroundColor Cyan
+$databaseListSql = ($databases | ForEach-Object { "'$_'" }) -join ','
+Invoke-DockerWithTimeout -ArgumentList @("exec", "-e", "PGPASSWORD=$pgPassword", $containerId, "psql", "-U", $pgUser, "-d", "postgres", "-c", "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname IN ($databaseListSql) AND pid <> pg_backend_pid();") | Out-Null
 
 # --- Copy the backup file in and replay it ---
 $remotePath = "/tmp/gp-restore-$tempTag.sql"
