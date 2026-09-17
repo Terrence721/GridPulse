@@ -14,11 +14,12 @@ public sealed class UsageAnomalyProcessorTests
         return new UsageAggregationDbContext(options);
     }
 
-    private static IOptions<UsageAnomalyOptions> CreateOptions(int expectedIntervalSeconds = 5, int missedIntervalMultiplier = 6) =>
+    private static IOptions<UsageAnomalyOptions> CreateOptions(int expectedIntervalSeconds = 5, int missedIntervalMultiplier = 6, int maxAnomalyLookbackSeconds = 300) =>
         Options.Create(new UsageAnomalyOptions
         {
             ExpectedReadingIntervalSeconds = expectedIntervalSeconds,
             MissedIntervalMultiplier = missedIntervalMultiplier,
+            MaxAnomalyLookbackSeconds = maxAnomalyLookbackSeconds,
             SweepIntervalSeconds = 10
         });
 
