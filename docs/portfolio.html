@@ -269,7 +269,7 @@
 
 <div class="hero">
   <div class="wrap">
-    <p class="eyebrow">Portfolio Manifest — Updated September 16, 2026</p>
+    <p class="eyebrow">Portfolio Manifest — Updated September 17, 2026</p>
     <h1 class="name">Terrence&nbsp;Daniels</h1>
     <p class="role">Principal Full-Stack Engineer</p>
     <p class="thesis">
@@ -280,9 +280,10 @@
       observability, tracked in the open from before the first service existed. Phases 1 through 3 are
       complete and verified live end-to-end: the core Kafka-driven loop, a real Account/Customer Service
       backing genuine <code>AccountId</code>-keyed usage and billing, and a real Node.js/TypeScript
-      Notification Service delivering an actual webhook POST. Two features shipped since: a real Green
-      Button/NAESB ESPI usage-data export and a real Stripe test-mode payment integration — 63 automated
-      tests, five services, one real distributed system.
+      Notification Service delivering an actual webhook POST. Three features shipped since: a real Green
+      Button/NAESB ESPI usage-data export, a real Stripe test-mode payment integration, and a Grid
+      Operations service correlating real outages and work orders from meters that stop transmitting —
+      102 automated tests, six services, one real distributed system.
     </p>
     <div class="hero-actions">
       <a class="btn primary" href="https://github.com/Terrence721/GridPulse">View the repository →</a>
@@ -292,7 +293,7 @@
   </div>
   <div class="stamp" aria-hidden="true">
     <div class="stamp-inner">
-      <span class="n">21</span>
+      <span class="n">23</span>
       <span class="l">REAL BUGS<br />FOUND</span>
     </div>
   </div>
@@ -301,12 +302,12 @@
 <div class="manifest">
   <div class="wrap">
     <div class="manifest-row">
-      <div class="manifest-cell"><span class="v">Phase 3+</span><span class="k">ESPI &amp; Stripe complete</span></div>
-      <div class="manifest-cell"><span class="v">185</span><span class="k">commits</span></div>
-      <div class="manifest-cell"><span class="v">27</span><span class="k">issues tracked</span></div>
-      <div class="manifest-cell"><span class="v">21</span><span class="k">real bugs found</span></div>
+      <div class="manifest-cell"><span class="v">Phase 3+</span><span class="k">ESPI, Stripe &amp; Grid Ops complete</span></div>
+      <div class="manifest-cell"><span class="v">210</span><span class="k">commits</span></div>
+      <div class="manifest-cell"><span class="v">30</span><span class="k">issues tracked</span></div>
+      <div class="manifest-cell"><span class="v">23</span><span class="k">real bugs found</span></div>
       <div class="manifest-cell"><span class="v">13.5.4</span><span class="k">Aspire CLI</span></div>
-      <div class="manifest-cell"><span class="v">63</span><span class="k">tests, all passing</span></div>
+      <div class="manifest-cell"><span class="v">102</span><span class="k">tests, all passing</span></div>
     </div>
   </div>
 </div>
@@ -345,9 +346,10 @@
       a real Confluent Schema Registry. Phase 3 added a genuine Account/Customer Service, re-keyed usage
       and billing from a placeholder <code>MeterId</code> to a real <code>AccountId</code>, and shipped
       this project's first polyglot service — a Node.js/TypeScript Notification Service delivering an
-      actual webhook POST. Two features shipped after Phase 3, ahead of the dashboard: a real Green
-      Button/NAESB ESPI usage-data export, and a real Stripe test-mode payment integration closing the
-      loop from usage to billing to actual payment collection. All of it verified live end-to-end, 63
+      actual webhook POST. Three features shipped after Phase 3, ahead of the dashboard: a real Green
+      Button/NAESB ESPI usage-data export, a real Stripe test-mode payment integration closing the loop
+      from usage to billing to actual payment collection, and a Grid Operations service correlating real
+      outages and work orders from meters that stop transmitting. All of it verified live end-to-end, 102
       tests passing. A React/Redux Toolkit dashboard, CI/CD, and full observability come next, scaffolded
       one file or folder at a step with nothing batched ahead of review.
     </p>
@@ -368,7 +370,7 @@
   </section>
 
   <section>
-    <h2>21 real bugs, found by actually running the thing</h2>
+    <h2>23 real bugs, found by actually running the thing</h2>
     <p class="h2-sub">All logged in <a href="https://github.com/Terrence721/GridPulse/blob/main/todo.md">todo.md</a>, checkable against the commit history</p>
     <p class="lede">
       From CodeQL failing before any service existed, to a live DNS resolution bug caught only by running
@@ -718,6 +720,42 @@
             <a href="https://github.com/Terrence721/GridPulse/issues/27">issue #27</a></div>
         </div>
       </div>
+      <div class="item">
+        <div class="no">22</div>
+        <div>
+          <div class="file">src/GridOperations/OutageCorrelator.cs</div>
+          <div class="desc">
+            Live-verified by stopping the meter simulator with 20 real meters active and letting them
+            all go quiet together: the result was 5 separate 2-meter outages plus several orphaned
+            standalone drafts sitting <em>inside</em> those outages' street-number ranges, instead of
+            the one shared work order the design called for. Root cause: the correlator only ever
+            paired a new anomaly with the single nearest existing draft, never re-checking whether
+            other drafts now fell inside a growing outage's range. Fixed by redesigning the correlator
+            to extend an existing outage's range (absorbing newly-in-range orphaned drafts) or merge a
+            whole cluster of nearby drafts into one new outage, either way keeping exactly one
+            surviving work order.
+          </div>
+          <div class="meta"><span class="tag">real bug · correlation logic</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/29">issue #29</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">23</div>
+        <div>
+          <div class="file">src/UsageAggregation/UsageAnomalyProcessor.cs</div>
+          <div class="desc">
+            On a fresh AppHost start, real leftover <code>ProcessedReadings</code> from a previous dev
+            session — already older than the stale threshold — got flagged as brand-new anomalies on
+            the detector's very first sweep, including the already-known
+            <code>SMOKE-TEST-METER-*</code> rows from issue #28, confirming that pollution now reaches
+            Grid Operations too, not just <code>accountsdb</code>. Fixed by adding a maximum lookback
+            window — a reading only signals a <em>new</em> anomaly if it's recent enough to mean the
+            meter just went quiet, not simply old, pre-existing data.
+          </div>
+          <div class="meta"><span class="tag">real bug · cold-start false positive</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/30">issue #30</a></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -726,15 +764,17 @@
     <p class="h2-sub">Early, and said so — not oversold</p>
     <div class="twocol">
       <div class="card">
-        <h3>Phases 1 through 3 are done, plus ESPI and Stripe, all verified live</h3>
-        <p>Five services — Account/Customer Service, Meter Simulator, Usage Aggregation, Billing, and a
-        polyglot Node.js Notification Service — all built, wired together through <code>AppHost</code>,
-        and verified against a real running stack: real Kafka events through a real Confluent Schema
-        Registry, real <code>AccountId</code>-keyed invoices with correct math, and a real webhook actually
-        received. Usage Aggregation also exports real Green Button/NAESB ESPI usage data over HTTP, and
-        Billing collects real Stripe test-mode payments — a real card charged, a real webhook verified and
-        applied. Backed by 63 automated tests, including an end-to-end smoke test that spins up the whole
-        stack and walks a reading all the way through to a delivered invoice.</p>
+        <h3>Phases 1 through 3 are done, plus ESPI, Stripe, and Grid Operations, all verified live</h3>
+        <p>Six services — Account/Customer Service, Meter Simulator, Usage Aggregation, Billing, Grid
+        Operations, and a polyglot Node.js Notification Service — all built, wired together through
+        <code>AppHost</code>, and verified against a real running stack: real Kafka events through a real
+        Confluent Schema Registry, real <code>AccountId</code>-keyed invoices with correct math, and a real
+        webhook actually received. Usage Aggregation also exports real Green Button/NAESB ESPI usage data
+        over HTTP, Billing collects real Stripe test-mode payments — a real card charged, a real webhook
+        verified and applied — and Grid Operations correlates real outages and work orders from meters
+        that stop transmitting, confirmed against a real stopped meter. Backed by 102 automated tests,
+        including an end-to-end smoke test that spins up the whole stack and walks a reading all the way
+        through to a delivered invoice.</p>
       </div>
       <div class="card">
         <h3>Nothing here is unverified</h3>
