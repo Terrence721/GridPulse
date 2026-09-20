@@ -81,6 +81,10 @@ var gridOperationsGateway = builder.AddProject<Projects.GridPulse_GridOperations
     .WaitFor(gridOperations)
     .WithReference(identity)
     .WaitFor(identity)
+    .WithReference(kafka)
+    .WaitFor(kafka)
+    .WithReference(schemaRegistry.GetEndpoint("http"))
+    .WaitFor(schemaRegistry)
     .WithHttpHealthCheck(path: "/health", endpointName: "http");
 
 builder.AddProject<Projects.GridPulse_MeterSimulator>("meter-simulator")
