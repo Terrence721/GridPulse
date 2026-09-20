@@ -12,6 +12,9 @@
   <Folder Name="/src/GridOperations/">
     <Project Path="src/GridOperations/GridPulse.GridOperations.csproj" />
   </Folder>
+  <Folder Name="/src/GridOperationsGateway/">
+    <Project Path="src/GridOperationsGateway/GridPulse.GridOperationsGateway.csproj" />
+  </Folder>
   <Folder Name="/src/Identity/">
     <Project Path="src/Identity/GridPulse.Identity.csproj" />
   </Folder>
