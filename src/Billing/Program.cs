@@ -10,7 +10,7 @@ using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
-builder.AddNpgsqlDbContext<BillingDbContext>("gridpulsedb");
+builder.AddNpgsqlDbContext<BillingDbContext>("gridpulsedb", settings => settings.DisableHealthChecks = true);
 builder.Services.Configure<RatePlanOptions>(
     builder.Configuration.GetSection(RatePlanOptions.SectionName));
 builder.AddValidatedOptions<BillingOptions>(BillingOptions.SectionName);
@@ -28,13 +28,14 @@ builder.AddKafkaConsumer<string, UsageAggregated>("kafka", settings =>
 {
     settings.Config.GroupId = "billing";
     settings.Config.AutoOffsetReset = AutoOffsetReset.Earliest;
+    settings.DisableHealthChecks = true;
 }, (sp, consumerBuilder) =>
 {
     var schemaRegistry = sp.GetRequiredService<ISchemaRegistryClient>();
     consumerBuilder.SetValueDeserializer(new AvroDeserializer<UsageAggregated>(schemaRegistry).AsSyncOverAsync());
 });
 
-builder.AddKafkaProducer<string, BillingInvoiceGenerated>("kafka", (sp, producerBuilder) =>
+builder.AddKafkaProducer<string, BillingInvoiceGenerated>("kafka", settings => settings.DisableHealthChecks = true, (sp, producerBuilder) =>
 {
     var schemaRegistry = sp.GetRequiredService<ISchemaRegistryClient>();
     producerBuilder.SetValueSerializer(new AvroSerializer<BillingInvoiceGenerated>(schemaRegistry).AsSyncOverAsync());
@@ -52,6 +53,7 @@ builder.AddKafkaConsumer<string, BillingInvoiceGenerated>("kafka", settings =>
 {
     settings.Config.GroupId = "billing-payments";
     settings.Config.AutoOffsetReset = AutoOffsetReset.Latest;
+    settings.DisableHealthChecks = true;
 }, (sp, consumerBuilder) =>
 {
     var schemaRegistry = sp.GetRequiredService<ISchemaRegistryClient>();

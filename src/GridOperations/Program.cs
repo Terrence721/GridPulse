@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
-builder.AddNpgsqlDbContext<GridOperationsDbContext>("gridoperationsdb");
+builder.AddNpgsqlDbContext<GridOperationsDbContext>("gridoperationsdb", settings => settings.DisableHealthChecks = true);
 
 builder.AddValidatedOptions<GridOperationsOptions>(GridOperationsOptions.SectionName);
 
@@ -37,6 +37,7 @@ builder.AddKafkaConsumer<string, UsageAnomalyDetected>("kafka", settings =>
 {
     settings.Config.GroupId = "grid-operations";
     settings.Config.AutoOffsetReset = AutoOffsetReset.Latest;
+    settings.DisableHealthChecks = true;
 }, (sp, consumerBuilder) =>
 {
     var schemaRegistry = sp.GetRequiredService<ISchemaRegistryClient>();

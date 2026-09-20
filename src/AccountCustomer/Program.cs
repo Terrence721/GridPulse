@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
-builder.AddNpgsqlDbContext<AccountCustomerDbContext>("accountsdb");
+builder.AddNpgsqlDbContext<AccountCustomerDbContext>("accountsdb", settings => settings.DisableHealthChecks = true);
 builder.AddValidatedOptions<AccountSeedOptions>(AccountSeedOptions.SectionName);
 builder.Services.AddSingleton<CityBlockMeterIdFactory>();
 builder.Services.AddScoped<AccountSeeder>();

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
-builder.AddNpgsqlDbContext<UsageAggregationDbContext>("gridpulsedb");
+builder.AddNpgsqlDbContext<UsageAggregationDbContext>("gridpulsedb", settings => settings.DisableHealthChecks = true);
 builder.Services.AddScoped<ReadingProcessor>();
 builder.Services.AddScoped<UsageAnomalyProcessor>();
 
@@ -27,20 +27,21 @@ builder.AddKafkaConsumer<string, MeterReadingRaw>("kafka", settings =>
 {
     settings.Config.GroupId = "usage-aggregation";
     settings.Config.AutoOffsetReset = AutoOffsetReset.Earliest;
+    settings.DisableHealthChecks = true;
 }, (sp, consumerBuilder) =>
 {
     var schemaRegistry = sp.GetRequiredService<ISchemaRegistryClient>();
     consumerBuilder.SetValueDeserializer(new AvroDeserializer<MeterReadingRaw>(schemaRegistry).AsSyncOverAsync());
 });
 
-builder.AddKafkaProducer<string, UsageAggregated>("kafka", (sp, producerBuilder) =>
+builder.AddKafkaProducer<string, UsageAggregated>("kafka", settings => settings.DisableHealthChecks = true, (sp, producerBuilder) =>
 {
     var schemaRegistry = sp.GetRequiredService<ISchemaRegistryClient>();
     producerBuilder.SetValueSerializer(new AvroSerializer<UsageAggregated>(schemaRegistry).AsSyncOverAsync());
 });
 builder.Services.AddSingleton<IUsageAggregatedPublisher, UsageAggregatedPublisher>();
 
-builder.AddKafkaProducer<string, UsageAnomalyDetected>("kafka", (sp, producerBuilder) =>
+builder.AddKafkaProducer<string, UsageAnomalyDetected>("kafka", settings => settings.DisableHealthChecks = true, (sp, producerBuilder) =>
 {
     var schemaRegistry = sp.GetRequiredService<ISchemaRegistryClient>();
     producerBuilder.SetValueSerializer(new AvroSerializer<UsageAnomalyDetected>(schemaRegistry).AsSyncOverAsync());

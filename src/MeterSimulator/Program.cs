@@ -21,7 +21,7 @@ builder.Services.AddSingleton<ISchemaRegistryClient>(_ =>
         ?? throw new InvalidOperationException("Schema registry endpoint not configured.");
     return new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = schemaRegistryUrl });
 });
-builder.AddKafkaProducer<string, MeterReadingRaw>("kafka", (sp, producerBuilder) =>
+builder.AddKafkaProducer<string, MeterReadingRaw>("kafka", settings => settings.DisableHealthChecks = true, (sp, producerBuilder) =>
 {
     var schemaRegistry = sp.GetRequiredService<ISchemaRegistryClient>();
     producerBuilder.SetValueSerializer(new AvroSerializer<MeterReadingRaw>(schemaRegistry).AsSyncOverAsync());
