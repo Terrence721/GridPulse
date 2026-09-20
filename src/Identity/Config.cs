@@ -18,6 +18,21 @@ public static class Config
             new ApiScope("grid-ops-api", "Grid Operations Console API"),
         };
 
+    // Without an explicit ApiResource, Duende falls back to a single
+    // static "{issuer}/resources" audience claim on every token
+    // (confirmed live: a real token's aud was "http://localhost:5105/
+    // resources", not "grid-ops-api") - the gateway's JWT bearer config
+    // expects the audience to literally be "grid-ops-api", so this
+    // resource has to exist for that check to ever pass.
+    public static IEnumerable<ApiResource> ApiResources =>
+        new ApiResource[]
+        {
+            new ApiResource("grid-ops-api", "Grid Operations Console API")
+            {
+                Scopes = { "grid-ops-api" }
+            }
+        };
+
     public static IEnumerable<Client> Clients(IConfiguration configuration) =>
         new Client[]
         {
