@@ -129,7 +129,7 @@ Open [`GridPulse.code-workspace`](GridPulse.code-workspace) in VS Code for the c
 ### Prerequisites
 
 - .NET 10 SDK
-- [Aspire CLI](https://aspire.dev) 13.5.4+ (`irm https://aspire.dev/install.ps1 | iex` on Windows, `curl -sSL https://aspire.dev/install.sh | bash` on Linux/macOS) — this repo's `Aspire.Hosting.*` NuGet packages are pinned to 13.5.3; the newer 13.5.4 CLI is confirmed compatible
+- [Aspire CLI](https://aspire.dev) 13.5.4+ (`irm https://aspire.dev/install.ps1 | iex` on Windows, `curl -sSL https://aspire.dev/install.sh | bash` on Linux/macOS) — matches this repo's `Aspire.Hosting.*` NuGet package version
 - Docker Desktop (for Postgres, Kafka, and the Confluent Schema Registry)
 - Node.js 20+ with [Corepack](https://nodejs.org/api/corepack.html) enabled (`corepack enable`) — resolves the pinned **Yarn 4.18.0** automatically for the Notification Service, added in Phase 3
 - [Stripe CLI](https://stripe.com/docs/stripe-cli) (optional, only for exercising the real payment flow locally) — `stripe listen --forward-to http://localhost:5102/webhooks/stripe` forwards real test-mode webhooks with no public tunnel needed; see `docs/architecture.md`'s Stripe entry for the full local-verification runbook
