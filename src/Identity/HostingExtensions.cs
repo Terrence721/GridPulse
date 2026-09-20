@@ -45,12 +45,15 @@ internal static class HostingExtensions
         // user (across all connected clients) with the ability to revoke a
         // session, backed by Duende's default in-memory store - no
         // Postgres needed, keeping Identity's "no database" scope intact.
-        // Restricted to the dedicated "admin" test user's role claim, not
-        // any specific dispatcher - see TestUsers.cs.
+        // Restricted to the dedicated "admin" test user's username - a
+        // role claim was tried first, but Duende's local login cookie only
+        // ever carries sub/name/idp/amr/auth_time (confirmed live), so
+        // "name" (which equals the username on this cookie) is what's
+        // actually checkable here, not any custom claim.
         isBuilder.AddServerSideSessions();
 
         builder.Services.AddAuthorization(options =>
-            options.AddPolicy("admin", policy => policy.RequireClaim(JwtClaimTypes.Role, "admin")));
+            options.AddPolicy("admin", policy => policy.RequireClaim(JwtClaimTypes.Name, "admin")));
         builder.Services.Configure<RazorPagesOptions>(options =>
             options.Conventions.AuthorizeFolder("/ServerSideSessions", "admin"));
 
