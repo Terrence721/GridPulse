@@ -126,6 +126,8 @@ Duende's official project template happens to implement that hosted UI as ASP.NE
 
 **A real, present trust-boundary decision, stated honestly.** `grid-operations` itself gains no authentication of its own in this slice — it remains exactly as anonymous as it is today. Only the gateway's JWT-bearer check stands between the public network and a real work-order mutation; `grid-operations` trusts that only the gateway (inside the same Aspire-orchestrated private network) ever calls it. An accepted, explicit trade-off for this slice, not an oversight — revisit before any real deployment.
 
+**One `Identity` instance for every GridPulse frontend, not one per app.** `src/Identity` is deliberately scoped and named as a standalone project, not `grid-ops-console`'s own auth service — the same OIDC provider is meant to serve the Phase 4b customer billing dashboard too, once it's built, as a second registered client (its own client ID, its own `ApiScope`/`ApiResource` for whatever BFF fronts `Billing`/`UsageAggregation`) against this same running instance. Two separate IdentityServer projects would mean two logically separate token issuers, two separate places to configure and patch, and no reason a utility's customers and its dispatchers need different identity infrastructure rather than just different clients and scopes on the same one.
+
 ## Live push via a BFF-side SignalR relay of `usage.anomaly.detected`
 
 **Context.** A dispatcher watching the console needs to know the instant a meter goes quiet, not on the next manual refresh — the same real-time expectation a real utility's outage-management system has to meet.
