@@ -30,6 +30,7 @@ var zipCode = builder.AddParameter("meter-simulator-zip-code");
 var notificationWebhookUrl = builder.AddParameter("notification-webhook-url");
 var stripeSecretKey = builder.AddParameter("stripe-secret-key", secret: true);
 var stripeWebhookSecret = builder.AddParameter("stripe-webhook-secret", secret: true);
+var identitySmokeTestClientSecret = builder.AddParameter("identity-smoke-test-client-secret", secret: true);
 
 var accountCustomer = builder.AddProject<Projects.GridPulse_AccountCustomer>("account-customer")
     .WithReference(accountsDb)
@@ -39,6 +40,10 @@ var accountCustomer = builder.AddProject<Projects.GridPulse_AccountCustomer>("ac
     .WithEnvironment("AccountSeed__StartingAddress", startingAddress)
     .WithEnvironment("AccountSeed__BuildingsPerSide", buildingsPerSide)
     .WithEnvironment("AccountSeed__NotificationWebhookUrl", notificationWebhookUrl);
+
+var identity = builder.AddProject<Projects.GridPulse_Identity>("identity")
+    .WithHttpHealthCheck(path: "/health", endpointName: "http")
+    .WithEnvironment("SmokeTestClient__Secret", identitySmokeTestClientSecret);
 
 builder.AddProject<Projects.GridPulse_UsageAggregation>("usage-aggregation")
     .WithReference(gridpulseDb)
