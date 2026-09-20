@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-dotnet@v6
 
       - name: Install Aspire CLI
-        run: curl -sSL https://aspire.dev/install.sh | bash -s -- --version 13.5.3
+        run: curl -sSL https://aspire.dev/install.sh | bash -s -- --version 13.5.4
 
       - name: Run CoreLoopSmokeTests
         run: dotnet test tests/AppHost.Tests
