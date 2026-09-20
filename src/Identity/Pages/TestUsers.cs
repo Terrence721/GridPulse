@@ -7,9 +7,11 @@ using Duende.IdentityServer.Test;
 
 namespace GridPulse.Identity;
 
-// Dev-only demo credentials for the Grid Operations console - not real
-// users, no role claims (this slice has a single "dispatcher" persona,
-// nothing authorizes on role yet).
+// Dev-only demo credentials. The 4 dispatchers are equal peers - no role
+// claims, single persona, matching the Grid Ops console's own scope. The
+// 5th account is separate: an Identity-Server-administration identity
+// (not a dispatcher), the only one with a "role: admin" claim, used solely
+// to gate Duende's own Server-Side Sessions admin page.
 public static class TestUsers
 {
     public static List<TestUser> Users =>
@@ -69,6 +71,19 @@ public static class TestUsers
                     new Claim(JwtClaimTypes.FamilyName, "Reyes"),
                     new Claim(JwtClaimTypes.Email, "morgan.reyes@gridpulse.demo"),
                     new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
+                }
+            },
+            new TestUser
+            {
+                SubjectId = "5",
+                Username = "admin",
+                Password = "IdentityAdmin!1",
+                Claims =
+                {
+                    new Claim(JwtClaimTypes.Name, "Identity Admin"),
+                    new Claim(JwtClaimTypes.Email, "admin@gridpulse.demo"),
+                    new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
+                    new Claim(JwtClaimTypes.Role, "admin"),
                 }
             }
         };
