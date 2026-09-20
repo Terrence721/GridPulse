@@ -50,7 +50,7 @@ jobs:
         # runners don't have it. Pinned to match the Aspire.Hosting.* package version.
         # The script detects $GITHUB_ACTIONS and appends its install dir to $GITHUB_PATH
         # itself, so no manual PATH wiring is needed here.
-        run: curl -sSL https://aspire.dev/install.sh | bash -s -- --version 13.5.3
+        run: curl -sSL https://aspire.dev/install.sh | bash -s -- --version 13.5.4
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
