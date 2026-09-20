@@ -6,7 +6,7 @@
 [![CodeQL](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml/badge.svg)](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml)
 
 <!-- markdownlint-disable-next-line MD036 -->
-**Status:** Phases 1 through 3 all complete, plus three post-Phase-3 features — Green Button/NAESB ESPI data export, a real Stripe payment integration, and Grid Operations (outage detection & work orders), all live-verified. All six services (Account/Customer Service, Meter Simulator, Usage Aggregation, Billing, Grid Operations, Notification Service) run end-to-end over real Kafka events through a real Confluent Schema Registry. See [Build Phases](#-build-phases).
+**Status:** Phases 1 through 3 all complete, plus three post-Phase-3 features — Green Button/NAESB ESPI data export, a real Stripe payment integration, and Grid Operations (outage detection & work orders), all live-verified. All six services (Account/Customer Service, Meter Simulator, Usage Aggregation, Billing, Grid Operations, Notification Service) run end-to-end over real Kafka events through a real Confluent Schema Registry. **Phase 4a (Grid Operations console) is in progress** — Duende IdentityServer and the Grid Operations BFF gateway are both built and live-verified end-to-end; the React/Redux Toolkit frontend is next. See [Build Phases](#-build-phases).
 
 GridPulse is a self-contained, event-driven platform simulating a utility company's meter-reading, usage-aggregation, and billing pipeline. It's an original portfolio project (not a fork or a cloned tutorial) built to demonstrate principal-level system design: distributed systems, microservices decomposition, event streaming, resilient service-to-service communication, CI/CD, and production-grade observability. The domain is utility metering/billing, but the pipeline shape — high-volume telemetry in, aggregation, billing out — generalizes to IoT sensor networks, subscription usage billing, or order processing.
 
@@ -68,19 +68,21 @@ Kafka: usage.anomaly.detected            — published by Usage Aggregation when
 Grid Operations Service (.NET)          — correlates quiet meters into outages, tracks
         │                                 tech-filed & auto-detected work orders
         ▼
-Grid Operations BFF / API Gateway       — separate from the customer-facing gateway below — Phase 4
+Grid Operations BFF / API Gateway       — separate from the customer-facing gateway below;
+(.NET Aspire, OIDC auth via               live-verified end-to-end — Phase 4a, done
+ Duende IdentityServer)
         │
         ▼
 Outage & Work Order Dashboard           — its own frontend for field crews/dispatchers:
-(React + Redux Toolkit)                   outage map, work-order queue — Phase 4
+(React + Redux Toolkit)                   outage map, work-order queue — Phase 4a, in progress
 
 Account/Customer Service (.NET)         — owns customer & meter registration, REST API, built
         │
         ▼
-BFF / API Gateway (.NET Aspire)         — aggregates data for the UI, OIDC auth — Phase 4
+BFF / API Gateway (.NET Aspire)         — aggregates data for the UI, OIDC auth — Phase 4b
         │
         ▼
-React + Redux Toolkit Dashboard          — live usage charts, invoice history, account mgmt — Phase 4
+React + Redux Toolkit Dashboard          — live usage charts, invoice history, account mgmt — Phase 4b
 ```
 
 All services are orchestrated locally and in CI via **.NET Aspire**. Beyond the core loop pictured above, Usage Aggregation also exports real Green Button/NAESB ESPI usage data over HTTP, Billing collects real (test-mode) Stripe payments against generated invoices, and Grid Operations tracks real outages and work orders correlated from meters that stop transmitting — see [`docs/architecture.md`](docs/architecture.md) for all three.
@@ -96,7 +98,8 @@ Tracked in detail in [`todo.md`](todo.md) (the source of truth) and the [project
 - [x] **Phase 1 — Core loop, no Kafka.** Meter Simulator → Usage Aggregation → Billing via direct REST calls, single Postgres DB.
 - [x] **Phase 2 — Introduce Kafka.** Replace REST calls between services with Kafka topics; add a schema registry.
 - [x] **Phase 3 — Polyglot + accounts.** Add the Node.js Notification Service and the Account/Customer Service.
-- [ ] **Phase 4 — Dashboard.** Build the React/Redux Toolkit dashboard and BFF gateway.
+- [ ] **Phase 4a — Grid Operations console.** Duende IdentityServer + Grid Operations BFF gateway done and live-verified end-to-end; React/Redux Toolkit frontend in progress.
+- [ ] **Phase 4b — Customer billing dashboard.** Build the React/Redux Toolkit dashboard and BFF gateway for usage/billing — deferred until Phase 4a ships (needs new `Billing`/`UsageAggregation` read endpoints first).
 - [ ] **Phase 5 — CI/CD.** GitHub Actions build/test/containerize/deploy pipeline.
 - [ ] **Phase 6 — Observability & resiliency.** OpenTelemetry, dashboards, retries/circuit breakers, dead-letter queues, chaos testing.
 
