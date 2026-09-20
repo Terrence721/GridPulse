@@ -7,11 +7,13 @@ using Duende.IdentityServer.Test;
 
 namespace GridPulse.Identity;
 
-// Dev-only demo credentials. The 4 dispatchers are equal peers - no role
-// claims, single persona, matching the Grid Ops console's own scope. The
-// 5th account is separate: an Identity-Server-administration identity
-// (not a dispatcher), the only one with a "role: admin" claim, used solely
-// to gate Duende's own Server-Side Sessions admin page.
+// Dev-only demo credentials. The 4 dispatchers are equal peers - no
+// special access, single persona, matching the Grid Ops console's own
+// scope. The 5th account is separate: an Identity-Server-administration
+// identity (not a dispatcher), the only one named "admin" - Duende's
+// Server-Side Sessions page is gated on that username directly, since
+// custom TestUser claims (a role claim included) never reach the local
+// login cookie - only sub/name/idp/amr/auth_time do, confirmed live.
 public static class TestUsers
 {
     public static List<TestUser> Users =>
@@ -83,7 +85,6 @@ public static class TestUsers
                     new Claim(JwtClaimTypes.Name, "Identity Admin"),
                     new Claim(JwtClaimTypes.Email, "admin@gridpulse.demo"),
                     new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
-                    new Claim(JwtClaimTypes.Role, "admin"),
                 }
             }
         };
