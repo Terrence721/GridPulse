@@ -4,13 +4,21 @@
 # automatically from run-app.ps1's own shutdown path.
 #
 # Process identification is Docker-independent: every dotnet/node process
-# GridPulse's AppHost spawns has this repo's own path in its command line
+# GridPulse's AppHost spawns, plus the AppHost's own native executable
+# (GridPulse.AppHost.exe), has this repo's own path in its command line
 # (e.g. `dotnet run --project ...\GridPulse\src\AccountCustomer\...`), so
 # matching on that directly finds the right processes even if Docker itself
 # isn't reachable - the scenario where cleanup matters most, and one an
 # earlier version of this script got backwards (it derived which processes
 # to kill FROM the containers, so a broken Docker daemon silently skipped
 # process cleanup too).
+#
+# The AppHost's own native exe is matched by name explicitly, not just
+# folded into the dotnet/node walk below: it sits ABOVE dcp.exe in the real
+# process tree (it's what launches dcp.exe), and that parent link is
+# frequently already broken at the OS level by the time this script runs -
+# so no amount of walking up from a dotnet/node anchor or down from a
+# dcp.exe root can ever reach it. It has to be its own anchor.
 #
 # Container cleanup still uses Aspire's own "gridpulse.apphost" volume-mount
 # label plus the "creatorProcessId" label shared by every container from one
@@ -57,7 +65,7 @@ if ($allProcesses) {
     try {
         $repoRootLower = $repoRoot.ToLowerInvariant()
         $anchors = $allProcesses | Where-Object {
-            ($_.Name -eq "dotnet.exe" -or $_.Name -eq "node.exe") -and
+            ($_.Name -eq "dotnet.exe" -or $_.Name -eq "node.exe" -or $_.Name -like "GridPulse.*.exe") -and
             $_.CommandLine -and
             $_.CommandLine.ToLowerInvariant().Contains($repoRootLower)
         }
