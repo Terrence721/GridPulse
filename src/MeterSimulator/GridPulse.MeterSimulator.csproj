@@ -12,7 +12,7 @@
     <PackageReference Include="Confluent.Kafka" Version="2.15.1" />
     <PackageReference Include="Confluent.SchemaRegistry.Serdes.Avro" Version="2.15.1" />
     <PackageReference Include="Apache.Avro" Version="1.12.2" />
-    <PackageReference Include="Aspire.Confluent.Kafka" Version="13.5.3" />
+    <PackageReference Include="Aspire.Confluent.Kafka" Version="13.5.4" />
   </ItemGroup>
 
   <ItemGroup>

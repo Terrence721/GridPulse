@@ -12,7 +12,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
     <PackageReference Include="xunit.v3" Version="4.0.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0" />
-    <PackageReference Include="Aspire.Hosting.Testing" Version="13.5.3" />
+    <PackageReference Include="Aspire.Hosting.Testing" Version="13.5.4" />
     <PackageReference Include="Confluent.Kafka" Version="2.15.1" />
     <PackageReference Include="Confluent.SchemaRegistry.Serdes.Avro" Version="2.15.1" />
     <PackageReference Include="Apache.Avro" Version="1.12.2" />
