@@ -65,7 +65,7 @@ builder.AddProject<Projects.GridPulse_Billing>("billing")
     .WithEnvironment("Stripe__SecretKey", stripeSecretKey)
     .WithEnvironment("Stripe__WebhookSigningSecret", stripeWebhookSecret);
 
-builder.AddProject<Projects.GridPulse_GridOperations>("grid-operations")
+var gridOperations = builder.AddProject<Projects.GridPulse_GridOperations>("grid-operations")
     .WithReference(gridOperationsDb)
     .WaitFor(gridOperationsDb)
     .WithReference(kafka)
@@ -74,6 +74,13 @@ builder.AddProject<Projects.GridPulse_GridOperations>("grid-operations")
     .WaitFor(schemaRegistry)
     .WithReference(accountCustomer)
     .WaitFor(accountCustomer)
+    .WithHttpHealthCheck(path: "/health", endpointName: "http");
+
+var gridOperationsGateway = builder.AddProject<Projects.GridPulse_GridOperationsGateway>("grid-operations-gateway")
+    .WithReference(gridOperations)
+    .WaitFor(gridOperations)
+    .WithReference(identity)
+    .WaitFor(identity)
     .WithHttpHealthCheck(path: "/health", endpointName: "http");
 
 builder.AddProject<Projects.GridPulse_MeterSimulator>("meter-simulator")
