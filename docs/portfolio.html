@@ -296,7 +296,7 @@
   </div>
   <div class="stamp" aria-hidden="true">
     <div class="stamp-inner">
-      <span class="n">23</span>
+      <span class="n">26</span>
       <span class="l">REAL BUGS<br />FOUND</span>
     </div>
   </div>
@@ -308,7 +308,7 @@
       <div class="manifest-cell"><span class="v">Phase 4a</span><span class="k">Identity + gateway live, frontend next</span></div>
       <div class="manifest-cell"><span class="v">296</span><span class="k">commits</span></div>
       <div class="manifest-cell"><span class="v">30</span><span class="k">issues tracked</span></div>
-      <div class="manifest-cell"><span class="v">23</span><span class="k">real bugs found</span></div>
+      <div class="manifest-cell"><span class="v">26</span><span class="k">real bugs found</span></div>
       <div class="manifest-cell"><span class="v">13.5.4</span><span class="k">Aspire CLI</span></div>
       <div class="manifest-cell"><span class="v">102</span><span class="k">tests, all passing</span></div>
     </div>
@@ -375,7 +375,7 @@
   </section>
 
   <section>
-    <h2>23 real bugs, found by actually running the thing</h2>
+    <h2>26 real bugs, found by actually running the thing</h2>
     <p class="h2-sub">All logged in <a href="https://github.com/Terrence721/GridPulse/blob/main/todo.md">todo.md</a>, checkable against the commit history</p>
     <p class="lede">
       From CodeQL failing before any service existed, to a live DNS resolution bug caught only by running
@@ -759,6 +759,56 @@
           </div>
           <div class="meta"><span class="tag">real bug · cold-start false positive</span>
             <a href="https://github.com/Terrence721/GridPulse/issues/30">issue #30</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">24</div>
+        <div>
+          <div class="file">src/Identity/HostingExtensions.cs</div>
+          <div class="desc">
+            Logging in via Duende's Quickstart UI succeeded server-side, but the very next request came
+            back unauthenticated — no error, no redirect loop, just silently logged out. Direct server log
+            evidence showed why: the <code>idsrv</code> cookie defaults to <code>SameSite=None</code>, which
+            also requires <code>Secure</code>; running locally over plain HTTP, the browser silently
+            dropped it rather than rejecting the response outright. Fixed by forcing
+            <code>SameSiteMode.Lax</code> for the <code>idsrv</code> scheme. Re-verified live: login now
+            persists across requests.
+          </div>
+          <div class="meta"><span class="tag">real bug · silently dropped auth cookie</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/31">issue #31</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">25</div>
+        <div>
+          <div class="file">src/Identity/Config.cs</div>
+          <div class="desc">
+            Every <code>/api/*</code> gateway endpoint rejected a real, freshly-issued access token with
+            <code>401</code>, despite the JWT decoding to valid claims. Decoding the real token showed why:
+            its <code>aud</code> claim was Duende's static-audience fallback, not <code>grid-ops-api</code>
+            — no <code>ApiResource</code> was registered for that scope. The first attempted fix had zero
+            effect, caught only by re-testing live: the registration call itself was never actually wired
+            into <code>HostingExtensions.cs</code>. Fixed by adding it. Re-verified live: real work-order
+            and outage data now flows through the gateway with a real token.
+          </div>
+          <div class="meta"><span class="tag">real bug · OIDC audience misconfiguration</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/32">issue #32</a></div>
+        </div>
+      </div>
+      <div class="item">
+        <div class="no">26</div>
+        <div>
+          <div class="file">src/AppHost/AppHost.cs</div>
+          <div class="desc">
+            The Grid Operations BFF gateway crashed on every AppHost run with <code>No bootstrap servers
+            configured</code>. <code>aspire logs</code> showed the real exception directly: its AppHost
+            registration was missing the Kafka/schema-registry references the anomaly-relay consumer
+            needs, deferred during earlier scaffolding and never added back once that consumer was wired
+            up. Fixed by adding both references. Re-verified live: the gateway starts cleanly and relays a
+            real anomaly from a real stopped meter.
+          </div>
+          <div class="meta"><span class="tag">real bug · missing AppHost wiring</span>
+            <a href="https://github.com/Terrence721/GridPulse/issues/33">issue #33</a></div>
         </div>
       </div>
     </div>
