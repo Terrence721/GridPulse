@@ -1,0 +1,27 @@
+{
+  "dotnet.defaultSolution": "GridPulse.slnx",
+
+  "files.exclude": {
+    "**/bin": true,
+    "**/obj": true,
+    "**/.vs": true,
+    "**/node_modules": true,
+    "**/.yarn/cache": true,
+    "**/.yarn/install-state.gz": true,
+    "**/.yarn/unplugged": true
+  },
+  "search.exclude": {
+    "**/bin": true,
+    "**/obj": true,
+    "**/node_modules": true,
+    "**/.yarn": true,
+    "**/dist": true,
+    "yarn.lock": true
+  },
+  "files.watcherExclude": {
+    "**/bin/**": true,
+    "**/obj/**": true,
+    "**/node_modules/**": true,
+    "**/.yarn/**": true
+  }
+}
