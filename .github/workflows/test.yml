@@ -24,7 +24,7 @@ jobs:
         # AppHost.Tests references AppHost, whose SDK requires the Aspire CLI
         # bundle to build (ASPIRE009) even though its own tests are excluded
         # below. Pinned to match the Aspire.Hosting.* package version.
-        run: curl -sSL https://aspire.dev/install.sh | bash -s -- --version 13.5.3
+        run: curl -sSL https://aspire.dev/install.sh | bash -s -- --version 13.5.4
 
       - name: Run fast tests
         # AppHost.Tests' CoreLoopSmokeTests spins up the full real stack
