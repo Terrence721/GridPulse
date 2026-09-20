@@ -19,6 +19,7 @@
     <ProjectReference Include="..\AccountCustomer\GridPulse.AccountCustomer.csproj" />
     <ProjectReference Include="..\Billing\GridPulse.Billing.csproj" />
     <ProjectReference Include="..\GridOperations\GridPulse.GridOperations.csproj" />
+    <ProjectReference Include="..\Identity\GridPulse.Identity.csproj" />
     <ProjectReference Include="..\MeterSimulator\GridPulse.MeterSimulator.csproj" />
     <ProjectReference Include="..\UsageAggregation\GridPulse.UsageAggregation.csproj" />
   </ItemGroup>
