@@ -99,6 +99,17 @@ Full decision-by-decision reasoning (context, alternatives, consequences) for de
 
 **Verified live, end to end:** a real AppHost run with `meter-simulator` intentionally stopped to force real quiet meters, confirmed against real `gridoperationsdb` data via `psql` — both the single-meter-draft case and the multi-meter correlated-outage case; the fixed correlator and the cold-start lookback bound both re-verified live the same way after their respective fixes; full solution build (0 warnings/errors) and all 95 .NET tests + 7 Notification Service Vitest tests passing.
 
+## Phase 4 split in two: the Grid Operations console ships before the customer billing dashboard
+
+**Context.** The original design doc scoped Phase 4 as one thing: "React/Redux Toolkit dashboard + BFF/API gateway with OIDC auth." Direct inspection of the codebase at the start of this phase surfaced a real asymmetry between the two personas that thing actually serves — a field-crew/dispatcher console and a customer billing dashboard — that made building them as one combined effort the wrong call.
+
+**Alternatives considered:**
+
+1. **One dashboard, one BFF, covering both personas.** Rejected — the two personas need different data (work orders/outages vs. usage/invoices), different auth (a small set of internal dispatcher accounts vs. real customer accounts), and, concretely, different backend readiness: `GridOperations`' HTTP surface (`POST/GET /work-orders`, `PATCH /work-orders/{id}/status`, `GET /outages`) was already fully built and live-verified before this phase began, while `Billing` has no invoice list/read endpoint at all today (invoices are write-only via Kafka) and `UsageAggregation` only exposes ESPI Atom/XML, not JSON. Building one combined slice would have blocked the whole phase on new `Billing`/`UsageAggregation` endpoints that have nothing to do with grid operations.
+2. **Two independent frontend+BFF pairs, Grid Operations console first (chosen).** Ship the slice with zero new backend endpoints needed first, proving the full auth + live-push architecture end-to-end fastest; the customer billing dashboard becomes its own later plan cycle once its backend gaps are closed.
+
+**Decision.** This document, and every design decision below it referencing "Phase 4," covers the Grid Operations console only. The customer billing dashboard is deferred, tracked separately in `todo.md` (Phase 8b) and issue [#13](https://github.com/Terrence721/GridPulse/issues/13).
+
 ## Grid Operations console auth: Duende IdentityServer, and why its Quickstart UI is Razor Pages, not React
 
 **Context.** No authentication exists anywhere in this repo today — every endpoint, in every service, is anonymous. The Grid Operations console is the first feature requiring real login, so the OIDC provider choice is being made for the first time here.
@@ -114,3 +125,20 @@ Full decision-by-decision reasoning (context, alternatives, consequences) for de
 Duende's official project template happens to implement that hosted UI as ASP.NET Core Razor Pages, because login/consent/logout is genuinely just a handful of server-rendered forms needing session/cookie handling, CSRF protection, and password verification — nothing that benefits from being a richer client-side app. Scaffolding `src/Identity` from Duende's own `isinmem` template (rather than hand-building this UI) is a deliberate, narrow exception to this repo's usual from-scratch scaffolding habit: login/consent is a security-sensitive surface (anti-forgery tokens, secure cookie handling, password hashing) where reimplementing it by hand for a demo adds real risk for no benefit — it wouldn't showcase anything the React/Redux Toolkit work doesn't already demonstrate.
 
 **A real, present trust-boundary decision, stated honestly.** `grid-operations` itself gains no authentication of its own in this slice — it remains exactly as anonymous as it is today. Only the gateway's JWT-bearer check stands between the public network and a real work-order mutation; `grid-operations` trusts that only the gateway (inside the same Aspire-orchestrated private network) ever calls it. An accepted, explicit trade-off for this slice, not an oversight — revisit before any real deployment.
+
+## Live push via a BFF-side SignalR relay of `usage.anomaly.detected`
+
+**Context.** A dispatcher watching the console needs to know the instant a meter goes quiet, not on the next manual refresh — the same real-time expectation a real utility's outage-management system has to meet.
+
+**Alternatives considered:**
+
+1. **The browser subscribes to Kafka directly.** Rejected outright — there is no browser Kafka client, and even if there were, it would mean handing an untrusted public client direct network access to the internal Kafka broker and Schema Registry, a much larger exposure than anything else in this repo's trust model.
+2. **A BFF-side relay over SignalR (chosen).** `GridOperationsGateway` runs its own `AnomalyRelayConsumer`, a `BackgroundService` structured like `GridOperations`' own `UsageAnomalyConsumer` minus the correlation logic, under its own consumer group (`grid-operations-gateway`, independent of `GridOperations`' `grid-operations` group — each gets a full, independent copy of the topic) and broadcasts each anomaly to every connected browser via `AnomalyFeedHub`.
+
+**Why `AutoOffsetReset.Latest`, not `Earliest`, on this consumer.** There is no "meter came back" event on this topic — only "meter went quiet." Replaying its full history on every relay startup or consumer-group reset would flood every newly-connected dashboard session with a backlog of stale anomalies, some possibly already resolved. `Latest` means the live feed only ever shows anomalies detected while the relay has actually been running — the same reasoning already applied to `Billing`'s `InvoicePaymentConsumer` for `billing.invoice.generated`, and to `Notification Service`'s consumer of that same topic (see above).
+
+**Deliberately no address enrichment on the relay.** `GridOperations`' own `WorkOrderCorrelationProcessor` already looks up the meter's street address moments later, if and when the anomaly becomes a real `WorkOrder`. Duplicating that `account-customer` lookup here, for a transient feed entry that may never become a work order, was judged not worth a second dependency on that service — the live feed shows `meterId`/`accountId`/`lastSeenAt` only; the enriched, durable record is the `WorkOrder` itself.
+
+**Auth on the hub matches the REST endpoints, with one necessary adjustment.** `AnomalyFeedHub` is `[Authorize]` under the same JWT bearer scheme `GridOperationsGateway`'s REST endpoints use. SignalR's WebSocket/SSE transports can't attach an `Authorization` header to their handshake, so the client instead appends the token as `?access_token=...`; `AddGatewayAuthentication`'s `OnMessageReceived` pulls it into `context.Token`, but only for requests under `/hubs` — REST calls still authenticate the normal header way.
+
+**A known, honestly-stated limitation.** There is no replay buffer. A dispatcher who wasn't connected at the moment an anomaly fired will never see it via this feed — only the real `WorkOrder`/`Outage` rows, populated independently by `GridOperations`' own correlator, are the durable source of truth. The live feed is a convenience layer on top of that, not a second copy of it.
