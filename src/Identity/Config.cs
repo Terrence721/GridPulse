@@ -1,4 +1,5 @@
-﻿using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace GridPulse.Identity;
 
@@ -14,39 +15,43 @@ public static class Config
     public static IEnumerable<ApiScope> ApiScopes =>
         new ApiScope[]
         {
-            new ApiScope("scope1"),
-            new ApiScope("scope2"),
+            new ApiScope("grid-ops-api", "Grid Operations Console API"),
         };
 
-    public static IEnumerable<Client> Clients =>
+    public static IEnumerable<Client> Clients(IConfiguration configuration) =>
         new Client[]
         {
-            // m2m client credentials flow client
+            // The Grid Operations console SPA - Authorization Code + PKCE, no
+            // secret since a browser app can't keep one confidential.
             new Client
             {
-                ClientId = "m2m.client",
-                ClientName = "Client Credentials Client",
+                ClientId = "grid-ops-console",
+                ClientName = "Grid Operations Console",
 
-                AllowedGrantTypes = GrantTypes.ClientCredentials,
-                ClientSecrets = { new Secret("511536EF-F270-4058-80CA-1C89C192F69A".Sha256()) },
+                AllowedGrantTypes = GrantTypes.Code,
+                RequirePkce = true,
+                RequireClientSecret = false,
 
-                AllowedScopes = { "scope1" }
+                RedirectUris = { "http://localhost:5173/callback" },
+                PostLogoutRedirectUris = { "http://localhost:5173/" },
+                AllowedCorsOrigins = { "http://localhost:5173" },
+
+                AllowedScopes = { "openid", "profile", "grid-ops-api" },
+                AccessTokenLifetime = 3600,
             },
 
-            // interactive client using code flow + pkce
+            // Machine-to-machine client used only by the automated Aspire
+            // smoke test to get a real token without simulating an
+            // interactive browser login.
             new Client
             {
-                ClientId = "interactive",
-                ClientSecrets = { new Secret("49C1A7E1-0C79-4A89-A3D6-A37998FB86B0".Sha256()) },
-                    
-                AllowedGrantTypes = GrantTypes.Code,
+                ClientId = "grid-ops-console-smoke-test",
+                ClientName = "Grid Operations Console Smoke Test",
 
-                RedirectUris = { "https://localhost:44300/signin-oidc" },
-                FrontChannelLogoutUri = "https://localhost:44300/signout-oidc",
-                PostLogoutRedirectUris = { "https://localhost:44300/signout-callback-oidc" },
+                AllowedGrantTypes = GrantTypes.ClientCredentials,
+                ClientSecrets = { new Secret(configuration["SmokeTestClient:Secret"]!.Sha256()) },
 
-                AllowOfflineAccess = true,
-                AllowedScopes = { "openid", "profile", "scope2" }
+                AllowedScopes = { "grid-ops-api" },
             },
         };
 }
