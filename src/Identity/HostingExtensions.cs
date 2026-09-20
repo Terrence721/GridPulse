@@ -1,6 +1,8 @@
 using GridPulse.Identity;
 using Duende.IdentityServer;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using IdentityModel;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace GridPulse.Identity;
 
@@ -39,17 +41,18 @@ internal static class HostingExtensions
             IdentityServerConstants.DefaultCookieAuthenticationScheme,
             options => options.Cookie.SameSite = SameSiteMode.Lax);
 
-        // if you want to use server-side sessions: https://blog.duendesoftware.com/posts/20220406_session_management/
-        // then enable it
-        //isBuilder.AddServerSideSessions();
-        //
-        // and put some authorization on the admin/management pages
-        //builder.Services.AddAuthorization(options =>
-        //       options.AddPolicy("admin",
-        //           policy => policy.RequireClaim("sub", "1"))
-        //   );
-        //builder.Services.Configure<RazorPagesOptions>(options =>
-        //    options.Conventions.AuthorizeFolder("/ServerSideSessions", "admin"));
+        // Server-side session tracking: lists every currently logged-in
+        // user (across all connected clients) with the ability to revoke a
+        // session, backed by Duende's default in-memory store - no
+        // Postgres needed, keeping Identity's "no database" scope intact.
+        // Restricted to the dedicated "admin" test user's role claim, not
+        // any specific dispatcher - see TestUsers.cs.
+        isBuilder.AddServerSideSessions();
+
+        builder.Services.AddAuthorization(options =>
+            options.AddPolicy("admin", policy => policy.RequireClaim(JwtClaimTypes.Role, "admin")));
+        builder.Services.Configure<RazorPagesOptions>(options =>
+            options.Conventions.AuthorizeFolder("/ServerSideSessions", "admin"));
 
 
         return builder.Build();
