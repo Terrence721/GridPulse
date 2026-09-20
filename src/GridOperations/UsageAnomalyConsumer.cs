@@ -1,6 +1,4 @@
-using System.Net;
 using System.Net.Http.Json;
-using System.Text.Json;
 using Confluent.Kafka;
 using GridPulse.GridOperations.Avro;
 
@@ -12,12 +10,6 @@ public sealed class UsageAnomalyConsumer(
     IHttpClientFactory httpClientFactory,
     ILogger<UsageAnomalyConsumer> logger) : BackgroundService
 {
-    // AccountCustomer's minimal API serializes responses with the ASP.NET Core Web
-    // defaults (camelCase), but GetFromJsonAsync without explicit options deserializes
-    // case-sensitively against this PascalCase record - StreetName/StreetNumber would
-    // silently bind to their defaults (null/0) with no exception.
-    private static readonly JsonSerializerOptions ResponseOptions = new(JsonSerializerDefaults.Web);
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         consumer.Subscribe("usage.anomaly.detected");
@@ -45,17 +37,8 @@ public sealed class UsageAnomalyConsumer(
             try
             {
                 var httpClient = httpClientFactory.CreateClient("account-customer");
-                MeterLookupResponse? meter;
-
-                try
-                {
-                    meter = await httpClient.GetFromJsonAsync<MeterLookupResponse>(
-                        $"/meters/{Uri.EscapeDataString(anomaly.MeterId)}", ResponseOptions, stoppingToken);
-                }
-                catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-                {
-                    meter = null;
-                }
+                var meter = await httpClient.GetFromJsonAsync<MeterLookupResponse>(
+                    $"/meters/{Uri.EscapeDataString(anomaly.MeterId)}", stoppingToken);
 
                 if (meter is null)
                 {
