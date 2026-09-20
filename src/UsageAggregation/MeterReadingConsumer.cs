@@ -38,16 +38,33 @@ public sealed class MeterReadingConsumer(
                 continue;
             }
 
+            if (!Guid.TryParse(raw.ReadingId, out var readingId))
+            {
+                logger.LogWarning("Skipping meter reading from {MeterId} with invalid ReadingId '{ReadingId}'", raw.MeterId, raw.ReadingId);
+                continue;
+            }
+
             var request = new MeterReadingRequest(
                 raw.MeterId,
                 raw.AccountId,
                 DateTimeOffset.FromUnixTimeMilliseconds(raw.TimestampUnixMilliseconds),
                 raw.Kwh,
-                Guid.Parse(raw.ReadingId));
+                readingId);
 
-            using var scope = scopeFactory.CreateScope();
-            var processor = scope.ServiceProvider.GetRequiredService<ReadingProcessor>();
-            await processor.ProcessAsync(request, stoppingToken);
+            try
+            {
+                using var scope = scopeFactory.CreateScope();
+                var processor = scope.ServiceProvider.GetRequiredService<ReadingProcessor>();
+                await processor.ProcessAsync(request, stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                // A failure here (transient DB error, etc.) must never crash this
+                // BackgroundService - .NET's default BackgroundServiceExceptionBehavior is
+                // StopHost, which would permanently stop meter-reading processing for the
+                // rest of the process's lifetime over one bad/transient failure.
+                logger.LogWarning(ex, "Failed to process meter reading {ReadingId} from {MeterId}", raw.ReadingId, raw.MeterId);
+            }
         }
     }
 }
