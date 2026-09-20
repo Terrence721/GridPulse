@@ -64,7 +64,8 @@ public static class Config
                 ClientName = "Grid Operations Console Smoke Test",
 
                 AllowedGrantTypes = GrantTypes.ClientCredentials,
-                ClientSecrets = { new Secret(configuration["SmokeTestClient:Secret"]!.Sha256()) },
+                ClientSecrets = { new Secret((configuration["SmokeTestClient:Secret"]
+                    ?? throw new InvalidOperationException("SmokeTestClient:Secret must be set (the grid-ops-console-smoke-test client's secret).")).Sha256()) },
 
                 AllowedScopes = { "grid-ops-api" },
             },
