@@ -15,6 +15,9 @@ appsettings.*.json
 ## Aspire
 **/apphost.json
 
+## Duende IdentityServer
+src/Identity/keys/
+
 ## Node / React
 node_modules/
 dist/
