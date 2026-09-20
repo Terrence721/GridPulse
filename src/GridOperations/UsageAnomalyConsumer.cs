@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using Confluent.Kafka;
 using GridPulse.GridOperations.Avro;
@@ -37,8 +38,17 @@ public sealed class UsageAnomalyConsumer(
             try
             {
                 var httpClient = httpClientFactory.CreateClient("account-customer");
-                var meter = await httpClient.GetFromJsonAsync<MeterLookupResponse>(
-                    $"/meters/{Uri.EscapeDataString(anomaly.MeterId)}", stoppingToken);
+                MeterLookupResponse? meter;
+
+                try
+                {
+                    meter = await httpClient.GetFromJsonAsync<MeterLookupResponse>(
+                        $"/meters/{Uri.EscapeDataString(anomaly.MeterId)}", stoppingToken);
+                }
+                catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+                {
+                    meter = null;
+                }
 
                 if (meter is null)
                 {
