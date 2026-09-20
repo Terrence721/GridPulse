@@ -34,12 +34,24 @@ public sealed class UsageAggregatedConsumer(
 
             using var scope = scopeFactory.CreateScope();
             var generator = scope.ServiceProvider.GetRequiredService<InvoiceGenerator>();
-            await generator.GenerateAsync(
-                usage.AccountId,
-                DateTimeOffset.FromUnixTimeMilliseconds(usage.PeriodStartUnixMilliseconds),
-                DateTimeOffset.FromUnixTimeMilliseconds(usage.PeriodEndUnixMilliseconds),
-                usage.TotalKwh,
-                stoppingToken);
+
+            try
+            {
+                await generator.GenerateAsync(
+                    usage.AccountId,
+                    DateTimeOffset.FromUnixTimeMilliseconds(usage.PeriodStartUnixMilliseconds),
+                    DateTimeOffset.FromUnixTimeMilliseconds(usage.PeriodEndUnixMilliseconds),
+                    usage.TotalKwh,
+                    stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                // A failure here (transient DB error, bad config, etc.) must never crash this
+                // BackgroundService - .NET's default BackgroundServiceExceptionBehavior is
+                // StopHost, which would take down the entire Billing process (including
+                // InvoicePaymentConsumer) as collateral damage over one bad usage message.
+                logger.LogWarning(ex, "Failed to generate invoice for account {AccountId}", usage.AccountId);
+            }
         }
     }
 }
