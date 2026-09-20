@@ -4,6 +4,10 @@
     <ProjectReference Include="..\ServiceDefaults\GridPulse.ServiceDefaults.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Apache.Avro" Version="1.12.2" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
