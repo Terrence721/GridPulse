@@ -7,6 +7,7 @@ using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Test;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -18,28 +19,46 @@ public class Index : PageModel
 {
     private readonly TestUserStore _users;
     private readonly IIdentityServerInteractionService _interaction;
+    private readonly IWebHostEnvironment _environment;
 
     [BindProperty]
     public InputModel Input { get; set; } = default!;
 
     public Index(
         IIdentityServerInteractionService interaction,
+        IWebHostEnvironment environment,
         TestUserStore? users = null)
     {
         // this is where you would plug in your own custom identity management library (e.g. ASP.NET Identity)
         _users = users ?? throw new InvalidOperationException("Please call 'AddTestUsers(TestUsers.Users)' on the IIdentityServerBuilder in Startup or remove the TestUserStore from the AccountController.");
-            
+
         _interaction = interaction;
+        _environment = environment;
     }
 
     public IActionResult OnGet(string? returnUrl)
     {
+        // Self-registration hands out a real IdentityServer session (and, via
+        // grid-ops-console's AllowedScopes, a real grid-ops-api access token) to
+        // anyone who submits this form - no email verification, no approval. Matches
+        // this codebase's existing convention of gating dev-only surface (health
+        // check endpoints, the developer exception page) behind IsDevelopment().
+        if (!_environment.IsDevelopment())
+        {
+            return NotFound();
+        }
+
         Input = new InputModel { ReturnUrl = returnUrl };
         return Page();
     }
-        
+
     public async Task<IActionResult> OnPost()
     {
+        if (!_environment.IsDevelopment())
+        {
+            return NotFound();
+        }
+
         // check if we are in the context of an authorization request
         var context = await _interaction.GetAuthorizationContextAsync(Input.ReturnUrl);
 
