@@ -17,7 +17,12 @@ export async function runNotificationConsumer(config: Config): Promise<void> {
   const schemaRegistry = new SchemaRegistry({ host: config.schemaRegistryUrl });
 
   await consumer.connect();
-  await consumer.subscribe({ topic: "billing.invoice.generated", fromBeginning: true });
+  // `billing.invoice.generated` has real history - Billing's own InvoicePaymentConsumer
+  // deliberately uses AutoOffsetReset.Latest for this exact topic rather than Earliest,
+  // since replaying it fires a real external side effect (there, a Stripe API call; here,
+  // a real webhook POST) for every historical invoice on first startup or a group reset.
+  // Mirror that choice instead of replaying the whole topic as live notifications.
+  await consumer.subscribe({ topic: "billing.invoice.generated", fromBeginning: false });
 
   await consumer.run({
     eachMessage: async ({ message }: EachMessagePayload) => {
