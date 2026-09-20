@@ -3,61 +3,73 @@
 
 using IdentityModel;
 using System.Security.Claims;
-using System.Text.Json;
-using Duende.IdentityServer;
 using Duende.IdentityServer.Test;
 
 namespace GridPulse.Identity;
 
+// Dev-only demo credentials for the Grid Operations console - not real
+// users, no role claims (this slice has a single "dispatcher" persona,
+// nothing authorizes on role yet).
 public static class TestUsers
 {
-    public static List<TestUser> Users
-    {
-        get
+    public static List<TestUser> Users =>
+        new()
         {
-            var address = new
+            new TestUser
             {
-                street_address = "One Hacker Way",
-                locality = "Heidelberg",
-                postal_code = "69118",
-                country = "Germany"
-            };
-                
-            return new List<TestUser>
-            {
-                new TestUser
+                SubjectId = "1",
+                Username = "jordan.alvarez",
+                Password = "DispatcherDemo!1",
+                Claims =
                 {
-                    SubjectId = "1",
-                    Username = "alice",
-                    Password = "alice",
-                    Claims =
-                    {
-                        new Claim(JwtClaimTypes.Name, "Alice Smith"),
-                        new Claim(JwtClaimTypes.GivenName, "Alice"),
-                        new Claim(JwtClaimTypes.FamilyName, "Smith"),
-                        new Claim(JwtClaimTypes.Email, "AliceSmith@email.com"),
-                        new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
-                        new Claim(JwtClaimTypes.WebSite, "http://alice.com"),
-                        new Claim(JwtClaimTypes.Address, JsonSerializer.Serialize(address), IdentityServerConstants.ClaimValueTypes.Json)
-                    }
-                },
-                new TestUser
-                {
-                    SubjectId = "2",
-                    Username = "bob",
-                    Password = "bob",
-                    Claims =
-                    {
-                        new Claim(JwtClaimTypes.Name, "Bob Smith"),
-                        new Claim(JwtClaimTypes.GivenName, "Bob"),
-                        new Claim(JwtClaimTypes.FamilyName, "Smith"),
-                        new Claim(JwtClaimTypes.Email, "BobSmith@email.com"),
-                        new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
-                        new Claim(JwtClaimTypes.WebSite, "http://bob.com"),
-                        new Claim(JwtClaimTypes.Address, JsonSerializer.Serialize(address), IdentityServerConstants.ClaimValueTypes.Json)
-                    }
+                    new Claim(JwtClaimTypes.Name, "Jordan Alvarez"),
+                    new Claim(JwtClaimTypes.GivenName, "Jordan"),
+                    new Claim(JwtClaimTypes.FamilyName, "Alvarez"),
+                    new Claim(JwtClaimTypes.Email, "jordan.alvarez@gridpulse.demo"),
+                    new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
                 }
-            };
-        }
-    }
+            },
+            new TestUser
+            {
+                SubjectId = "2",
+                Username = "sam.okafor",
+                Password = "DispatcherDemo!1",
+                Claims =
+                {
+                    new Claim(JwtClaimTypes.Name, "Sam Okafor"),
+                    new Claim(JwtClaimTypes.GivenName, "Sam"),
+                    new Claim(JwtClaimTypes.FamilyName, "Okafor"),
+                    new Claim(JwtClaimTypes.Email, "sam.okafor@gridpulse.demo"),
+                    new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
+                }
+            },
+            new TestUser
+            {
+                SubjectId = "3",
+                Username = "taylor.nguyen",
+                Password = "DispatcherDemo!1",
+                Claims =
+                {
+                    new Claim(JwtClaimTypes.Name, "Taylor Nguyen"),
+                    new Claim(JwtClaimTypes.GivenName, "Taylor"),
+                    new Claim(JwtClaimTypes.FamilyName, "Nguyen"),
+                    new Claim(JwtClaimTypes.Email, "taylor.nguyen@gridpulse.demo"),
+                    new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
+                }
+            },
+            new TestUser
+            {
+                SubjectId = "4",
+                Username = "morgan.reyes",
+                Password = "DispatcherDemo!1",
+                Claims =
+                {
+                    new Claim(JwtClaimTypes.Name, "Morgan Reyes"),
+                    new Claim(JwtClaimTypes.GivenName, "Morgan"),
+                    new Claim(JwtClaimTypes.FamilyName, "Reyes"),
+                    new Claim(JwtClaimTypes.Email, "morgan.reyes@gridpulse.demo"),
+                    new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
+                }
+            }
+        };
 }
