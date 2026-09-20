@@ -1,6 +1,6 @@
 # 📝 TODO
 
-**Last Updated:** September 17, 2026 (Grid Operations — outage detection & work orders — shipped as a third post-Phase-3 feature alongside ESPI and Stripe; two real bugs found and fixed along the way — [#29](https://github.com/Terrence721/GridPulse/issues/29), [#30](https://github.com/Terrence721/GridPulse/issues/30))
+**Last Updated:** September 20, 2026 (Phase 4a — Grid Operations console — underway: Identity and the BFF gateway both built and live-verified end-to-end, three real bugs found and fixed along the way — [#31](https://github.com/Terrence721/GridPulse/issues/31), [#32](https://github.com/Terrence721/GridPulse/issues/32), [#33](https://github.com/Terrence721/GridPulse/issues/33))
 
 A phase-by-phase log of what's been done on this repo and what's still open. This is the source of truth for progress — the [README](README.md)'s Build Phases checklist and the [project board](https://github.com/users/Terrence721/projects/9) both mirror this file, not the other way around.
 
@@ -261,6 +261,22 @@ The third feature shipped after Phase 3, alongside ESPI and Stripe: this repo's 
 **`scripts/restore-postgres.ps1` fixed to discover databases dynamically:** it hardcoded `gridpulsedb`/`accountsdb` in its connection-termination step and its destructive-action warning, so `gridoperationsdb`'s active connections were never terminated before a restore, and the warning understated what would actually be dropped. Now queries `pg_database` dynamically, the same way `backup-postgres.ps1` already did — confirmed live: a real backup run picked up all three databases (`accountsdb, gridpulsedb, gridoperationsdb`) automatically, no code change needed on the backup side, only the restore side and a stale comment on the backup side.
 
 **Verified live, end to end:** full solution build (0 warnings/errors) and all 95 .NET tests + 7 Notification Service Vitest tests passing; a real AppHost run with `meter-simulator` intentionally stopped to force real quiet meters, confirming both single-meter drafts and multi-meter correlated outages against real `gridoperationsdb` data via `psql`; the fixed correlator and cold-start-lookback logic re-verified the same way after each fix.
+
+### Grid Operations console: Identity + BFF gateway (Phase 4a — in progress)
+
+Phase 4 split in two once a real backend-readiness asymmetry surfaced: `GridOperations`' HTTP surface was already fully built and live-verified, so this slice (the field-crew/dispatcher console) ships first, with the customer billing dashboard deferred as Phase 4b — see [docs/architecture.md](docs/architecture.md)'s "Phase 4 split in two" entry.
+
+**`GridPulse.Identity`** (`src/Identity/`), a Duende IdentityServer 7.0.8 project scaffolded from Duende's own `isinmem` template: one public SPA client (`grid-ops-console`, Authorization Code + PKCE, no secret) and one client-credentials client for automated smoke testing; five dev-only test dispatcher accounts; a `ServerSideSessions` admin view (gated behind a dedicated `admin` test account, not a real dispatcher's identity) listing every logged-in session; self-registration locked behind `IsDevelopment()`; two CodeQL findings fixed (dead external-login UI removed, a client-side local-URL guard added to the sign-in-redirect script); patched to 7.0.8 for two real CVEs.
+
+**`GridPulse.GridOperationsGateway`** (`src/GridOperationsGateway/`), a stateless BFF: JWT-bearer auth against Identity, CORS, a typed `GridOperationsClient` proxying `GridOperations`' real work-order/outage endpoints (status codes and bodies relayed unchanged, not reshaped), and a live-push path — `AnomalyRelayConsumer` (its own Kafka consumer group, `AutoOffsetReset.Latest`) relaying `usage.anomaly.detected` to connected browsers over `AnomalyFeedHub`/SignalR. Full design reasoning in [docs/architecture.md](docs/architecture.md)'s "Live push via a BFF-side SignalR relay" entry.
+
+**Three real bugs found via live verification, all root-caused with direct evidence and all closed:**
+
+- **[#31](https://github.com/Terrence721/GridPulse/issues/31):** logging in via the Quickstart UI succeeded server-side, but the very next request was treated as unauthenticated. Root cause, from direct server log evidence: the `idsrv` cookie defaults to `SameSite=None`, which also requires `Secure`; over plain local HTTP the browser silently dropped it. Fixed by forcing `SameSiteMode.Lax` for the `idsrv` scheme.
+- **[#32](https://github.com/Terrence721/GridPulse/issues/32):** every gateway endpoint rejected a real, freshly-issued token with 401. Root cause, from decoding the real JWT: its `aud` claim was Duende's static-audience fallback, not `grid-ops-api` — no `ApiResource` was registered for that scope. The first attempted fix had zero effect, caught only via live re-testing: the registration call itself was never actually wired into `HostingExtensions.cs`. Fixed by adding that call.
+- **[#33](https://github.com/Terrence721/GridPulse/issues/33):** the gateway crashed on every AppHost run with "No bootstrap servers configured." Root cause, from `aspire logs`: its AppHost registration was missing the Kafka/schema-registry references the relay consumer needs. Fixed by adding them.
+
+**Still in progress:** the `grid-ops-console` React/Redux Toolkit frontend, automated tests (`GridOperationsGateway.Tests`, frontend Vitest, an `AppHost.Tests` smoke test), and the remaining documentation sync — README and the portfolio page now reflect "in progress" status; the architecture diagram is deliberately deferred until the frontend ships and is live-verified. See the Phase 4a breakdown table below for the full item-by-item status.
 
 ## 🚧 Still to do
 
