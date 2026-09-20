@@ -280,6 +280,20 @@ The third feature shipped after Phase 3, alongside ESPI and Stripe: this repo's 
 | - | - | - |
 | 6 | Phase 2 — Introduce Kafka + schema registry | Done and verified live end-to-end — all three services produce/consume real Kafka events through a real Confluent Schema Registry, full three-service pipeline confirmed live (real `Invoice` rows landing in Postgres from real Kafka traffic), and the smoke test rewritten to exercise the same event-driven flow (38/38 tests passing) — [#11](https://github.com/Terrence721/GridPulse/issues/11) |
 | 7 | Phase 3 — Node.js Notification Service + Account/Customer Service | Done and verified live end-to-end — real Account/Customer Service backing `AccountId`-keyed usage/billing, a real Notification Service delivering real webhook POSTs, full pipeline re-verified live (two real bugs found and fixed: [#23](https://github.com/Terrence721/GridPulse/issues/23), [#24](https://github.com/Terrence721/GridPulse/issues/24)) — [#12](https://github.com/Terrence721/GridPulse/issues/12) |
-| 8 | Phase 4 — React/Redux Toolkit dashboard + BFF gateway | Backlog — [#13](https://github.com/Terrence721/GridPulse/issues/13) |
+| 8a | Phase 4a — Grid Operations console (Identity + BFF gateway + React dashboard for field crews/dispatchers) | In progress — tracked under [#13](https://github.com/Terrence721/GridPulse/issues/13), breakdown below |
+| 8b | Phase 4b — Customer billing dashboard (usage/invoice dashboard) | Backlog — [#13](https://github.com/Terrence721/GridPulse/issues/13) |
 | 9 | Phase 5 — CI/CD pipeline | Backlog — [#14](https://github.com/Terrence721/GridPulse/issues/14) |
 | 10 | Phase 6 — Observability + resiliency hardening | Backlog — [#15](https://github.com/Terrence721/GridPulse/issues/15) |
+
+**Phase 4a — Grid Operations console breakdown** (why it ships before Phase 4b: see [docs/architecture.md](docs/architecture.md)'s "Phase 4 split in two" entry):
+
+| # | Item | Status |
+| - | - | - |
+| 8a.1 | Duende IdentityServer (`src/Identity`): scaffold, OIDC clients/scopes, test dispatcher accounts, server-side sessions admin view, self-registration locked to dev-only | Done and verified live — real OIDC login, real admin session view, CVE-patched to 7.0.8, dead-code and CodeQL findings cleared |
+| 8a.2 | Grid Operations BFF gateway (`src/GridOperationsGateway`): CORS + JWT-bearer auth, typed client, work-order/outage proxy endpoints | Done and verified live end-to-end — real token from the smoke-test client, real work-order/outage data flowing through the gateway |
+| 8a.3 | Live anomaly feed: `AnomalyFeedHub` + `AnomalyRelayConsumer` relaying `usage.anomaly.detected` over SignalR | Done and verified live — a real Kafka anomaly relayed through the gateway |
+| 8a.4 | AppHost wiring for `identity` and `grid-operations-gateway` | Done |
+| 8a.5 | `grid-ops-console` React/Redux Toolkit frontend | Not started |
+| 8a.6 | Automated tests: `GridOperationsGateway.Tests`, frontend Vitest/RTL, `AppHost.Tests` smoke test, CI job | Not started |
+| 8a.7 | Docs sync: architecture.md, this file, README, wiki, diagram | In progress — architecture.md and this breakdown done; README/portfolio/diagram deliberately deferred until the frontend ships and is live-verified, per the design doc's own sequencing |
+| 8a.8 | Full live verification: real PKCE browser login, a real work-order status change through the UI, a real live anomaly appearing with no refresh | Blocked on 8a.5 |
