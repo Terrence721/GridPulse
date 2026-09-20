@@ -1,5 +1,11 @@
+using Confluent.Kafka;
+using Confluent.Kafka.SyncOverAsync;
+using Confluent.SchemaRegistry;
+using Confluent.SchemaRegistry.Serdes;
 using GridPulse.GridOperationsGateway;
+using GridPulse.GridOperationsGateway.Avro;
 using GridPulse.GridOperationsGateway.Contracts;
+using GridPulse.GridOperationsGateway.Hubs;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +24,33 @@ builder.AddGatewayAuthentication(audience: "grid-ops-api");
 builder.Services.AddHttpClient("grid-operations", c => c.BaseAddress = new Uri("http://grid-operations"));
 builder.Services.AddScoped<GridOperationsClient>();
 
+builder.Services.AddSignalR();
+
+builder.Services.AddSingleton<ISchemaRegistryClient>(_ =>
+{
+    var schemaRegistryUrl = builder.Configuration["services:schema-registry:http:0"]
+        ?? throw new InvalidOperationException("Schema registry endpoint not configured.");
+    return new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = schemaRegistryUrl });
+});
+
+// Own consumer group ("grid-operations-gateway"), independent of
+// GridOperations' own "grid-operations" group - each group gets its own
+// full copy of the topic. Latest, not Earliest, for the same reason as
+// GridOperations' own consumer: no "meter came back online" event exists
+// on this topic, so replaying history would flood a newly-connected
+// dashboard session with stale "just went quiet" events.
+builder.AddKafkaConsumer<string, UsageAnomalyDetected>("kafka", settings =>
+{
+    settings.Config.GroupId = "grid-operations-gateway";
+    settings.Config.AutoOffsetReset = AutoOffsetReset.Latest;
+    settings.DisableHealthChecks = true;
+}, (sp, consumerBuilder) =>
+{
+    var schemaRegistry = sp.GetRequiredService<ISchemaRegistryClient>();
+    consumerBuilder.SetValueDeserializer(new AvroDeserializer<UsageAnomalyDetected>(schemaRegistry).AsSyncOverAsync());
+});
+builder.Services.AddHostedService<AnomalyRelayConsumer>();
+
 var app = builder.Build();
 if (!app.Services.TryValidateStartupOptions<GridOperationsGatewayOptions>())
 {
@@ -29,6 +62,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapDefaultEndpoints();
+app.MapHub<AnomalyFeedHub>("/hubs/anomaly-feed").RequireCors("GridOpsConsole");
 
 var workOrders = app.MapGroup("/api/work-orders").RequireAuthorization();
 workOrders.MapGet("", async (GridOperationsClient c, CancellationToken ct) => await c.GetWorkOrdersAsync(ct));
