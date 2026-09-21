@@ -47,9 +47,9 @@ public static class Config
                 RequirePkce = true,
                 RequireClientSecret = false,
 
-                RedirectUris = { "http://localhost:5173/callback" },
-                PostLogoutRedirectUris = { "http://localhost:5173/" },
-                AllowedCorsOrigins = { "http://localhost:5173" },
+                RedirectUris = { "http://localhost:5107/callback" },
+                PostLogoutRedirectUris = { "http://localhost:5107/" },
+                AllowedCorsOrigins = { "http://localhost:5107" },
 
                 AllowedScopes = { "openid", "profile", "grid-ops-api" },
                 AccessTokenLifetime = 3600,
