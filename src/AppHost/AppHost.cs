@@ -113,6 +113,7 @@ builder.AddNodeApp("notification-service", "../notification-service", "src/index
 builder.AddViteApp("grid-ops-console", "../grid-ops-console")
     .WithYarn()
     .WithHttpEndpoint(port: 5107, targetPort: 5107, isProxied: false)
+    .WithEnvironment("VITE_GATEWAY_URL", gridOperationsGateway.GetEndpoint("http"))
     .WithReference(gridOperationsGateway)
     .WaitFor(gridOperationsGateway);
 
