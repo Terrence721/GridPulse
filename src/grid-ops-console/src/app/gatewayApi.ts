@@ -32,6 +32,11 @@ export interface Outage {
   status: string
 }
 
+export interface WorkOrderDetail {
+  workOrder: WorkOrder
+  outage: Outage | null
+}
+
 export const gatewayApi = createApi({
   reducerPath: 'gatewayApi',
   baseQuery: fetchBaseQuery({
@@ -51,7 +56,10 @@ export const gatewayApi = createApi({
     getOutages: builder.query<Outage[], void>({
       query: () => '/api/outages',
     }),
+    getWorkOrder: builder.query<WorkOrderDetail, string>({
+      query: (id) => `/api/work-orders/${id}`,
+    }),
   }),
 })
 
-export const { useGetWorkOrdersQuery, useGetOutagesQuery } = gatewayApi
+export const { useGetWorkOrdersQuery, useGetOutagesQuery, useGetWorkOrderQuery } = gatewayApi
