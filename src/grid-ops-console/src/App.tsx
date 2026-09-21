@@ -1,4 +1,5 @@
 import { useAuth } from 'react-oidc-context'
+import { Routes, Route, Navigate, Link } from 'react-router-dom'
 import WorkOrdersList from './features/work-orders/WorkOrdersList.tsx'
 
 function App() {
@@ -26,8 +27,13 @@ function App() {
       <h1>Grid Operations Console</h1>
       <p>Signed in as {auth.user?.profile.name ?? auth.user?.profile.sub}</p>
       <button onClick={() => auth.signoutRedirect()}>Log out</button>
-      <h2>Work Orders</h2>
-      <WorkOrdersList />
+      <nav>
+        <Link to="/work-orders">Work Orders</Link>
+      </nav>
+      <Routes>
+        <Route path="/" element={<Navigate to="/work-orders" replace />} />
+        <Route path="/work-orders" element={<WorkOrdersList />} />
+      </Routes>
     </div>
   )
 }
