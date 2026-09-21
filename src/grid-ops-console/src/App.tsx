@@ -1,4 +1,5 @@
 import { useAuth } from 'react-oidc-context'
+import WorkOrdersList from './features/work-orders/WorkOrdersList.tsx'
 
 function App() {
   const auth = useAuth()
@@ -25,6 +26,8 @@ function App() {
       <h1>Grid Operations Console</h1>
       <p>Signed in as {auth.user?.profile.name ?? auth.user?.profile.sub}</p>
       <button onClick={() => auth.signoutRedirect()}>Log out</button>
+      <h2>Work Orders</h2>
+      <WorkOrdersList />
     </div>
   )
 }
