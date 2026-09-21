@@ -10,6 +10,7 @@ public static class Config
         {
             new IdentityResources.OpenId(),
             new IdentityResources.Profile(),
+            new IdentityResource("roles", "Dispatcher/Admin role", new[] { "role" }),
         };
 
     public static IEnumerable<ApiScope> ApiScopes =>
@@ -51,7 +52,7 @@ public static class Config
                 PostLogoutRedirectUris = { "http://localhost:5107/" },
                 AllowedCorsOrigins = { "http://localhost:5107" },
 
-                AllowedScopes = { "openid", "profile", "grid-ops-api" },
+                AllowedScopes = { "openid", "profile", "roles", "grid-ops-api" },
                 AccessTokenLifetime = 3600,
             },
 
