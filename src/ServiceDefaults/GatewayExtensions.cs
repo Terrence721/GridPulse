@@ -25,15 +25,24 @@ public static class GatewayExtensions
     public static TBuilder AddGatewayAuthentication<TBuilder>(this TBuilder builder, string audience)
         where TBuilder : IHostApplicationBuilder
     {
-        var authority = builder.Configuration["services:identity:http:0"]
+        var httpAuthority = builder.Configuration["services:identity:http:0"]
             ?? throw new InvalidOperationException("Identity endpoint not configured.");
+        var httpsAuthority = builder.Configuration["services:identity:https:0"]
+            ?? throw new InvalidOperationException("Identity HTTPS endpoint not configured.");
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                options.Authority = authority;
+                options.Authority = httpAuthority;
                 options.Audience = audience;
                 options.RequireHttpsMetadata = false; // dev-only container network; revisit before any real deployment
+                // A real browser login has to go through Identity's HTTPS
+                // endpoint (the auth cookie needs Secure, per #31), so its
+                // tokens carry `iss: https://...`, not the http:// authority
+                // above - both identify the same Identity server, just
+                // reached differently, so both are accepted here rather than
+                // picking one and breaking whichever caller uses the other.
+                options.TokenValidationParameters.ValidIssuers = [httpAuthority, httpsAuthority];
                 options.Events = new JwtBearerEvents
                 {
                     // SignalR's WebSocket/SSE transports can't set an
