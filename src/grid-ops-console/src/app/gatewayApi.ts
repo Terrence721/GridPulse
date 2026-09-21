@@ -8,11 +8,6 @@ function getAccessToken(): string | undefined {
   return stored ? User.fromStorageString(stored).access_token : undefined
 }
 
-interface MeResponse {
-  name: string | null
-  claims: { type: string; value: string }[]
-}
-
 export const gatewayApi = createApi({
   reducerPath: 'gatewayApi',
   baseQuery: fetchBaseQuery({
@@ -25,11 +20,5 @@ export const gatewayApi = createApi({
       return headers
     },
   }),
-  endpoints: (builder) => ({
-    getMe: builder.query<MeResponse, void>({
-      query: () => '/api/me',
-    }),
-  }),
+  endpoints: () => ({}),
 })
-
-export const { useGetMeQuery } = gatewayApi
