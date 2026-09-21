@@ -945,8 +945,10 @@ __metadata:
     "@types/react": "catalog:"
     "@types/react-dom": "catalog:"
     "@vitejs/plugin-react": "catalog:"
+    oidc-client-ts: "catalog:"
     react: "catalog:"
     react-dom: "catalog:"
+    react-oidc-context: "catalog:"
     react-redux: "catalog:"
     typescript: "catalog:"
     vite: "catalog:"
@@ -977,6 +979,13 @@ __metadata:
   version: 1.0.0
   resolution: "json-schema-traverse@npm:1.0.0"
   checksum: 10c0/71e30015d7f3d6dc1c316d6298047c8ef98a06d31ad064919976583eb61e1018a60a0067338f0f79cabc00d84af3fcc489bd48ce8a46ea165d9541ba17fb30c6
+  languageName: node
+  linkType: hard
+
+"jwt-decode@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "jwt-decode@npm:4.0.0"
+  checksum: 10c0/de75bbf89220746c388cf6a7b71e56080437b77d2edb29bae1c2155048b02c6b8c59a3e5e8d6ccdfd54f0b8bda25226e491a4f1b55ac5f8da04cfbadec4e546c
   languageName: node
   linkType: hard
 
@@ -1215,6 +1224,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"oidc-client-ts@npm:3.5.0":
+  version: 3.5.0
+  resolution: "oidc-client-ts@npm:3.5.0"
+  dependencies:
+    jwt-decode: "npm:^4.0.0"
+  checksum: 10c0/93cbb62adbfeee4bf705199a94e5790217f211b85dd988827e555481d4e605a5263292b740f29765ac01528b99486f57bbd96679ffca53d7ef76d8f7f7c9f979
+  languageName: node
+  linkType: hard
+
 "picocolors@npm:^1.1.1":
   version: 1.1.1
   resolution: "picocolors@npm:1.1.1"
@@ -1274,6 +1292,16 @@ __metadata:
   peerDependencies:
     react: ^19.3.0
   checksum: 10c0/c513044b724dd6bfe9500a9682d60973e7f8a48cffba00b6b16d3e910e27dcc459bf71bf0a5c33d7d62a3843ca30de1bd1e2098058aa4ed71f618a24b6061da5
+  languageName: node
+  linkType: hard
+
+"react-oidc-context@npm:3.3.1":
+  version: 3.3.1
+  resolution: "react-oidc-context@npm:3.3.1"
+  peerDependencies:
+    oidc-client-ts: ^3.1.0
+    react: ">=16.14.0"
+  checksum: 10c0/16239b1818d0fca5e60e37c63f000252ae839aa8f915c8871b186bbc718e6c9694ac3a881388d13bb69d2b15bbd61cf6c7cb200bb548bbc469fa6fc8e36d80f7
   languageName: node
   linkType: hard
 
