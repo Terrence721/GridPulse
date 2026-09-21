@@ -8,6 +8,21 @@ function getAccessToken(): string | undefined {
   return stored ? User.fromStorageString(stored).access_token : undefined
 }
 
+export interface WorkOrder {
+  id: string
+  hazardType: string
+  meterId: string | null
+  accountId: string | null
+  streetName: string | null
+  streetNumber: number | null
+  description: string
+  assignedCrew: string | null
+  status: string
+  outageId: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export const gatewayApi = createApi({
   reducerPath: 'gatewayApi',
   baseQuery: fetchBaseQuery({
@@ -20,5 +35,11 @@ export const gatewayApi = createApi({
       return headers
     },
   }),
-  endpoints: () => ({}),
+  endpoints: (builder) => ({
+    getWorkOrders: builder.query<WorkOrder[], void>({
+      query: () => '/api/work-orders',
+    }),
+  }),
 })
+
+export const { useGetWorkOrdersQuery } = gatewayApi
