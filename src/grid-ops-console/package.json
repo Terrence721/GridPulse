@@ -13,7 +13,8 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-oidc-context": "catalog:",
-    "react-redux": "catalog:"
+    "react-redux": "catalog:",
+    "react-router-dom": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:",
