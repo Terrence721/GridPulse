@@ -22,6 +22,7 @@ src/Identity/keys/
 node_modules/
 dist/
 .vite/
+*.tsbuildinfo
 npm-debug.log*
 yarn-error.log*
 .env
