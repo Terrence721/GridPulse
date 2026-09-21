@@ -110,6 +110,12 @@ builder.AddNodeApp("notification-service", "../notification-service", "src/index
     .WithReference(accountCustomer)
     .WaitFor(accountCustomer);
 
+builder.AddViteApp("grid-ops-console", "../grid-ops-console")
+    .WithYarn()
+    .WithHttpEndpoint(port: 5107, targetPort: 5107, isProxied: false)
+    .WithReference(gridOperationsGateway)
+    .WaitFor(gridOperationsGateway);
+
 var appHostDirectory = builder.AppHostDirectory;
 var app = builder.Build();
 
