@@ -5,6 +5,6 @@ export const oidcConfig: AuthProviderProps = {
   client_id: 'grid-ops-console',
   redirect_uri: 'http://localhost:5107/callback',
   post_logout_redirect_uri: 'http://localhost:5107/',
-  scope: 'openid profile grid-ops-api',
+  scope: 'openid profile roles grid-ops-api',
   loadUserInfo: true,
 }
