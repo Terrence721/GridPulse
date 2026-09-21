@@ -9,8 +9,10 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "catalog:",
+    "oidc-client-ts": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "react-oidc-context": "catalog:",
     "react-redux": "catalog:"
   },
   "devDependencies": {
