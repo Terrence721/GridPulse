@@ -7,13 +7,15 @@ using Duende.IdentityServer.Test;
 
 namespace GridPulse.Identity;
 
-// Dev-only demo credentials. The 4 dispatchers are equal peers - no
-// special access, single persona, matching the Grid Ops console's own
-// scope. The 5th account is separate: an Identity-Server-administration
-// identity (not a dispatcher), the only one named "admin" - Duende's
-// Server-Side Sessions page is gated on that username directly, since
-// custom TestUser claims (a role claim included) never reach the local
-// login cookie - only sub/name/idp/amr/auth_time do, confirmed live.
+// Dev-only demo credentials. The 4 dispatcher accounts share the
+// "dispatcher" role (Outages + Work Orders access); a separate
+// console-admin account carries the "admin" role (Outages only, no
+// Work Orders). The 5th account, literally named "admin", is unrelated
+// to either of those roles: it's an Identity-Server-administration
+// identity, not a console persona - Duende's Server-Side Sessions page
+// is gated on that username directly, since custom TestUser claims (a
+// role claim included) never reach the local login cookie - only
+// sub/name/idp/amr/auth_time do, confirmed live.
 public static class TestUsers
 {
     public static List<TestUser> Users =>
@@ -31,6 +33,7 @@ public static class TestUsers
                     new Claim(JwtClaimTypes.FamilyName, "Alvarez"),
                     new Claim(JwtClaimTypes.Email, "jordan.alvarez@gridpulse.demo"),
                     new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
+                    new Claim(JwtClaimTypes.Role, "dispatcher"),
                 }
             },
             new TestUser
@@ -45,6 +48,7 @@ public static class TestUsers
                     new Claim(JwtClaimTypes.FamilyName, "Okafor"),
                     new Claim(JwtClaimTypes.Email, "sam.okafor@gridpulse.demo"),
                     new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
+                    new Claim(JwtClaimTypes.Role, "dispatcher"),
                 }
             },
             new TestUser
@@ -59,6 +63,7 @@ public static class TestUsers
                     new Claim(JwtClaimTypes.FamilyName, "Nguyen"),
                     new Claim(JwtClaimTypes.Email, "taylor.nguyen@gridpulse.demo"),
                     new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
+                    new Claim(JwtClaimTypes.Role, "dispatcher"),
                 }
             },
             new TestUser
@@ -73,6 +78,7 @@ public static class TestUsers
                     new Claim(JwtClaimTypes.FamilyName, "Reyes"),
                     new Claim(JwtClaimTypes.Email, "morgan.reyes@gridpulse.demo"),
                     new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
+                    new Claim(JwtClaimTypes.Role, "dispatcher"),
                 }
             },
             new TestUser
@@ -85,6 +91,21 @@ public static class TestUsers
                     new Claim(JwtClaimTypes.Name, "Identity Admin"),
                     new Claim(JwtClaimTypes.Email, "admin@gridpulse.demo"),
                     new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
+                }
+            },
+            new TestUser
+            {
+                SubjectId = "6",
+                Username = "casey.brennan",
+                Password = "ConsoleAdminDemo!1",
+                Claims =
+                {
+                    new Claim(JwtClaimTypes.Name, "Casey Brennan"),
+                    new Claim(JwtClaimTypes.GivenName, "Casey"),
+                    new Claim(JwtClaimTypes.FamilyName, "Brennan"),
+                    new Claim(JwtClaimTypes.Email, "casey.brennan@gridpulse.demo"),
+                    new Claim(JwtClaimTypes.EmailVerified, "true", ClaimValueTypes.Boolean),
+                    new Claim(JwtClaimTypes.Role, "admin"),
                 }
             }
         };
