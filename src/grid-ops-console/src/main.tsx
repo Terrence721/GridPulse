@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { store } from './app/store.ts'
 import { oidcConfig } from './auth/oidcConfig.ts'
 import App from './App.tsx'
+import './index.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
