@@ -19,8 +19,7 @@ namespace GridPulse.Identity;
 public static class TestUsers
 {
     public static List<TestUser> Users =>
-        new()
-        {
+        [
             new TestUser
             {
                 SubjectId = "1",
@@ -108,5 +107,5 @@ public static class TestUsers
                     new Claim(JwtClaimTypes.Role, "admin"),
                 }
             }
-        };
+        ];
 }
