@@ -325,3 +325,14 @@ Frontend dev work on `grid-ops-console` needs a live backend without remembering
 | 8a.6 | Automated tests: `GridOperationsGateway.Tests`, frontend Vitest/RTL, `AppHost.Tests` smoke test, CI job | Not started |
 | 8a.7 | Docs sync: architecture.md, this file, README, wiki, diagram | In progress — architecture.md and this breakdown done; README/portfolio/diagram deliberately deferred until the frontend ships and is live-verified, per the design doc's own sequencing |
 | 8a.8 | Full live verification: real PKCE browser login, a real work-order status change through the UI, a real live anomaly appearing with no refresh | Blocked on 8a.5 |
+
+**Work Orders page: crew assignment, filtering, expandable detail rows (planned, not started)** — requested next after the initial view, styling, and map-location links shipped:
+
+| # | Item | Status |
+| - | - | - |
+| 8a.9 | Expand ("+") link on each work order row, except rows with an unknown location | Backlog — [#43](https://github.com/Terrence721/GridPulse/issues/43) |
+| 8a.10 | Filter command on the Work Orders page (exact filter criteria TBD) | Backlog — [#44](https://github.com/Terrence721/GridPulse/issues/44) |
+| 8a.11 | A real, fixed list of 10 crews (`Crew1`–`Crew10`), replacing `WorkOrder.AssignedCrew`'s current free-text string | Backlog — [#45](https://github.com/Terrence721/GridPulse/issues/45) |
+| 8a.12 | Expanded row shows the assigned crew and start/stop times tracking how long the crew has been working the outage | Backlog — [#46](https://github.com/Terrence721/GridPulse/issues/46), blocked on 8a.11 |
+
+Likely real backend work, not just frontend: no existing start/stop time tracking for a crew's active work session today (only `CreatedAt`/`UpdatedAt` on the `WorkOrder` record itself). Scope and design not yet worked out.
