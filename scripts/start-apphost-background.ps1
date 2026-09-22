@@ -21,19 +21,26 @@ $backupJob = Start-Job -FilePath (Join-Path $scriptDir "backup-postgres.ps1") -A
 
 Push-Location $appHostDir
 try {
-    dotnet run --no-launch-profile *>> $logPath
+    # -Encoding utf8 is explicit, not the default, because *>> alone picks
+    # Windows PowerShell 5.1's built-in default (UTF-16LE) unless a profile
+    # overrides it - and the Scheduled Task launches this with -NoProfile, so
+    # it never gets that override, producing a different encoding than
+    # interactive runs and corrupting this append-only log with mixed
+    # encodings. Explicit here means it's the same regardless of how this
+    # script is invoked.
+    dotnet run --no-launch-profile *>&1 | Out-File -FilePath $logPath -Append -Encoding utf8
 }
 finally {
     Pop-Location
     try {
         Wait-Job $backupJob -Timeout 180 | Out-Null
-        Receive-Job $backupJob *>> $logPath
+        Receive-Job $backupJob *>&1 | Out-File -FilePath $logPath -Append -Encoding utf8
     }
     catch {
-        "Background backup reported an error: $($_.Exception.Message)" | Out-File -Append $logPath
+        "Background backup reported an error: $($_.Exception.Message)" | Out-File -FilePath $logPath -Append -Encoding utf8
     }
     finally {
         Remove-Job $backupJob -Force -ErrorAction SilentlyContinue
     }
-    & (Join-Path $scriptDir "stop-app.ps1") *>> $logPath
+    & (Join-Path $scriptDir "stop-app.ps1") *>&1 | Out-File -FilePath $logPath -Append -Encoding utf8
 }
