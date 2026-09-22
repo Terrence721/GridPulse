@@ -336,3 +336,9 @@ Frontend dev work on `grid-ops-console` needs a live backend without remembering
 | 8a.12 | Expanded row shows the assigned crew and start/stop times tracking how long the crew has been working the outage | Backlog — [#46](https://github.com/Terrence721/GridPulse/issues/46), blocked on 8a.11 |
 
 Likely real backend work, not just frontend: no existing start/stop time tracking for a crew's active work session today (only `CreatedAt`/`UpdatedAt` on the `WorkOrder` record itself). Scope and design not yet worked out.
+
+**A real gap found during a repo-wide drift audit, not previously documented either way:** `OutagesList.tsx` and `WorkOrderDetail.tsx` never got the Tailwind styling pass `WorkOrdersList.tsx` got — both are still plain, unstyled markup.
+
+| # | Item | Status |
+| - | - | - |
+| 8a.13 | Style `OutagesList.tsx` and `WorkOrderDetail.tsx` with Tailwind, matching `WorkOrdersList.tsx` | Backlog — [#47](https://github.com/Terrence721/GridPulse/issues/47) |
