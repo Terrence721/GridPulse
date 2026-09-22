@@ -1,0 +1,11 @@
+root = true
+
+[*.cs]
+# IDE0130: "Namespace does not match folder structure" - not enforced.
+# ServiceDefaults' extension methods (AddServiceDefaults, AddGatewayAuthentication,
+# etc.) deliberately live in `namespace Microsoft.Extensions.Hosting` rather than
+# matching their folder, matching the official Aspire template's own convention -
+# this makes them available to any consumer without an extra `using` statement.
+# Confirmed consistent with Microsoft's own unedited scaffolded Extensions.cs, not
+# a mistake worth flagging repo-wide.
+dotnet_diagnostic.IDE0130.severity = none
