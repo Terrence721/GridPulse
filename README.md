@@ -129,6 +129,14 @@ dashboard — the link prints in the console. Every service registers itself in
 
 Open [`GridPulse.code-workspace`](GridPulse.code-workspace) in VS Code for the configured dev experience (recommended extensions, `dotnet.defaultSolution` pointed at `GridPulse.slnx`, sane file/search excludes for `bin`/`obj`/`node_modules`).
 
+### Dev-loop scripts
+
+[`scripts/`](scripts/) has a set of PowerShell helpers for the local dev loop, on top of the bare `dotnet run` above — see [`todo.md`](todo.md) for the full reasoning behind each:
+
+- `run-app.ps1` / `stop-app.ps1` — run the AppHost in the foreground with a guaranteed cleanup sweep afterward (containers + processes), even on a crash or a forceful kill.
+- `backup-postgres.ps1` / `restore-postgres.ps1` — back up/restore GridPulse's live local Postgres data; a backup runs automatically at the start of every `run-app.ps1` session.
+- `start-apphost-background.ps1` / `setup-gridpulse-autostart-task.ps1` — run the AppHost unattended and register it to start automatically at Windows logon via a Scheduled Task, independent of VS Code or any editor being open.
+
 ### Prerequisites
 
 - .NET 10 SDK
