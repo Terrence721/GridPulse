@@ -24,6 +24,9 @@ builder.AddGatewayAuthentication(audience: "grid-ops-api");
 builder.Services.AddHttpClient("grid-operations", c => c.BaseAddress = new Uri("http://grid-operations"));
 builder.Services.AddScoped<GridOperationsClient>();
 
+builder.Services.AddHttpClient("census-geocoder", c => c.BaseAddress = new Uri("https://geocoding.geo.census.gov/geocoder/"));
+builder.Services.AddScoped<CensusGeocoder>();
+
 builder.Services.AddSignalR();
 
 builder.Services.AddSingleton<ISchemaRegistryClient>(_ =>
@@ -92,6 +95,10 @@ var outages = app.MapGroup("/api/outages").RequireAuthorization();
 outages.MapGet("", async (GridOperationsClient c, CancellationToken ct) => await c.GetOutagesAsync(ct));
 outages.MapGet("/{id:guid}", async (Guid id, GridOperationsClient c, CancellationToken ct) =>
     await c.GetOutageAsync(id, ct) is { } o ? Results.Ok(o) : Results.NotFound());
+
+app.MapGet("/api/geocode", async (int? streetNumber, string streetName, CensusGeocoder geocoder, CancellationToken ct) =>
+    await geocoder.GeocodeAsync(streetNumber, streetName, ct) is { } result ? Results.Ok(result) : Results.NotFound())
+    .RequireAuthorization();
 
 app.MapGet("/api/me", (ClaimsPrincipal user) =>
     Results.Ok(new { name = user.Identity?.Name, claims = user.Claims.Select(c => new { c.Type, c.Value }) }))
