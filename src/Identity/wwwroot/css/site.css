@@ -1,4 +1,28 @@
-﻿.welcome-page .logo {
+﻿/* GridPulse branding - matches the React console's palette (#1e40af primary,
+   #1e3a8a hover, #f59e0b accent). Overrides Bootstrap's defaults rather than
+   rebuilding Bootstrap from source. */
+.bg-gridpulse-primary {
+  background-color: #1e40af !important;
+}
+
+.btn-primary {
+  background-color: #1e40af;
+  border-color: #1e40af;
+}
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #1e3a8a;
+  border-color: #1e3a8a;
+}
+
+a {
+  color: #1e40af;
+}
+a:hover {
+  color: #1e3a8a;
+}
+
+.welcome-page .logo {
   width: 64px;
 }
 
