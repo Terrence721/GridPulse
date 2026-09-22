@@ -16,7 +16,16 @@ public static class Config
     public static IEnumerable<ApiScope> ApiScopes =>
         new ApiScope[]
         {
-            new ApiScope("grid-ops-api", "Grid Operations Console API"),
+            new ApiScope("grid-ops-api", "Grid Operations Console API")
+            {
+                // Access-token claims are governed by the ApiScope/ApiResource's own
+                // UserClaims, not by IdentityResources - those only flow into the ID
+                // token/userinfo response. Without this, the real access token sent
+                // to the gateway carried no "role" claim at all despite the "roles"
+                // IdentityResource - confirmed live, RequireRole() correctly found
+                // nothing to match and rejected every dispatcher request with 403.
+                UserClaims = { "role" }
+            },
         };
 
     // Without an explicit ApiResource, Duende falls back to a single
