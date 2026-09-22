@@ -85,7 +85,9 @@ var gridOperationsGateway = builder.AddProject<Projects.GridPulse_GridOperations
     .WaitFor(kafka)
     .WithReference(schemaRegistry.GetEndpoint("http"))
     .WaitFor(schemaRegistry)
-    .WithHttpHealthCheck(path: "/health", endpointName: "http");
+    .WithHttpHealthCheck(path: "/health", endpointName: "http")
+    .WithEnvironment("GridOperationsGateway__City", city)
+    .WithEnvironment("GridOperationsGateway__ZipCode", zipCode);
 
 builder.AddProject<Projects.GridPulse_MeterSimulator>("meter-simulator")
     .WithReference(kafka)
