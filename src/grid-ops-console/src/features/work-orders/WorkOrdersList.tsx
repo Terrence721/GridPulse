@@ -42,12 +42,16 @@ function WorkOrdersList() {
               <td className="px-4 py-3 text-slate-900">{wo.hazardType}</td>
               <td className="px-4 py-3 text-slate-700">{wo.status}</td>
               <td className="px-4 py-3 text-slate-700">
-                <button
-                  onClick={() => showOnMap(wo.streetNumber, wo.streetName)}
-                  className="text-primary hover:underline"
-                >
-                  {wo.streetNumber} {wo.streetName}
-                </button>
+                {wo.streetNumber && wo.streetName && wo.streetName !== 'Unknown' ? (
+                  <button
+                    onClick={() => showOnMap(wo.streetNumber, wo.streetName)}
+                    className="text-primary hover:underline"
+                  >
+                    {wo.streetNumber} {wo.streetName}
+                  </button>
+                ) : (
+                  <span className="text-slate-400">Location unknown</span>
+                )}
               </td>
               <td className="px-4 py-3 text-slate-700">{wo.assignedCrew ?? '—'}</td>
               <td className="px-4 py-3 text-slate-500">{new Date(wo.createdAt).toLocaleString()}</td>
