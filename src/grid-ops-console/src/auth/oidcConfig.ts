@@ -1,6 +1,6 @@
-import type { AuthProviderProps } from 'react-oidc-context'
+import type { AuthProviderNoUserManagerProps } from 'react-oidc-context'
 
-export const oidcConfig: AuthProviderProps = {
+export const oidcConfig: AuthProviderNoUserManagerProps = {
   authority: 'https://localhost:7105',
   client_id: 'grid-ops-console',
   redirect_uri: 'http://localhost:5107/callback',
