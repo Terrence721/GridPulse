@@ -64,7 +64,7 @@ app.UseAuthorization();
 app.MapDefaultEndpoints();
 app.MapHub<AnomalyFeedHub>("/hubs/anomaly-feed").RequireCors("GridOpsConsole");
 
-var workOrders = app.MapGroup("/api/work-orders").RequireAuthorization();
+var workOrders = app.MapGroup("/api/work-orders").RequireAuthorization(policy => policy.RequireRole("dispatcher"));
 workOrders.MapGet("", async (GridOperationsClient c, CancellationToken ct) => await c.GetWorkOrdersAsync(ct));
 workOrders.MapGet("/{id:guid}", async (Guid id, GridOperationsClient c, CancellationToken ct) =>
 {
