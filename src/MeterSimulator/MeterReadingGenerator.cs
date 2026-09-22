@@ -2,7 +2,7 @@ namespace GridPulse.MeterSimulator;
 
 public sealed class MeterReadingGenerator(HouseholdPowerDataset dataset)
 {
-    private readonly Dictionary<string, int> _cursorsByMeterId = new();
+    private readonly Dictionary<string, int> _cursorsByMeterId = [];
 
     public MeterReading Generate(string meterId, int intervalSeconds)
     {
