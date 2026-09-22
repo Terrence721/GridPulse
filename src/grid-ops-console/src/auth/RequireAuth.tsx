@@ -7,10 +7,14 @@ function RequireAuth() {
   const location = useLocation()
 
   useEffect(() => {
-    if (!auth.isLoading && !auth.isAuthenticated) {
+    if (!auth.isLoading && !auth.isAuthenticated && !auth.error) {
       auth.signinRedirect({ state: location.pathname })
     }
   }, [auth, location])
+
+  if (auth.error) {
+    return <div>Authentication error: {auth.error.message}</div>
+  }
 
   if (!auth.isAuthenticated) {
     return <div>Redirecting to login...</div>
