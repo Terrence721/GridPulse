@@ -10,13 +10,13 @@ public static class Config
         {
             new IdentityResources.OpenId(),
             new IdentityResources.Profile(),
-            new IdentityResource("roles", "Dispatcher/Admin role", new[] { "role" }),
+            new("roles", "Dispatcher/Admin role", new[] { "role" }),
         };
 
     public static IEnumerable<ApiScope> ApiScopes =>
         new ApiScope[]
         {
-            new ApiScope("grid-ops-api", "Grid Operations Console API")
+            new("grid-ops-api", "Grid Operations Console API")
             {
                 // Access-token claims are governed by the ApiScope/ApiResource's own
                 // UserClaims, not by IdentityResources - those only flow into the ID
@@ -37,7 +37,7 @@ public static class Config
     public static IEnumerable<ApiResource> ApiResources =>
         new ApiResource[]
         {
-            new ApiResource("grid-ops-api", "Grid Operations Console API")
+            new("grid-ops-api", "Grid Operations Console API")
             {
                 Scopes = { "grid-ops-api" }
             }
@@ -48,7 +48,7 @@ public static class Config
         {
             // The Grid Operations console SPA - Authorization Code + PKCE, no
             // secret since a browser app can't keep one confidential.
-            new Client
+            new()
             {
                 ClientId = "grid-ops-console",
                 ClientName = "Grid Operations Console",
@@ -68,7 +68,7 @@ public static class Config
             // Machine-to-machine client used only by the automated Aspire
             // smoke test to get a real token without simulating an
             // interactive browser login.
-            new Client
+            new()
             {
                 ClientId = "grid-ops-console-smoke-test",
                 ClientName = "Grid Operations Console Smoke Test",
