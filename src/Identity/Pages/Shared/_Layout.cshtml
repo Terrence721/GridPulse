@@ -15,7 +15,10 @@
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
 <body>
-    <partial name="_Nav" />
+    @if (!true.Equals(ViewData["hide-nav"]))
+    {
+        <partial name="_Nav" />
+    }
    
     <div class="container body-container">
         @RenderBody()
