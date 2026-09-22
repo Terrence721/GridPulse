@@ -12,8 +12,8 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider
       {...oidcConfig}
-      onSigninCallback={() => {
-        window.history.replaceState({}, document.title, '/')
+      onSigninCallback={(user) => {
+        window.history.replaceState({}, document.title, (user?.state as string | undefined) ?? '/')
       }}
     >
       <Provider store={store}>
