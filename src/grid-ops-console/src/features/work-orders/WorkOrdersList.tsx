@@ -1,7 +1,20 @@
-import { useGetWorkOrdersQuery } from '../../app/gatewayApi.ts'
+import { useState } from 'react'
+import { useGetWorkOrdersQuery, useLazyGeocodeAddressQuery } from '../../app/gatewayApi.ts'
+import MapModal from './MapModal.tsx'
 
 function WorkOrdersList() {
   const { data: workOrders, isLoading, error } = useGetWorkOrdersQuery()
+  const [geocodeAddress] = useLazyGeocodeAddressQuery()
+  const [mapLocation, setMapLocation] = useState<{ latitude: number; longitude: number } | null>(null)
+
+  async function showOnMap(streetNumber: number | null, streetName: string | null) {
+    try {
+      const result = await geocodeAddress({ streetNumber, streetName }).unwrap()
+      setMapLocation(result)
+    } catch {
+      alert('Could not locate that address on the map.')
+    }
+  }
 
   if (isLoading) {
     return <p>Loading work orders...</p>
@@ -29,14 +42,12 @@ function WorkOrdersList() {
               <td className="px-4 py-3 text-slate-900">{wo.hazardType}</td>
               <td className="px-4 py-3 text-slate-700">{wo.status}</td>
               <td className="px-4 py-3 text-slate-700">
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${wo.streetNumber ?? ''} ${wo.streetName ?? ''}`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => showOnMap(wo.streetNumber, wo.streetName)}
                   className="text-primary hover:underline"
                 >
                   {wo.streetNumber} {wo.streetName}
-                </a>
+                </button>
               </td>
               <td className="px-4 py-3 text-slate-700">{wo.assignedCrew ?? '—'}</td>
               <td className="px-4 py-3 text-slate-500">{new Date(wo.createdAt).toLocaleString()}</td>
@@ -44,6 +55,13 @@ function WorkOrdersList() {
           ))}
         </tbody>
       </table>
+      {mapLocation && (
+        <MapModal
+          latitude={mapLocation.latitude}
+          longitude={mapLocation.longitude}
+          onClose={() => setMapLocation(null)}
+        />
+      )}
     </div>
   )
 }
