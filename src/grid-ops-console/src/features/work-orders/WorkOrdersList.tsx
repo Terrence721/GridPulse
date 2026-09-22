@@ -12,28 +12,39 @@ function WorkOrdersList() {
   }
 
   return (
-    <table>
-      <thead>
-        <tr>
-          <th>Hazard</th>
-          <th>Status</th>
-          <th>Location</th>
-          <th>Assigned crew</th>
-          <th>Created</th>
-        </tr>
-      </thead>
-      <tbody>
-        {workOrders?.map((wo) => (
-          <tr key={wo.id}>
-            <td>{wo.hazardType}</td>
-            <td>{wo.status}</td>
-            <td>{wo.streetNumber} {wo.streetName}</td>
-            <td>{wo.assignedCrew ?? '—'}</td>
-            <td>{new Date(wo.createdAt).toLocaleString()}</td>
+    <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <table className="w-full text-sm text-left">
+        <thead className="bg-slate-50 text-slate-700 border-b border-slate-200">
+          <tr>
+            <th className="px-4 py-3 font-semibold">Hazard</th>
+            <th className="px-4 py-3 font-semibold">Status</th>
+            <th className="px-4 py-3 font-semibold">Location</th>
+            <th className="px-4 py-3 font-semibold">Assigned crew</th>
+            <th className="px-4 py-3 font-semibold">Created</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {workOrders?.map((wo) => (
+            <tr key={wo.id} className="border-b border-slate-200 last:border-0 hover:bg-slate-50">
+              <td className="px-4 py-3 text-slate-900">{wo.hazardType}</td>
+              <td className="px-4 py-3 text-slate-700">{wo.status}</td>
+              <td className="px-4 py-3 text-slate-700">
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${wo.streetNumber ?? ''} ${wo.streetName ?? ''}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  {wo.streetNumber} {wo.streetName}
+                </a>
+              </td>
+              <td className="px-4 py-3 text-slate-700">{wo.assignedCrew ?? '—'}</td>
+              <td className="px-4 py-3 text-slate-500">{new Date(wo.createdAt).toLocaleString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }
 
