@@ -28,7 +28,6 @@ function App() {
     <div>
       <h1>Grid Operations Console</h1>
       <p>Signed in as {auth.user?.profile.name ?? auth.user?.profile.sub}</p>
-      <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{auth.user?.access_token}</pre>
       <button onClick={() => auth.signoutRedirect()}>Log out</button>
       <nav>
         <Link to="/work-orders">Work Orders</Link>{' | '}
