@@ -10,6 +10,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+      <Route path="/callback" element={<div>Signing in...</div>} />
       <Route element={<RequireAuth />}>
         <Route element={<RequireRole role="dispatcher" />}>
           <Route path="/work-orders" element={<WorkOrdersList />} />
