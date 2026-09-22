@@ -37,6 +37,16 @@ export interface WorkOrderDetail {
   outage: Outage | null
 }
 
+export interface GeocodeResult {
+  latitude: number
+  longitude: number
+}
+
+export interface GeocodeAddress {
+  streetNumber: number | null
+  streetName: string | null
+}
+
 export const gatewayApi = createApi({
   reducerPath: 'gatewayApi',
   baseQuery: fetchBaseQuery({
@@ -59,7 +69,11 @@ export const gatewayApi = createApi({
     getWorkOrder: builder.query<WorkOrderDetail, string>({
       query: (id) => `/api/work-orders/${id}`,
     }),
+    geocodeAddress: builder.query<GeocodeResult, GeocodeAddress>({
+      query: ({ streetNumber, streetName }) =>
+        `/api/geocode?${new URLSearchParams({ streetNumber: String(streetNumber ?? ''), streetName: streetName ?? '' })}`,
+    }),
   }),
 })
 
-export const { useGetWorkOrdersQuery, useGetOutagesQuery, useGetWorkOrderQuery } = gatewayApi
+export const { useGetWorkOrdersQuery, useGetOutagesQuery, useGetWorkOrderQuery, useLazyGeocodeAddressQuery } = gatewayApi
