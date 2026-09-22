@@ -43,11 +43,6 @@ public static class GatewayExtensions
                 // reached differently, so both are accepted here rather than
                 // picking one and breaking whichever caller uses the other.
                 options.TokenValidationParameters.ValidIssuers = [httpAuthority, httpsAuthority];
-                // The JWT's role claim is the short "role" type (JwtClaimTypes.Role),
-                // not ASP.NET Core's default ClaimTypes.Role (the long WS-Federation
-                // URI) - RequireRole()/IsInRole() would silently never match without
-                // this, even with a perfectly valid, correctly-issued token.
-                options.TokenValidationParameters.RoleClaimType = "role";
                 options.Events = new JwtBearerEvents
                 {
                     // SignalR's WebSocket/SSE transports can't set an
