@@ -26,7 +26,9 @@ function RequireAuth() {
         <div className="flex items-center gap-6">
           <span className="font-bold text-slate-900">GridPulse</span>
           <nav className="flex gap-4">
-            <Link to="/work-orders" className="text-sm font-semibold text-slate-700">Work Orders</Link>
+            {auth.user?.profile.role === 'dispatcher' && (
+              <Link to="/work-orders" className="text-sm font-semibold text-slate-700">Work Orders</Link>
+            )}
             <Link to="/outages" className="text-sm font-semibold text-slate-700">Outages</Link>
           </nav>
         </div>
