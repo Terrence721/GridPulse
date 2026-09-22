@@ -6,7 +6,7 @@
 [![CodeQL](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml/badge.svg)](https://github.com/Terrence721/GridPulse/actions/workflows/codeql.yml)
 
 <!-- markdownlint-disable-next-line MD036 -->
-**Status:** Phases 1 through 3 all complete, plus three post-Phase-3 features — Green Button/NAESB ESPI data export, a real Stripe payment integration, and Grid Operations (outage detection & work orders), all live-verified. All six services (Account/Customer Service, Meter Simulator, Usage Aggregation, Billing, Grid Operations, Notification Service) run end-to-end over real Kafka events through a real Confluent Schema Registry. **Phase 4a (Grid Operations console) is in progress** — Duende IdentityServer and the Grid Operations BFF gateway are both built and live-verified end-to-end; the React/Redux Toolkit frontend is next. See [Build Phases](#-build-phases).
+**Status:** Phases 1 through 3 all complete, plus three post-Phase-3 features — Green Button/NAESB ESPI data export, a real Stripe payment integration, and Grid Operations (outage detection & work orders), all live-verified. All six services (Account/Customer Service, Meter Simulator, Usage Aggregation, Billing, Grid Operations, Notification Service) run end-to-end over real Kafka events through a real Confluent Schema Registry. **Phase 4a (Grid Operations console) is functionally complete and live-verified** — Duende IdentityServer, the Grid Operations BFF gateway, and the React/Redux Toolkit frontend (OIDC login, role-based routing, a Work Orders queue, an Outages view, a map-location feature) are all built and live-verified end-to-end; automated tests and remaining UI polish are still outstanding. See [Build Phases](#-build-phases).
 
 GridPulse is a self-contained, event-driven platform simulating a utility company's meter-reading, usage-aggregation, and billing pipeline. It's an original portfolio project (not a fork or a cloned tutorial) built to demonstrate principal-level system design: distributed systems, microservices decomposition, event streaming, resilient service-to-service communication, CI/CD, and production-grade observability. The domain is utility metering/billing, but the pipeline shape — high-volume telemetry in, aggregation, billing out — generalizes to IoT sensor networks, subscription usage billing, or order processing.
 
@@ -74,7 +74,8 @@ Grid Operations BFF / API Gateway       — separate from the customer-facing ga
         │
         ▼
 Outage & Work Order Dashboard           — its own frontend for field crews/dispatchers:
-(React + Redux Toolkit)                   outage map, work-order queue — Phase 4a, in progress
+(React + Redux Toolkit)                   work-order queue, outages view, map-location links —
+                                           Phase 4a, live-verified (tests/polish outstanding)
 
 Account/Customer Service (.NET)         — owns customer & meter registration, REST API, built
         │
@@ -98,7 +99,7 @@ Tracked in detail in [`todo.md`](todo.md) (the source of truth) and the [project
 - [x] **Phase 1 — Core loop, no Kafka.** Meter Simulator → Usage Aggregation → Billing via direct REST calls, single Postgres DB.
 - [x] **Phase 2 — Introduce Kafka.** Replace REST calls between services with Kafka topics; add a schema registry.
 - [x] **Phase 3 — Polyglot + accounts.** Add the Node.js Notification Service and the Account/Customer Service.
-- [ ] **Phase 4a — Grid Operations console.** Duende IdentityServer + Grid Operations BFF gateway done and live-verified end-to-end; React/Redux Toolkit frontend in progress.
+- [ ] **Phase 4a — Grid Operations console.** Duende IdentityServer, the Grid Operations BFF gateway, and the React/Redux Toolkit frontend are all built and live-verified end-to-end; automated tests and remaining UI polish still outstanding.
 - [ ] **Phase 4b — Customer billing dashboard.** Build the React/Redux Toolkit dashboard and BFF gateway for usage/billing — deferred until Phase 4a ships (needs new `Billing`/`UsageAggregation` read endpoints first).
 - [ ] **Phase 5 — CI/CD.** GitHub Actions build/test/containerize/deploy pipeline.
 - [ ] **Phase 6 — Observability & resiliency.** OpenTelemetry, dashboards, retries/circuit breakers, dead-letter queues, chaos testing.
